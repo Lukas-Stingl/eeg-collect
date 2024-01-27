@@ -141,6 +141,27 @@ export default {
       cytonBoard: null,
       participantNumberSet: false,
       showContinueButton: true,
+      showIcon1: Math.random() < 0.5,
+      showIcon2: Math.random() < 0.5,
+      showIcon3: Math.random() < 0.5,
+      showIcon4: Math.random() < 0.5,
+      showIcon5: Math.random() < 0.5,
+      showIcon6: Math.random() < 0.5,
+      showIcon7: Math.random() < 0.5,
+      showIcon8: Math.random() < 0.5,
+      showIcon9: Math.random() < 0.5,
+      showIcon10: Math.random() < 0.5,
+      showIcon11: Math.random() < 0.5,
+      showIcon12: Math.random() < 0.5,
+      showIcon13: Math.random() < 0.5,
+      showIcon14: Math.random() < 0.5,
+      showIcon15: Math.random() < 0.5,
+      showIcon16: Math.random() < 0.5,
+      showIcon17: Math.random() < 0.5,
+      showIcon18: Math.random() < 0.5,
+      showIcon19: Math.random() < 0.5,
+      showIcon20: Math.random() < 0.5,
+      showIcon21: Math.random() < 0.5,
     };
   },
   mounted() {
@@ -197,5 +218,177 @@ export default {
 </script>
 
 <style scoped>
-/* Add your component-specific styles here */
+/* Add your styles specific to this component if needed */
+h2 {
+  text-align: center;
+}
+
+.image-container {
+  position: relative;
+}
+
+/* Center the icons relative to the image dimensions */
+.v-icon-1 {
+  position: absolute;
+  top: 62%;
+  left: 23%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-2 {
+  position: absolute;
+  top: 74%;
+  left: 23%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-3 {
+  position: absolute;
+  top: 82.5%;
+  left: 28%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-4 {
+  position: absolute;
+  top: 82.5%;
+  left: 37.2%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-5 {
+  position: absolute;
+  top: 74%;
+  left: 42.2%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-6 {
+  position: absolute;
+  top: 62%;
+  left: 42.2%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-7 {
+  position: absolute;
+  top: 53%;
+  left: 37.2%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-8 {
+  position: absolute;
+  top: 52.8%;
+  left: 28%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-9 {
+  position: absolute;
+  top: 62%;
+  left: 58%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-10 {
+  position: absolute;
+  top: 74%;
+  left: 57.9%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-11 {
+  position: absolute;
+  top: 82.5%;
+  left: 62.9%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-12 {
+  position: absolute;
+  top: 82.5%;
+  left: 72.1%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-13 {
+  position: absolute;
+  top: 74%;
+  left: 77.1%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-14 {
+  position: absolute;
+  top: 62%;
+  left: 77.1%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-15 {
+  position: absolute;
+  top: 53%;
+  left: 72.1%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-16 {
+  position: absolute;
+  top: 52.8%;
+  left: 62.9%;
+  transform: translate(-50%, -50%);
+}
+
+
+.v-icon-17 {
+  position: absolute;
+  top: 38.2%;
+  left: 30.4%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-18 {
+  position: absolute;
+  top: 22.3%;
+  left: 37.3%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-19 {
+  position: absolute;
+  top: 15.3%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-20 {
+  position: absolute;
+  top: 22.3%;
+  left: 63.4%;
+  transform: translate(-50%, -50%);
+}
+
+.v-icon-21 {
+  position: absolute;
+  top: 38.2%;
+  left: 69.8%;
+  transform: translate(-50%, -50%);
+}
+.help {
+  top: 10px;
+  right: 10px;
+  
+}
+.continue {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+.help-class{
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Continue this pattern for the rest of the icons */
 </style>
