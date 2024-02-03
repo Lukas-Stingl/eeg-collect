@@ -5,6 +5,10 @@ import Check from '@/views/DeviceCheck.vue';
 
 const routes = [
   {
+    path: '/',
+    redirect: 'recording'
+  },
+  {
     path: '/start',
     component: Participant
   },
