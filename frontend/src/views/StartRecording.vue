@@ -1,3 +1,9 @@
+/**
+ * Vue component for starting and recording EEG data.
+ * This component includes functionality for connecting to the EEG device,
+ * performing device checks, and starting/stopping the recording.
+ *
+ */
 <template>
   <div>
     <!-- Circular progress component -->
@@ -31,9 +37,11 @@
           id="participantNr"
           class="input-field"
           label="Teilnehmernummer"
+          ref="participantNumber"
         ></v-text-field>
       </div>
 
+      
       <div class="input-container">
         <div class="button-container">
           <!-- Vue button for "Weiter zur Geräteüberprüfung" -->
@@ -48,19 +56,18 @@
             color="info"
             icon="mdi-help-circle-outline"
             size="x-small"
-            @click="toggleHelp"
+            @click="partHelp"
           ></v-icon>
         </div>
 
-        <v-dialog v-model="isHelpOpen" max-width="500px">
+        <v-dialog v-model="isParticipantHelpOpen" max-width="500px">
           <v-card>
             <v-card-title>Hilfe</v-card-title>
             <v-card-text>
-              Im Folgenden verbinden Sie bitte Ihr Gerät. Verwenden Sie den
-              entsprechenden Port des Headsets. Dieser heißt in Ihrem Fall XXX.
+              Gebem Sie Ihre zugeteilte Teilnehmernummer an und verbinden Sie Ihr Gerät. Verwenden Sie den entsprechenden Port des Headsets. Falls Sie einen Mac verwenden lautet dieser "FT231X USB UART" unter windows "COM3".
             </v-card-text>
             <v-card-actions>
-              <v-btn @click="toggleHelp">Close</v-btn>
+              <v-btn @click="partHelp">Schließen</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -68,7 +75,7 @@
     </div>
 
     <h2 v-if="showContinueButton && participantNumberSet">Device Check</h2>
-    <h1 v-if="!showContinueButton && participantNumberSet">Cyton Connector</h1>
+    <h1 v-if="!showContinueButton && participantNumberSet">Aufnahme</h1>
 
     <v-container
       v-if="showContinueButton && participantNumberSet"
@@ -149,21 +156,20 @@
         </v-col>
       </v-row>
 
-      <div class="help-class">
-        <v-icon
-          class="help"
-          color="info"
-          icon="mdi-help-circle-outline"
-          size="x-small"
-          @click="toggleHelp"
-          style="z-index: 9999999"
-        ></v-icon>
-      </div>
+      
+       
       <div class="button-container">
         <v-btn @click="redirectToStartRecording">Weiter</v-btn>
+         <v-icon
+          color="info"
+          class="help"
+          icon="mdi-help-circle-outline"
+          size="x-small"
+          @click="connectHelp"
+        ></v-icon>
       </div>
 
-      <v-dialog v-model="isHelpOpen" max-width="500px">
+      <v-dialog v-model="isConnectHelpOpen" max-width="500px">
         <v-card>
           <v-card-title>Hilfe</v-card-title>
           <v-card-text>
@@ -172,23 +178,19 @@
             Elektrotroden korrekt angebracht sind.
           </v-card-text>
           <v-card-actions>
-            <v-btn @click="toggleHelp">Close</v-btn>
+            <v-btn @click="connectHelp">Schließen</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
+
     </v-container>
+
 
     <div v-if="!showContinueButton && participantNumberSet">
       <!-- Cyton Connector Content -->
-      <v-btn @click="connectToCyton">Connect to Cyton</v-btn>
-      <p id="status">{{ status }}</p>
-      <div id="data-display">
-        <p v-for="(value, channel) in data" :key="channel">
-          {{ channel }}: {{ value }}
-        </p>
-      </div>
-      <v-btn @click="startRecording">Start Recording</v-btn>
-      <v-btn @click="stopRecording">Stop Recording</v-btn>
+   
+<v-btn @click="startRecording" style="margin-right: 20px; margin-top:20px">Aufnahme starten</v-btn>
+<v-btn @click="stopRecording" style="margin-right: 20px; margin-top:20px">Aufnahme stoppen</v-btn>
     </div>
   </div>
 </template>
@@ -196,11 +198,15 @@
 <script>
 import { cyton } from "../scripts/cyton.js";
 
+
 export default {
   data() {
     return {
+      participantNumber: "",
       status: "Not connected",
       data: {},
+      isParticipantHelpOpen: false,
+      isConnectHelpOpen: false,
       cytonBoard: null,
       participantNumberSet: false,
       showContinueButton: true,
@@ -247,6 +253,11 @@ export default {
     },
   },
   methods: {
+        /**
+         * Maps the 'setParticipantNumber' mutation to the component's methods.
+         * This allows the component to easily call the 'setParticipantNumber' mutation
+         * and update the participant number in the Vuex store.
+         */
     async connectToCyton() {
       await this.cytonBoard
         .setupSerialAsync()
@@ -272,7 +283,7 @@ export default {
       await this.cytonBoard.startReading();
 
       // Wait for 5 seconds
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Call stopReading
       await this.cytonBoard
@@ -300,22 +311,6 @@ export default {
     handleResize() {
       this.$forceUpdate();
     },
-    receiveData() {
-      for (let channel of [
-        "A0",
-        "A1",
-        "A2",
-        "A3",
-        "A4",
-        "A5",
-        "A6",
-        "A7",
-        "A8",
-      ]) {
-        let data = this.cytonBoard.getLatestData(channel, 1);
-        this.$set(this.data, channel, data[0]);
-      }
-    },
     startRecording() {
       this.cytonBoard
         .startReading()
@@ -327,17 +322,25 @@ export default {
         });
     },
     stopRecording() {
-      this.cytonBoard.stopReading().then(() => {
+      this.cytonBoard.stopReading(this.participantNumber).then(() => {
         console.log("Recording stopped");
       });
+    },
+        partHelp() {
+      this.isParticipantHelpOpen = !this.isParticipantHelpOpen;
+    },
+       connectHelp() {
+      this.isConnectHelpOpen = !this.isConnectHelpOpen;
     },
 
     redirectToStartRecording() {
       this.showContinueButton = false;
     },
-    async setParticipantNumberAndContinue() {
+    async setParticipantNumberAndContinue ()  {
+      this.participantNumber = document.getElementById('participantNr').value
       await this.deviceCheck();
     },
+
   },
   beforeUnmount() {
     window.removeEventListener("resize", this.handleResize);
@@ -504,8 +507,10 @@ h2 {
   transform: translate(-50%, -50%);
 }
 .help {
-  top: 10px;
-  right: 10px;
+ z-index: 9999999;
+ left: 25px;
+ top: 10px;
+ position:relative;
 }
 .continue {
   display: flex;
@@ -517,7 +522,9 @@ h2 {
   justify-content: flex-end;
 }
 .button-container {
-  position: absolute;
+  position:relative;
+  display: flex;
+  justify-content: center;
   margin-top: 35px;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -525,8 +532,7 @@ h2 {
 .input {
   margin-top: 50px;
   max-width: 300px;
-  display: flex;
-  justify-content: center;
+
   margin-left: auto;
   margin-right: auto;
 }

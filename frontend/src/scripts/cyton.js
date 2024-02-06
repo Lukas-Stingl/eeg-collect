@@ -12,7 +12,6 @@ export class cyton {
     this.onDecodedCallback = onDecodedCallback;
     this.onConnectedCallback = onConnectedCallback;
     this.onDisconnectedCallback = onDisconnectedCallback;
-
     this.encoder = new TextEncoder("ascii");
 
     this.startRecording = "";
@@ -23,7 +22,7 @@ export class cyton {
     this.startByte = 160; //0xA0; // Start byte value
     this.stopByte = 192; //0xC0; // Stop byte value  //0xC0,0xC1,0xC2,0xC3,0xC4,0xC5,0xC6
     this.searchString = new Uint8Array([this.stopByte, this.startByte]); //Byte search string
-    this.readRate = 0.0001; //Throttle EEG read speed. (1.953ms/sample min @103 bytes/line)
+    this.readRate = 16.66667; //Throttle EEG read speed. (1.953ms/sample min @103 bytes/line)
     this.readBufferSize = 2000000; //Serial read buffer size, increase for slower read speeds (~1030bytes every 20ms) to keep up with the stream (or it will crash)
 
     this.sps = 250; // Sample rate
@@ -175,94 +174,83 @@ export class cyton {
     let newLines = 0;
 
     for (var i = search(haystack); i !== -1; i = search(haystack, i + skip)) {
-      indices.push(i);
+        indices.push(i);
     }
 
     if (indices.length >= 2) {
-      for (let k = 1; k < indices.length; k++) {
-        if (indices[k] - indices[k - 1] === 33) {
-          var line = buffer.slice(indices[k - 1], indices[k] + 1); // Slice out this line to be decoded
+        for (let k = 1; k < indices.length; k++) {
+            if (indices[k] - indices[k - 1] === 33) {
+                var line = buffer.slice(indices[k - 1], indices[k] + 1); // Slice out this line to be decoded
 
-          let odd = line[2] % 2 !== 0;
+                let odd = line[2] % 2 !== 0;
 
-          if (
-            this.data.count < this.maxBufferedSamples &&
-            ((this.mode === "daisy" && odd) || this.mode !== "daisy")
-          ) {
-            this.data.count++;
-          }
+                if (
+                    this.data.count < this.maxBufferedSamples &&
+                    ((this.mode === "daisy" && odd) || this.mode !== "daisy")
+                ) {
+                    this.data.count++;
+                }
 
-          if (this.data.count - 1 === 0) {
-            this.data.ms[this.data.count - 1] = Date.now();
-            this.data.startms = this.data.ms[0];
-          } else if (odd) {
-            this.data.ms[this.data.count - 1] =
-              this.data.ms[this.data.count - 2] + this.updateMs;
+                this.data.ms[this.data.count - 1] = Date.now(); // Always create a new timestamp
 
-            if (this.data.count >= this.maxBufferedSamples) {
-              this.data.ms.splice(0, 5120);
-              this.data.ms.push(new Array(5120).fill(0));
+                for (i = 3; i < 27; i += 3) {
+                    let channel;
+                    if (this.mode === "daisy") {
+                        if (odd) {
+                            channel = "A" + (i - 3) / 3;
+                            this.odd = false;
+                        } else {
+                            channel = "A" + (8 + (i - 3) / 3);
+                            this.odd = true;
+                        }
+                    } else {
+                        channel = "A" + (i - 3) / 3;
+                    }
+                    this.data[channel][this.data.count - 1] = this.bytesToInt24(
+                        line[i],
+                        line[i + 1],
+                        line[i + 2]
+                    ) * 0.02235;
+
+                    if (this.data.count >= this.maxBufferedSamples) {
+                        this.data[channel].splice(0, 5120);
+                        this.data[channel].push(new Array(5120).fill(0));
+                    }
+                }
+
+                if (!odd) {
+                    this.data["Ax"][this.data.count - 1] = this.bytesToInt16(
+                        line[27],
+                        line[28]
+                    );
+                    this.data["Ay"][this.data.count - 1] = this.bytesToInt16(
+                        line[29],
+                        line[30]
+                    );
+                    this.data["Az"][this.data.count - 1] = this.bytesToInt16(
+                        line[31],
+                        line[32]
+                    );
+                }
+
+                if (this.data.count >= this.maxBufferedSamples) {
+                    this.data["Ax"].splice(0, 5120);
+                    this.data["Ay"].splice(0, 5120);
+                    this.data["Az"].splice(0, 5120);
+                    this.data["Ax"].push(new Array(5120).fill(0));
+                    this.data["Ay"].push(new Array(5120).fill(0));
+                    this.data["Az"].push(new Array(5120).fill(0));
+                    this.data.count -= 5120;
+                }
+
+                newLines++;
             }
-          }
-
-          for (i = 3; i < 27; i += 3) {
-            let channel;
-            if (this.mode === "daisy") {
-              if (odd) {
-                channel = "A" + (i - 3) / 3;
-                this.odd = false;
-              } else {
-                channel = "A" + (8 + (i - 3) / 3);
-                this.odd = true;
-              }
-            } else {
-              channel = "A" + (i - 3) / 3;
-            }
-            this.data[channel][this.data.count - 1] = this.bytesToInt24(
-              line[i],
-              line[i + 1],
-              line[i + 2]
-            )*0.02235 ;
-
-            if (this.data.count >= this.maxBufferedSamples) {
-              this.data[channel].splice(0, 5120);
-              this.data[channel].push(new Array(5120).fill(0));
-            }
-          }
-
-          if (!odd) {
-            this.data["Ax"][this.data.count - 1] = this.bytesToInt16(
-              line[27],
-              line[28]
-            );
-            this.data["Ay"][this.data.count - 1] = this.bytesToInt16(
-              line[29],
-              line[30]
-            );
-            this.data["Az"][this.data.count - 1] = this.bytesToInt16(
-              line[31],
-              line[32]
-            );
-          }
-
-          if (this.data.count >= this.maxBufferedSamples) {
-            this.data["Ax"].splice(0, 5120);
-            this.data["Ay"].splice(0, 5120);
-            this.data["Az"].splice(0, 5120);
-            this.data["Ax"].push(new Array(5120).fill(0));
-            this.data["Ay"].push(new Array(5120).fill(0));
-            this.data["Az"].push(new Array(5120).fill(0));
-            this.data.count -= 5120;
-          }
-
-          newLines++;
         }
-      }
 
-      if (newLines > 0) buffer.splice(0, indices[indices.length - 1]);
-      return newLines;
+        if (newLines > 0) buffer.splice(0, indices[indices.length - 1]);
+        return newLines;
     }
-  }
+}
 
   //Callbacks
   onDecodedCallback(newLinesInt) {
@@ -343,7 +331,7 @@ export class cyton {
           if (this.subscribed === true) {
             setTimeout(() => {
               streamData();
-            }, 0.00005);
+            }, this.readRate);
           }
         } catch (error) {
           alert(
@@ -360,9 +348,9 @@ export class cyton {
     }
   }
 
-  async stopReading() {
+  async stopReading(participantNumber) {
     this.endRecording = this.getReadableTimestamp();
-    if (this.connected && this.reader) {
+   
       this.connected = false;
       try {
         // Close the reader and release the lock
@@ -371,26 +359,40 @@ export class cyton {
         console.log("Error releasing lock:", error);
       }
       const objectKeys = Object.keys(this.data);
-      this.exportCSV(this.data, objectKeys);
+      this.exportCSV(this.data, objectKeys, participantNumber);
       this.buffer = [];
       console.log("Stopped reading from serial port and buffer is reset");
-    }
+    
     console.log("Stopped reading from serial port");
   }
 
-  exportCSV(content, objectKeys) {
+  exportCSV(content, objectKeys, participantNumber) {
     const csvContent = this.parseAndExportData(content, objectKeys);
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", "eeg_data.csv");
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }
+    const fileName = `${participantNumber}-${this.startRecording}.csv`;
+
+    const formData = new FormData();
+    formData.append('fileName', fileName);
+    formData.append('csvContent', csvContent);
+
+    fetch('http://localhost:8081/api/save-csv', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('CSV file saved successfully:', data.filePath);
+    })
+    .catch(error => {
+        console.error('Error saving CSV file:', error);
+    });
+}
+
+
 
   async stopCheck() {
     this.endRecording = this.getReadableTimestamp();
@@ -427,19 +429,48 @@ export class cyton {
 
   parseAndExportData(data, objectKeys) {
     // Add headers using objectKeys
-    const headers = objectKeys.map((key, index) => `A${index}`).join(",");
+    const headers = objectKeys.join(";");
 
-    // Convert data to CSV format
-    const csvContent = `${headers}\n${objectKeys
-      .map((key) =>
-        Object.values(data[key])
-          .map((value) => (Array.isArray(value) ? value.join(",") : value))
-          .join(",")
-      )
-      .join("\n")}`;
+    // Transpose data
+    const transposedData = objectKeys.map(key => {
+        if (Array.isArray(data[key])) {
+            return data[key];
+        } else {
+            // If it's a string, create an array with a single element
+            return [data[key]];
+        }
+    });
+
+    // Find the maximum length among the arrays
+    const maxLength = Math.max(...transposedData.map(arr => arr.length));
+
+    // Fill shorter arrays with empty strings to match the maximum length
+    const filledData = transposedData.map(arr => {
+        const diff = maxLength - arr.length;
+        return arr.concat(Array(diff).fill(""));
+    });
+
+    // Create rows by taking values at the same index from each array
+    const rows = [];
+    for (let i = 0; i < parseInt(filledData[0][0]); i++) {
+        const index = i + 1;
+        let datetime = "";
+        // Calculate datetime based on startms and previous datetime
+        datetime = new Date(filledData[2][i]).toLocaleString();
+        
+        // Format datetime manually to avoid locale issues
+
+        const rowValues = [index, datetime].concat(filledData.map(arr => arr[i]));
+        rows.push(rowValues.join(";"));
+    }
+
+    // Combine rows with newline characters
+    const csvContent = "Index;Datetime;" + headers + "\n" + rows.join("\n");
 
     return csvContent;
-  }
+}
+
+
 
   convertBytesToInt(bytes) {
     // Convert 3-byte EEG data to a 24-bit signed integer

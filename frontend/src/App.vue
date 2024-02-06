@@ -3,7 +3,7 @@
     <!-- Application Header with Menu Button -->
     <header>
       <div class="menu-button" @click="toggleMenu">&#9776;</div>
-      <h1 class="app-title">EEG Data Collection</h1>
+      <h1 class="app-title">EEG Aufnahme</h1>
     </header>
 
     <!-- Menu -->
