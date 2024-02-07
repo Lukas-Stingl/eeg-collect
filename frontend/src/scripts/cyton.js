@@ -26,7 +26,7 @@ export class cyton {
     this.readBufferSize = 2000000; //Serial read buffer size, increase for slower read speeds (~1030bytes every 20ms) to keep up with the stream (or it will crash)
 
     this.sps = 250; // Sample rate
-    this.nChannels = 16;
+    this.nChannels = 21;
     this.nPeripheralChannels = 6; // accelerometer and gyroscope (2 bytes * 3 coordinates each)
     this.updateMs = 1000 / this.sps; //even spacing
     this.stepSize = 1 / (Math.pow(2, 23) - 1);
@@ -62,7 +62,12 @@ export class cyton {
       A12: [],
       A13: [],
       A14: [],
-      A15: [], //ADC 1
+      A15: [],
+      A16: [],
+      A17: [],
+      A18: [],
+      A19: [],
+      A20: [], //ADC 1
       Ax: [],
       Ay: [],
       Az: [],
@@ -277,7 +282,7 @@ export class cyton {
 
   async sendMsg(msg) {
     msg += "\n";
-    var bytes = this.encoder.encode(msg);
+    var bytes = this.encoder.encode(msg); 
     const writer = this.port.writable.getWriter();
     await writer.write(bytes);
     writer.releaseLock();
@@ -361,6 +366,7 @@ export class cyton {
       const objectKeys = Object.keys(this.data);
       this.exportCSV(this.data, objectKeys, participantNumber);
       this.buffer = [];
+      
       console.log("Stopped reading from serial port and buffer is reset");
     
     console.log("Stopped reading from serial port");
@@ -408,6 +414,7 @@ export class cyton {
       console.log("Stopped reading from serial port and buffer is reset");
     }
     console.log("Stopped reading from serial port");
+    return this.data
   }
 
 

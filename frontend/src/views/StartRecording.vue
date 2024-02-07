@@ -213,27 +213,28 @@ export default {
       loading: false, // Add loading state
       minWidth: 960,
       maxWidthPercent: 70,
-      showIcon1: Math.random() < 2,
-      showIcon2: Math.random() < 2,
-      showIcon3: Math.random() < 2,
-      showIcon4: Math.random() < 2,
-      showIcon5: Math.random() < 2,
-      showIcon6: Math.random() < 2,
-      showIcon7: Math.random() < 2,
-      showIcon8: Math.random() < 2,
-      showIcon9: Math.random() < 2,
-      showIcon10: Math.random() < 2,
-      showIcon11: Math.random() < 2,
-      showIcon12: Math.random() < 2,
-      showIcon13: Math.random() < 2,
-      showIcon14: Math.random() < 2,
-      showIcon15: Math.random() < 2,
-      showIcon16: Math.random() < 2,
-      showIcon17: Math.random() < 2,
-      showIcon18: Math.random() < 2,
-      showIcon19: Math.random() < 2,
-      showIcon20: Math.random() < 2,
-      showIcon21: Math.random() < 2,
+      showIcon1: false,
+      showIcon2: false,
+      showIcon3: false,
+      showIcon4: false,
+      showIcon5: false,
+      showIcon6: false,
+      showIcon7: false,
+      showIcon8: false,
+      showIcon9: false,
+      showIcon10: false,
+      showIcon11: false,
+      showIcon12: false,
+      showIcon13: false,
+      showIcon14: false,
+      showIcon15: false,
+      showIcon16: false,
+      showIcon17: false,
+      showIcon18: false,
+      showIcon19: false,
+      showIcon20: false,
+      showIcon21: false,
+
     };
   },
   mounted() {
@@ -269,6 +270,9 @@ export default {
           this.status = "Connection Failed";
         });
     },
+    isVarianceHigh(value) {
+      return value > -187400 && value < -187600;
+    },
     async deviceCheck() {
       // Show loading spinner
       await this.cytonBoard
@@ -283,14 +287,39 @@ export default {
       await this.cytonBoard.startReading();
 
       // Wait for 5 seconds
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       // Call stopReading
       await this.cytonBoard
         .stopCheck()
-        .then(() => {
+        .then((res) => {
+          console.log(res)
+          this.data = res;
           this.loading = false;
           this.participantNumberSet = true;
+this.showIcon1 = this.calculateAverage(this.data["A0"].slice(0, 15)) === 0;
+this.showIcon2 = this.calculateAverage(this.data["A1"].slice(0, 15)) === 0;
+this.showIcon3 = this.calculateAverage(this.data["A2"].slice(0, 15)) === 0;
+this.showIcon4 = this.calculateAverage(this.data["A3"].slice(0, 15)) === 0;
+this.showIcon5 = this.calculateAverage(this.data["A4"].slice(0, 15)) === 0;
+this.showIcon6 = this.calculateAverage(this.data["A5"].slice(0, 15)) === 0;
+this.showIcon7 = this.calculateAverage(this.data["A6"].slice(0, 15)) === 0;
+this.showIcon8 = this.calculateAverage(this.data["A7"].slice(0, 15)) === 0;
+this.showIcon9 = this.calculateAverage(this.data["A8"].slice(0, 15)) === 0;
+this.showIcon10 = this.calculateAverage(this.data["A9"].slice(0, 15)) === 0;
+this.showIcon11 = this.calculateAverage(this.data["A10"].slice(0, 15)) === 0;
+this.showIcon12 = this.calculateAverage(this.data["A11"].slice(0, 15)) === 0;
+this.showIcon13 = this.calculateAverage(this.data["A12"].slice(0, 15)) === 0;
+this.showIcon14 = this.calculateAverage(this.data["A13"].slice(0, 15)) === 0;
+this.showIcon15 = this.calculateAverage(this.data["A14"].slice(0, 15)) === 0;
+this.showIcon16 = this.calculateAverage(this.data["A15"].slice(0, 15)) === 0;
+this.showIcon17 = this.calculateAverage(this.data["A16"].slice(0, 15)) === 0;
+this.showIcon18 = this.calculateAverage(this.data["A17"].slice(0, 15)) === 0;
+this.showIcon19 = this.calculateAverage(this.data["A18"].slice(0, 15)) === 0;
+this.showIcon20 = this.calculateAverage(this.data["A19"].slice(0, 15)) === 0;
+this.showIcon21 = this.calculateAverage(this.data["A20"].slice(0, 15)) === 0;
+
+
         })
         .catch((error) => {
           console.error("Connection failed", error);
@@ -331,6 +360,11 @@ export default {
     },
        connectHelp() {
       this.isConnectHelpOpen = !this.isConnectHelpOpen;
+    },
+        calculateAverage(data) {
+    const sum = data.reduce((acc, val) => acc + val, 0);
+    const average = sum / data.length;
+    return average;
     },
 
     redirectToStartRecording() {
