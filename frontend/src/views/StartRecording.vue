@@ -183,7 +183,7 @@ checks, and starting/stopping the recording. * */
 
     <div v-if="!showContinueButton && participantNumberSet">
       <!-- Cyton Connector Content -->
-      <div>
+      <div class="recordButtons">
         <v-btn
           @click="startRecording"
           style="margin-right: 20px; margin-top: 20px"
@@ -789,6 +789,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+        }
         },
       });
     },
@@ -818,6 +821,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+        }
         },
       });
     },
@@ -847,6 +853,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+        }
         },
       });
     },
@@ -876,6 +885,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+        }
         },
       });
     },
@@ -905,6 +917,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+        }
         },
       });
     },
@@ -934,6 +949,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+        }
         },
       });
     },
@@ -963,6 +981,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+          }
         },
       });
     },
@@ -992,6 +1013,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+          }
         },
       });
     },
@@ -1021,6 +1045,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+          }
         },
       });
     },
@@ -1050,6 +1077,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+          }
         },
       });
     },
@@ -1079,6 +1109,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+          }
         },
       });
     },
@@ -1108,6 +1141,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+          }
         },
       });
     },
@@ -1137,6 +1173,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+          }
         },
       });
     },
@@ -1166,6 +1205,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+          }
         },
       });
     },
@@ -1195,6 +1237,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+          }
         },
       });
     },
@@ -1224,6 +1269,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+          }
         },
       });
     },
@@ -1253,6 +1301,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+          }
         },
       });
     },
@@ -1282,6 +1333,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+        }
         },
       });
     },
@@ -1311,6 +1365,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+          }
         },
       });
     },
@@ -1340,6 +1397,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+          }
         },
       });
     },
@@ -1369,6 +1429,9 @@ export default {
               radius: 0,
             },
           },
+          legend: {
+            position: 'left'
+          }
         },
       });
     },
@@ -1621,13 +1684,15 @@ div#card_connect {
 }
 .chart-container {
   width: 50% %; /* Ensure each chart takes up full width of its container */
-  height: 150px; /* Adjust height of charts as needed */
+  height: 90px; /* Adjust height of charts as needed */
 }
 .charts {
   display: grid;
   grid-template-columns: repeat(3, 4fr);
   gap: 10px;
 }
-
+.recordButtons {
+  margin-bottom: 15px;
+}
 /* Continue this pattern for the rest of the icons */
 </style>
