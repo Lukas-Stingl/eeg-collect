@@ -1,9 +1,6 @@
-/**
- * Vue component for starting and recording EEG data.
- * This component includes functionality for connecting to the EEG device,
- * performing device checks, and starting/stopping the recording.
- *
- */
+/** * Vue component for starting and recording EEG data. * This component
+includes functionality for connecting to the EEG device, * performing device
+checks, and starting/stopping the recording. * */
 <template>
   <div>
     <!-- Circular progress component -->
@@ -41,7 +38,6 @@
         ></v-text-field>
       </div>
 
-      
       <div class="input-container">
         <div class="button-container">
           <!-- Vue button for "Weiter zur Geräteüberprüfung" -->
@@ -64,7 +60,10 @@
           <v-card>
             <v-card-title>Hilfe</v-card-title>
             <v-card-text>
-              Gebem Sie Ihre zugeteilte Teilnehmernummer an und verbinden Sie Ihr Gerät. Verwenden Sie den entsprechenden Port des Headsets. Falls Sie einen Mac verwenden lautet dieser "FT231X USB UART" unter windows "COM3".
+              Gebem Sie Ihre zugeteilte Teilnehmernummer an und verbinden Sie
+              Ihr Gerät. Verwenden Sie den entsprechenden Port des Headsets.
+              Falls Sie einen Mac verwenden lautet dieser "FT231X USB UART"
+              unter windows "COM3".
             </v-card-text>
             <v-card-actions>
               <v-btn @click="partHelp">Schließen</v-btn>
@@ -156,11 +155,9 @@
         </v-col>
       </v-row>
 
-      
-       
       <div class="button-container">
         <v-btn @click="redirectToStartRecording">Weiter</v-btn>
-         <v-icon
+        <v-icon
           color="info"
           class="help"
           icon="mdi-help-circle-outline"
@@ -182,22 +179,94 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-
     </v-container>
-
 
     <div v-if="!showContinueButton && participantNumberSet">
       <!-- Cyton Connector Content -->
-   
-<v-btn @click="startRecording" style="margin-right: 20px; margin-top:20px">Aufnahme starten</v-btn>
-<v-btn @click="stopRecording" style="margin-right: 20px; margin-top:20px">Aufnahme stoppen</v-btn>
+      <div>
+        <v-btn
+          @click="startRecording"
+          style="margin-right: 20px; margin-top: 20px"
+          >Aufnahme starten</v-btn
+        >
+        <v-btn
+          @click="stopRecording"
+          style="margin-right: 20px; margin-top: 20px"
+          >Aufnahme stoppen</v-btn
+        >
+      </div>
+    </div>
+    <div v-show="!showContinueButton && participantNumberSet">
+        <div class="chart-container">
+          <canvas ref="Chart0"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart1"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart2"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart3"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart4"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart5"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart6"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart7"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart8"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart9"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart10"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart11"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart12"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart13"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart14"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart15"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart16"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart17"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart18"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart19"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas ref="Chart20"></canvas>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import { cyton } from "../scripts/cyton.js";
-
+import Chart from "chart.js";
 
 export default {
   data() {
@@ -234,10 +303,284 @@ export default {
       showIcon19: false,
       showIcon20: false,
       showIcon21: false,
-
+      myChart: null,
+      chartData0: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 0",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData1: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 1",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData2: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 2",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData3: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 3",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData4: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 4",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData5: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 5",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData6: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 6",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData7: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 7",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData8: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 8",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData9: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 9",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData10: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 10",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData11: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 11",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData12: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 12",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData13: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 13",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData14: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 14",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData15: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 15",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData16: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 16",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData17: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 17",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData18: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 18",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData19: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 19",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
+      chartData20: {
+        labels: ["time"],
+        datasets: [
+          {
+            label: "Channel 20",
+            backgroundColor: "rgba(0, 135, 108, 0.2)",
+            borderColor: "rgba(0, 135, 108, 1)",
+            borderWidth: 1,
+            data: [], // Fake data for the chart
+          },
+        ],
+      },
     };
   },
   mounted() {
+    this.renderChart0();
+    this.renderChart1();
+    this.renderChart2();
+    this.renderChart3();
+    this.renderChart4();
+    this.renderChart5();
+    this.renderChart6();
+    this.renderChart7();
+    this.renderChart8();
+    this.renderChart9();
+    this.renderChart10();
+    this.renderChart11();
+    this.renderChart12();
+    this.renderChart13();
+    this.renderChart14();
+    this.renderChart15();
+    this.renderChart16();
+    this.renderChart17();
+    this.renderChart18();
+    this.renderChart19();
+    this.renderChart20();
+
     this.cytonBoard = new cyton(
       this.onDecodedCallback,
       this.onConnectedCallback,
@@ -247,6 +590,31 @@ export default {
       115200
     );
     window.addEventListener("resize", this.handleResize);
+    this.renderChart0();
+    this.renderChart1();
+    this.renderChart2();
+    this.renderChart3();
+    this.renderChart4();
+    this.renderChart5();
+    this.renderChart6();
+    this.renderChart7();
+    this.renderChart8();
+    this.renderChart9();
+    this.renderChart10();
+    this.renderChart11();
+    this.renderChart12();
+    this.renderChart13();
+    this.renderChart14();
+    this.renderChart15();
+    this.renderChart16();
+    this.renderChart17();
+    this.renderChart18();
+    this.renderChart19();
+    this.renderChart20();
+    this.updateDataFromCyton();
+    // Set interval to call updateDataFromCyton method every 5 seconds (adjust as needed)
+
+    setInterval(this.updateDataFromCyton, 1000);
   },
   computed: {
     colWidth() {
@@ -254,11 +622,11 @@ export default {
     },
   },
   methods: {
-        /**
-         * Maps the 'setParticipantNumber' mutation to the component's methods.
-         * This allows the component to easily call the 'setParticipantNumber' mutation
-         * and update the participant number in the Vuex store.
-         */
+    /**
+     * Maps the 'setParticipantNumber' mutation to the component's methods.
+     * This allows the component to easily call the 'setParticipantNumber' mutation
+     * and update the participant number in the Vuex store.
+     */
     async connectToCyton() {
       await this.cytonBoard
         .setupSerialAsync()
@@ -293,33 +661,53 @@ export default {
       await this.cytonBoard
         .stopCheck()
         .then((res) => {
-          console.log(res)
+          console.log(res);
           this.data = res;
           this.loading = false;
           this.participantNumberSet = true;
-this.showIcon1 = this.calculateAverage(this.data["A0"].slice(0, 15)) === 0;
-this.showIcon2 = this.calculateAverage(this.data["A1"].slice(0, 15)) === 0;
-this.showIcon3 = this.calculateAverage(this.data["A2"].slice(0, 15)) === 0;
-this.showIcon4 = this.calculateAverage(this.data["A3"].slice(0, 15)) === 0;
-this.showIcon5 = this.calculateAverage(this.data["A4"].slice(0, 15)) === 0;
-this.showIcon6 = this.calculateAverage(this.data["A5"].slice(0, 15)) === 0;
-this.showIcon7 = this.calculateAverage(this.data["A6"].slice(0, 15)) === 0;
-this.showIcon8 = this.calculateAverage(this.data["A7"].slice(0, 15)) === 0;
-this.showIcon9 = this.calculateAverage(this.data["A8"].slice(0, 15)) === 0;
-this.showIcon10 = this.calculateAverage(this.data["A9"].slice(0, 15)) === 0;
-this.showIcon11 = this.calculateAverage(this.data["A10"].slice(0, 15)) === 0;
-this.showIcon12 = this.calculateAverage(this.data["A11"].slice(0, 15)) === 0;
-this.showIcon13 = this.calculateAverage(this.data["A12"].slice(0, 15)) === 0;
-this.showIcon14 = this.calculateAverage(this.data["A13"].slice(0, 15)) === 0;
-this.showIcon15 = this.calculateAverage(this.data["A14"].slice(0, 15)) === 0;
-this.showIcon16 = this.calculateAverage(this.data["A15"].slice(0, 15)) === 0;
-this.showIcon17 = this.calculateAverage(this.data["A16"].slice(0, 15)) === 0;
-this.showIcon18 = this.calculateAverage(this.data["A17"].slice(0, 15)) === 0;
-this.showIcon19 = this.calculateAverage(this.data["A18"].slice(0, 15)) === 0;
-this.showIcon20 = this.calculateAverage(this.data["A19"].slice(0, 15)) === 0;
-this.showIcon21 = this.calculateAverage(this.data["A20"].slice(0, 15)) === 0;
-
-
+          this.showIcon1 =
+            this.calculateAverage(this.data["A0"].slice(0, 15)) === 0;
+          this.showIcon2 =
+            this.calculateAverage(this.data["A1"].slice(0, 15)) === 0;
+          this.showIcon3 =
+            this.calculateAverage(this.data["A2"].slice(0, 15)) === 0;
+          this.showIcon4 =
+            this.calculateAverage(this.data["A3"].slice(0, 15)) === 0;
+          this.showIcon5 =
+            this.calculateAverage(this.data["A4"].slice(0, 15)) === 0;
+          this.showIcon6 =
+            this.calculateAverage(this.data["A5"].slice(0, 15)) === 0;
+          this.showIcon7 =
+            this.calculateAverage(this.data["A6"].slice(0, 15)) === 0;
+          this.showIcon8 =
+            this.calculateAverage(this.data["A7"].slice(0, 15)) === 0;
+          this.showIcon9 =
+            this.calculateAverage(this.data["A8"].slice(0, 15)) === 0;
+          this.showIcon10 =
+            this.calculateAverage(this.data["A9"].slice(0, 15)) === 0;
+          this.showIcon11 =
+            this.calculateAverage(this.data["A10"].slice(0, 15)) === 0;
+          this.showIcon12 =
+            this.calculateAverage(this.data["A11"].slice(0, 15)) === 0;
+          this.showIcon13 =
+            this.calculateAverage(this.data["A12"].slice(0, 15)) === 0;
+          this.showIcon14 =
+            this.calculateAverage(this.data["A13"].slice(0, 15)) === 0;
+          this.showIcon15 =
+            this.calculateAverage(this.data["A14"].slice(0, 15)) === 0;
+          this.showIcon16 =
+            this.calculateAverage(this.data["A15"].slice(0, 15)) === 0;
+          this.showIcon17 =
+            this.calculateAverage(this.data["A16"].slice(0, 15)) === 0;
+          this.showIcon18 =
+            this.calculateAverage(this.data["A17"].slice(0, 15)) === 0;
+          this.showIcon19 =
+            this.calculateAverage(this.data["A18"].slice(0, 15)) === 0;
+          this.showIcon20 =
+            this.calculateAverage(this.data["A19"].slice(0, 15)) === 0;
+          this.showIcon21 =
+            this.calculateAverage(this.data["A20"].slice(0, 15)) === 0;
+          this.updateDataFromCyton();
         })
         .catch((error) => {
           console.error("Connection failed", error);
@@ -355,26 +743,659 @@ this.showIcon21 = this.calculateAverage(this.data["A20"].slice(0, 15)) === 0;
         console.log("Recording stopped");
       });
     },
-        partHelp() {
+    partHelp() {
       this.isParticipantHelpOpen = !this.isParticipantHelpOpen;
     },
-       connectHelp() {
+    connectHelp() {
       this.isConnectHelpOpen = !this.isConnectHelpOpen;
     },
-        calculateAverage(data) {
-    const sum = data.reduce((acc, val) => acc + val, 0);
-    const average = sum / data.length;
-    return average;
+    calculateAverage(data) {
+      const sum = data.reduce((acc, val) => acc + val, 0);
+      const average = sum / data.length;
+      return average;
     },
 
     redirectToStartRecording() {
       this.showContinueButton = false;
     },
-    async setParticipantNumberAndContinue ()  {
-      this.participantNumber = document.getElementById('participantNr').value
+    async setParticipantNumberAndContinue() {
+      this.participantNumber = document.getElementById("participantNr").value;
       await this.deviceCheck();
     },
+    async renderChart0() {
+      const canvas0 = this.$refs.Chart0;
+      if (!canvas0) {
+        // Exit if the canvas element is not found
+        return;
+      }
 
+      const ctx0 = canvas0.getContext("2d");
+      this.Chart0 = new Chart(ctx0, {
+        type: "line",
+        data: this.chartData0,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart1() {
+      const canvas1 = this.$refs.Chart1;
+      if (!canvas1) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx1 = canvas1.getContext("2d");
+      this.Chart1 = new Chart(ctx1, {
+        type: "line",
+        data: this.chartData1,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart2() {
+      const canvas2 = this.$refs.Chart2;
+      if (!canvas2) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx2 = canvas2.getContext("2d");
+      this.Chart2 = new Chart(ctx2, {
+        type: "line",
+        data: this.chartData2,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart3() {
+      const canvas3 = this.$refs.Chart3;
+      if (!canvas3) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx3 = canvas3.getContext("2d");
+      this.Chart3 = new Chart(ctx3, {
+        type: "line",
+        data: this.chartData3,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart4() {
+      const canvas4 = this.$refs.Chart4;
+      if (!canvas4) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx4 = canvas4.getContext("2d");
+      this.Chart4 = new Chart(ctx4, {
+        type: "line",
+        data: this.chartData4,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart5() {
+      const canvas5 = this.$refs.Chart5;
+      if (!canvas5) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx5 = canvas5.getContext("2d");
+      this.Chart5 = new Chart(ctx5, {
+        type: "line",
+        data: this.chartData5,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart6() {
+      const canvas6 = this.$refs.Chart6;
+      if (!canvas6) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx6 = canvas6.getContext("2d");
+      this.Chart6 = new Chart(ctx6, {
+        type: "line",
+        data: this.chartData6,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart7() {
+      const canvas7 = this.$refs.Chart7;
+      if (!canvas7) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx7 = canvas7.getContext("2d");
+      this.Chart7 = new Chart(ctx7, {
+        type: "line",
+        data: this.chartData7,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart8() {
+      const canvas8 = this.$refs.Chart8;
+      if (!canvas8) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx8 = canvas8.getContext("2d");
+      this.Chart8 = new Chart(ctx8, {
+        type: "line",
+        data: this.chartData8,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart9() {
+      const canvas9 = this.$refs.Chart9;
+      if (!canvas9) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx9 = canvas9.getContext("2d");
+      this.Chart9 = new Chart(ctx9, {
+        type: "line",
+        data: this.chartData9,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart10() {
+      const canvas10 = this.$refs.Chart10;
+      if (!canvas10) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx10 = canvas10.getContext("2d");
+      this.Chart10 = new Chart(ctx10, {
+        type: "line",
+        data: this.chartData10,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart11() {
+      const canvas11 = this.$refs.Chart11;
+      if (!canvas11) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx11 = canvas11.getContext("2d");
+      this.Chart11 = new Chart(ctx11, {
+        type: "line",
+        data: this.chartData11,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart12() {
+      const canvas12 = this.$refs.Chart12;
+      if (!canvas12) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx12 = canvas12.getContext("2d");
+      this.Chart12 = new Chart(ctx12, {
+        type: "line",
+        data: this.chartData12,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart13() {
+      const canvas13 = this.$refs.Chart13;
+      if (!canvas13) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx13 = canvas13.getContext("2d");
+      this.Chart13 = new Chart(ctx13, {
+        type: "line",
+        data: this.chartData13,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart14() {
+      const canvas14 = this.$refs.Chart14;
+      if (!canvas14) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx14 = canvas14.getContext("2d");
+      this.Chart14 = new Chart(ctx14, {
+        type: "line",
+        data: this.chartData14,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart15() {
+      const canvas15 = this.$refs.Chart15;
+      if (!canvas15) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx15 = canvas15.getContext("2d");
+      this.Chart15 = new Chart(ctx15, {
+        type: "line",
+        data: this.chartData15,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart16() {
+      const canvas16 = this.$refs.Chart16;
+      if (!canvas16) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx16 = canvas16.getContext("2d");
+      this.Chart16 = new Chart(ctx16, {
+        type: "line",
+        data: this.chartData16,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart17() {
+      const canvas17 = this.$refs.Chart17;
+      if (!canvas17) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx17 = canvas17.getContext("2d");
+      this.Chart17 = new Chart(ctx17, {
+        type: "line",
+        data: this.chartData17,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart18() {
+      const canvas18 = this.$refs.Chart18;
+      if (!canvas18) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx18 = canvas18.getContext("2d");
+      this.Chart18 = new Chart(ctx18, {
+        type: "line",
+        data: this.chartData18,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart19() {
+      const canvas19 = this.$refs.Chart19;
+      if (!canvas19) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx19 = canvas19.getContext("2d");
+      this.Chart19 = new Chart(ctx19, {
+        type: "line",
+        data: this.chartData19,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+    renderChart20() {
+      const canvas20 = this.$refs.Chart20;
+      if (!canvas20) {
+        // Exit if the canvas element is not found
+        return;
+      }
+      const ctx20 = canvas20.getContext("2d");
+      this.Chart20 = new Chart(ctx20, {
+        type: "line",
+        data: this.chartData20,
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: false,
+                },
+              },
+            ],
+          },
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+        },
+      });
+    },
+
+    updateDataFromCyton() {
+      this.data = this.cytonBoard.getData(); // Get the data from cyton.js and assign it to dataFromCyton
+
+      for (let i = 0; i < 20; i++) {
+        // Update chartData with new data
+        const dataIndex = "A" + i;
+        let cleanedData = this.data[dataIndex].filter((value) => value !== 0);
+        this["chartData" + i].datasets[0].data = cleanedData;
+        this["chartData" + i].labels = Array(cleanedData.length)
+          .fill()
+          .map((_, j) => j);
+
+        // Get canvas reference
+        const canvas = this.$refs["Chart" + i];
+        if (!canvas) {
+          // Exit if the canvas element is not found
+          return;
+        }
+
+        // Update the chart
+        this["Chart" + i].update();
+      }
+    },
   },
   beforeUnmount() {
     window.removeEventListener("resize", this.handleResize);
@@ -541,10 +1562,10 @@ h2 {
   transform: translate(-50%, -50%);
 }
 .help {
- z-index: 9999999;
- left: 25px;
- top: 10px;
- position:relative;
+  z-index: 9999999;
+  left: 25px;
+  top: 10px;
+  position: relative;
 }
 .continue {
   display: flex;
@@ -556,7 +1577,7 @@ h2 {
   justify-content: flex-end;
 }
 .button-container {
-  position:relative;
+  position: relative;
   display: flex;
   justify-content: center;
   margin-top: 35px;
@@ -598,5 +1619,15 @@ div#card_connect {
   margin-top: 50px;
   margin-bottom: 105px;
 }
+.chart-container {
+  width: 50% %; /* Ensure each chart takes up full width of its container */
+  height: 150px; /* Adjust height of charts as needed */
+}
+.charts {
+  display: grid;
+  grid-template-columns: repeat(3, 4fr);
+  gap: 10px;
+}
+
 /* Continue this pattern for the rest of the icons */
 </style>

@@ -328,6 +328,7 @@ export class cyton {
           if (value) {
             try{
             this.onReceive(value);
+            
             }
             catch{
               console.log("Error decoding data");
@@ -352,7 +353,9 @@ export class cyton {
       this.closePort();
     }
   }
-
+  getData() {
+    return this.data;
+  }
   async stopReading(participantNumber) {
     this.endRecording = this.getReadableTimestamp();
    
