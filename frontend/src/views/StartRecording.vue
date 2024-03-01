@@ -63,7 +63,7 @@ checks, and starting/stopping the recording. * */
               Gebem Sie Ihre zugeteilte Teilnehmernummer an und verbinden Sie
               Ihr Gerät. Verwenden Sie den entsprechenden Port des Headsets.
               Falls Sie einen Mac verwenden lautet dieser "FT231X USB UART"
-              unter windows "COM3".
+              unter Windows "COM3".
             </v-card-text>
             <v-card-actions>
               <v-btn @click="partHelp">Schließen</v-btn>
