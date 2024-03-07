@@ -197,68 +197,68 @@ checks, and starting/stopping the recording. * */
       </div>
     </div>
     <div v-show="!showContinueButton && participantNumberSet">
-        <div class="chart-container">
-          <canvas ref="Chart0"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart1"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart2"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart3"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart4"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart5"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart6"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart7"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart8"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart9"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart10"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart11"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart12"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart13"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart14"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart15"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart16"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart17"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart18"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart19"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas ref="Chart20"></canvas>
+      <div class="chart-container">
+        <canvas ref="Chart0"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart1"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart2"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart3"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart4"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart5"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart6"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart7"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart8"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart9"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart10"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart11"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart12"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart13"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart14"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart15"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart16"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart17"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart18"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart19"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas ref="Chart20"></canvas>
       </div>
     </div>
   </div>
@@ -614,7 +614,7 @@ export default {
     this.updateDataFromCyton();
     // Set interval to call updateDataFromCyton method every 5 seconds (adjust as needed)
 
-    setInterval(this.updateDataFromCyton, 1000);
+    setInterval(this.updateDataFromCyton, 500);
   },
   computed: {
     colWidth() {
@@ -774,6 +774,10 @@ export default {
         type: "line",
         data: this.chartData0,
         options: {
+          animation: {
+            duration: 1000,
+            easing: "linear",
+          },
           scales: {
             yAxes: [
               {
@@ -790,8 +794,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-        }
+            position: "left",
+          },
         },
       });
     },
@@ -806,6 +810,10 @@ export default {
         type: "line",
         data: this.chartData1,
         options: {
+           animation: {
+            duration: 1000,
+            easing: "linear",
+          },
           scales: {
             yAxes: [
               {
@@ -822,8 +830,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-        }
+            position: "left",
+          },
         },
       });
     },
@@ -854,8 +862,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-        }
+            position: "left",
+          },
         },
       });
     },
@@ -886,8 +894,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-        }
+            position: "left",
+          },
         },
       });
     },
@@ -918,8 +926,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-        }
+            position: "left",
+          },
         },
       });
     },
@@ -950,8 +958,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-        }
+            position: "left",
+          },
         },
       });
     },
@@ -982,8 +990,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-          }
+            position: "left",
+          },
         },
       });
     },
@@ -1014,8 +1022,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-          }
+            position: "left",
+          },
         },
       });
     },
@@ -1046,8 +1054,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-          }
+            position: "left",
+          },
         },
       });
     },
@@ -1078,8 +1086,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-          }
+            position: "left",
+          },
         },
       });
     },
@@ -1110,8 +1118,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-          }
+            position: "left",
+          },
         },
       });
     },
@@ -1142,8 +1150,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-          }
+            position: "left",
+          },
         },
       });
     },
@@ -1174,8 +1182,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-          }
+            position: "left",
+          },
         },
       });
     },
@@ -1206,8 +1214,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-          }
+            position: "left",
+          },
         },
       });
     },
@@ -1238,8 +1246,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-          }
+            position: "left",
+          },
         },
       });
     },
@@ -1270,8 +1278,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-          }
+            position: "left",
+          },
         },
       });
     },
@@ -1302,8 +1310,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-          }
+            position: "left",
+          },
         },
       });
     },
@@ -1334,8 +1342,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-        }
+            position: "left",
+          },
         },
       });
     },
@@ -1366,8 +1374,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-          }
+            position: "left",
+          },
         },
       });
     },
@@ -1398,8 +1406,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-          }
+            position: "left",
+          },
         },
       });
     },
@@ -1430,8 +1438,8 @@ export default {
             },
           },
           legend: {
-            position: 'left'
-          }
+            position: "left",
+          },
         },
       });
     },
@@ -1443,6 +1451,7 @@ export default {
         // Update chartData with new data
         const dataIndex = "A" + i;
         let cleanedData = this.data[dataIndex].filter((value) => value !== 0);
+        cleanedData = cleanedData.slice(-500); // Take only the last 100 non-zero values
         this["chartData" + i].datasets[0].data = cleanedData;
         this["chartData" + i].labels = Array(cleanedData.length)
           .fill()

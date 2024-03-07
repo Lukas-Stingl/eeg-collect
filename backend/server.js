@@ -15,7 +15,7 @@ app.post('/api/save-csv', (req, res) => {
   const csvContent = req.fields.csvContent;
   
   // Save the CSV content to a file with the provided filename
-  fs.writeFile(`./recordings/${fileName}`, csvContent, (err) => {
+  fs.writeFile(__dirname+ '/recordings/' + fileName, csvContent, (err) => {
     if (err) {
       console.error('Error:', err);
       return res.status(500).json({ error: 'Internal server error' });

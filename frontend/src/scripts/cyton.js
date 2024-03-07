@@ -13,7 +13,7 @@ export class cyton {
     this.onConnectedCallback = onConnectedCallback;
     this.onDisconnectedCallback = onDisconnectedCallback;
     this.encoder = new TextEncoder("ascii");
-
+    this.reader = "";
     this.startRecording = "";
     this.endRecording = "";
     this.connected = false;
@@ -252,7 +252,7 @@ export class cyton {
             }
         }
 
-        if (newLines > 0) buffer.splice(0, indices[indices.length - 1]);
+        if (newLines > 0 &&  buffer instanceof ArrayBuffer ) buffer.splice(0, indices[indices.length - 1]);
         return newLines;
     }
 }
@@ -289,31 +289,16 @@ export class cyton {
     return true;
   }
 
-  async onPortSelected(port, baud = this.baudrate) {
+  async onPortSelected(port) {
     try {
-      try {
-        await port.open({ baudRate: baud, bufferSize: 2000000000 });
-        setTimeout(() => {
-          this.onConnectedCallback();
-          this.connected = true;
-          this.subscribed = true;
-          this.sendMsg("b");
-        }, 500);
-      } catch {
-        //API inconsistency in syntax between linux and windows
-        await port.open({ baudRate: baud, buffersize: this.readBufferSize });
-        setTimeout(() => {
-          this.onConnectedCallback();
-          this.connected = true;
-          this.subscribed = true;
-          this.sendMsg("b");
-          // this.subscribe(port); //this.subscribeSafe(port);
-        }, 500);
-      }
-    } catch (err) {
-      console.error(err);
-      this.connected = false;
-    }
+      await port.open({ baudRate: 115200, bufferSize: 200000  }); // Set baud rate to 115200
+      this.reader = port.readable.getReader();
+      
+} catch (error) {
+      console.error('Error connecting to serial port:', error);
+  }
+
+    
     this.connected = true;
     // Automatically start reading on successful connection
   }
@@ -321,50 +306,65 @@ export class cyton {
   async startReading() {
     this.startRecording = this.getReadableTimestamp();
     try {
-      this.reader = this.port.readable.getReader();
-      const streamData = async () => {
-        try {
-          const { value } = await this.reader.read();
-          if (value) {
-            try{
-            this.onReceive(value);
-            
-            }
-            catch{
-              console.log("Error decoding data");
-            }
-          }
-          if (this.subscribed === true) {
-            setTimeout(() => {
-              streamData();
-            }, this.readRate);
-          }
-        } catch (error) {
-          alert(
-            "Bitte lade die Seite neu und schalte das EEG Gerät aus und wieder ein. "
-          );
-          console.log(error);
-          
-        }
-      };
-      streamData();
+      // Check if the port is writable before writing data
+      if (this.port && this.port.writable) {
+        const writer = this.port.writable.getWriter();
+        const command = 'b'; // Command to start recording
+        const commandBytes = new TextEncoder().encode(command);
+        await writer.write(commandBytes);
+        writer.releaseLock();
+        this.readData()
+      } else {
+        console.error('Serial port is not writable');
+      }
     } catch (error) {
-      console.error("Error creating reader:", error);
-      this.closePort();
+      console.error('Error starting recording:', error);
     }
   }
+  async readData() {
+    try {
+      while (this.connected) {
+        setTimeout(() => {
+        }, 20);
+        const { value, done } = await this.reader.read();
+        if (done) {
+          this.reader.releaseLock();
+          break;
+        }
+        // Convert the received byte array to text
+        // Process the received text 
+        const text = new TextDecoder().decode(value);
+        console.log(text)
+        this.decode(value);
+      }
+    } catch (error) {
+      console.error('Error reading data:', error);
+    }
+  }
+
   getData() {
     return this.data;
   }
   async stopReading(participantNumber) {
     this.endRecording = this.getReadableTimestamp();
    
-      this.connected = false;
+      
       try {
-        // Close the reader and release the lock
-        await this.reader.cancel();
+        // Check if the port is writable before writing data
+        if (this.port && this.port.writable) {
+          const writer = this.port.writable.getWriter();
+          const command = 's'; // Command to stop recording
+          const commandBytes = new TextEncoder().encode(command);
+          await writer.write(commandBytes);
+          console.log('Recording stopped');
+          writer.releaseLock();
+          let data = this.getData();
+          console.log(data);
+        } else {
+          console.error('Serial port is not writable');
+        }
       } catch (error) {
-        console.log("Error releasing lock:", error);
+        console.error('Error stopping recording:', error);
       }
       const objectKeys = Object.keys(this.data);
       this.exportCSV(this.data, objectKeys, participantNumber);
@@ -377,7 +377,8 @@ export class cyton {
 
   exportCSV(content, objectKeys, participantNumber) {
     const csvContent = this.parseAndExportData(content, objectKeys);
-    const fileName = `${participantNumber}-${this.startRecording}.csv`;
+    let startTime = Math.floor(new Date(this.startRecording).getTime() / 1000)
+    const fileName = `${participantNumber}-${startTime}.csv`;
 
     const formData = new FormData();
     formData.append('fileName', fileName);
@@ -406,12 +407,23 @@ export class cyton {
   async stopCheck() {
     this.endRecording = this.getReadableTimestamp();
     if (this.connected && this.reader) {
-      this.connected = false;
+      
       try {
-        // Close the reader and release the lock
-        await this.reader.cancel();
+        // Check if the port is writable before writing data
+        if (this.port && this.port.writable) {
+          const writer = this.port.writable.getWriter();
+          const command = 's'; // Command to stop recording
+          const commandBytes = new TextEncoder().encode(command);
+          await writer.write(commandBytes);
+          console.log('Recording stopped');
+          writer.releaseLock();
+          let data = this.getData();
+          console.log(data);
+        } else {
+          console.error('Serial port is not writable');
+        }
       } catch (error) {
-        console.log("Error releasing lock:", error);
+        console.error('Error stopping recording:', error);
       }
       this.buffer = [];
       console.log("Stopped reading from serial port and buffer is reset");
