@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cyton Serial Communication</title>
+<script src="cyton.js"></script>
+</head>
+<body>
+
+
+<button onclick="connect()">ConnectClass</button>
+<button id="connectButton">Connect to Serial Port</button>
+    <button id="disconnectButton" disabled>Disconnect from Serial Port</button><br><br>
+
+    <button id="channel0StartButton" disabled>Start Impedance Measurement for Channel 0</button>
+    <button id="channel0StopButton" disabled>Stop Impedance Measurement for Channel 0</button><br>
+<button onclick="startRecording()">Start Recording</button>
+<button onclick="stopRecording()">Stop Recording</button> <!-- New button for stopping recording -->
+<input type="text" id="commandInput" placeholder="Enter command">
+<button onclick="sendCommand()">Send</button>
+<canvas id="plot" width="800" height="400"></canvas>
+<script src="dsp.js"></script>
+
+<button onclick="generateDenoisedPlot()">Generate Plot</button>
+
+
+<script>
+        let reader;
+        let port;
+    // Create an instance of the cyton class
+    const myCyton = new window.cyton();
+
+    // Function to connect to the serial port
+    async function connect() {
+        try {
+            await myCyton.setupSerialAsync();
+            console.log("Connected to serial port!");
+        } catch (error) {
+            console.error("Error connecting to serial port:", error);
+        }
+    }
+    async function connectSerialPort() {
+            try {
+                port = await navigator.serial.requestPort();
+                await port.open({ baudRate: 115200, bufferSize: 200000  }); // Set baud rate to 115200
+                reader = port.readable.getReader();
+                document.getElementById('connectButton').disabled = true;
+                document.getElementById('disconnectButton').disabled = false;
+                document.getElementById('channel0StartButton').disabled = false;
+                console.log('Connected to serial port');
+        } catch (error) {
+                console.error('Error connecting to serial port:', error);
+            }
+        }
+
+
+//   // Function to start recording data
+//   async function startRecording() {
+//     try {
+//       await myCyton.startReading();
+//       console.log("Recording started.");
+//     } catch (error) {
+//       console.error("Error starting recording:", error);
+//     }
+//   }
+
+//   // Function to stop recording data
+//   async function stopRecording() {
+//     try {
+//       await myCyton.stopReading();
+//       console.log("Recording stopped.");
+//     } catch (error) {
+//       console.error("Error stopping recording:", error);
+//     }
+//   }
+async function startRecording() {
+  try {
+    // Check if the port is writable before writing data
+    if (port && port.writable) {
+      const writer = port.writable.getWriter();
+      const command = 'b'; // Command to start recording
+      const commandBytes = new TextEncoder().encode(command);
+      await writer.write(commandBytes);
+      console.log('Recording started');
+      writer.releaseLock();
+    } else {
+      console.error('Serial port is not writable');
+    }
+  } catch (error) {
+    console.error('Error starting recording:', error);
+  }
+}
+
+async function stopRecording() {
+  try {
+    // Check if the port is writable before writing data
+    if (port && port.writable) {
+      const writer = port.writable.getWriter();
+      const command = 's'; // Command to stop recording
+      const commandBytes = new TextEncoder().encode(command);
+      await writer.write(commandBytes);
+      console.log('Recording stopped');
+      writer.releaseLock();
+      let data = myCyton.getData();
+      console.log(data);
+    } else {
+      console.error('Serial port is not writable');
+    }
+  } catch (error) {
+    console.error('Error stopping recording:', error);
+  }
+}
+
+  
+
+   // Function to read data from the serial port continuously
+   async function readData() {
+      try {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) {
+            reader.releaseLock();
+            break;
+          }
+          // Convert the received byte array to text
+          // Process the received text 
+          const text = new TextDecoder().decode(value);
+          console.log(text)
+          myCyton.decode(value);
+        }
+      } catch (error) {
+        console.error('Error reading data:', error);
+      }
+    }
+
+    // Function to disconnect from the serial port
+    async function disconnectSerialPort() {
+      if (port && port.readable) {
+        await reader.cancel();
+        await port.close();
+        console.log('Serial port disconnected');
+        document.getElementById('connectButton').disabled = false;
+        document.getElementById('disconnectButton').disabled = true;
+        document.getElementById('channel0StartButton').disabled = true;
+        document.getElementById('channel0StopButton').disabled = true;
+      }
+    }
+
+    // Function to activate impedance measurement for a specific channel
+    async function activateImpedanceMeasurement(channel=1) {
+  try {
+    // Check if the port is writable before writing data
+    if (port && port.writable) {
+      const writer = port.writable.getWriter();
+      let command;
+      if (channel >= 0 && channel <= 7) {
+        command = `z110Z`; // Command to activate impedance measurement
+        const commandBytes = new TextEncoder().encode(command);
+        await writer.write(commandBytes);
+        console.log(`Impedance measurement activated for channel ${channel}`);
+        // Start continuous reading for 5 seconds
+        readData();
+      } else {
+        console.error('Invalid channel number:', channel);
+      }
+      writer.releaseLock();
+    } else {
+      console.error('Serial port is not writable');
+    }
+  } catch (error) {
+    console.error('Error activating impedance measurement:', error);
+  }
+}
+
+    // Function to deactivate impedance measurement for a specific channel
+    async function deactivateImpedanceMeasurement(channel) {
+      try {
+        // Check if the port is writable before writing data
+        if (port && port.writable) {
+          const writer = port.writable.getWriter();
+          const command = new Uint8Array([122, channel, 48, 32, 48, 32, 90]); // Command to deactivate impedance measurement
+          await writer.write(command);
+          console.log(`Impedance measurement deactivated for channel ${channel}`);
+          writer.releaseLock();
+        } else {
+          console.error('Serial port is not writable');
+        }
+      } catch (error) {
+        console.error('Error deactivating impedance measurement:', error);
+      }
+    }
+    async function sendCommand() {
+            const commandInput = document.getElementById('commandInput');
+            const command = commandInput.value.trim();
+
+            if (command) {
+                try {
+                    // Check if the port is writable before writing data
+                    if (port && port.writable) {
+                        const writer = port.writable.getWriter();
+                        const commandBytes = new TextEncoder().encode(command);
+                        await writer.write(commandBytes);
+                        console.log('Command sent:', command);
+                        readData();
+                        writer.releaseLock();
+                    } else {
+                        console.error('Serial port is not writable');
+                    }
+                } catch (error) {
+                    console.error('Error sending command:', error);
+                }
+            } else {
+                console.error('Command cannot be empty');
+            }
+        }
+
+        function generateDenoisedPlot() {
+ 
+        
+        var sampleRate = 250; // Sample rate is 250 Hz
+        var lowcut = 31 - 0.5; // Lower cutoff frequency
+        var highcut = 31 + 0.5; // Upper cutoff frequency
+
+        // Order of the filter
+        var order = 5;
+
+        // Example EEG data (replace this with your actual EEG data)
+        // Generating synthetic data for demonstration purpose
+
+      
+        var eegData = myCyton.getData();
+        var numSamples = eegData.length;
+        for (var i = 0; i < numSamples; i++) {
+            t[i] = i / sampleRate;
+            eegData[i] = Math.sin(2 * Math.PI * 31.5 * t[i]) + (Math.random() - 0.5) * 0.5;
+        }
+
+        // Apply bandpass filter to EEG data
+        var filteredEegData = DSP.BiquadFilter(DSP.BPF, sampleRate, lowcut, highcut, order, eegData);
+
+        // Plot original and filtered EEG data
+        var canvas = document.getElementById('plot');
+        var ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = 'blue';
+        ctx.beginPath();
+        for (var i = 0; i < numSamples; i++) {
+            var x = i / numSamples * canvas.width;
+            var y = canvas.height / 2 - eegData[i] * canvas.height / 4;
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+        ctx.stroke();
+
+        ctx.strokeStyle = 'red';
+        ctx.beginPath();
+        for (var i = 0; i < numSamples; i++) {
+            var x = i / numSamples * canvas.width;
+            var y = canvas.height / 2 - filteredEegData[i] * canvas.height / 4;
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+        ctx.stroke();
+    }
+    document.getElementById('connectButton').addEventListener('click', connectSerialPort);
+    document.getElementById('disconnectButton').addEventListener('click', disconnectSerialPort);
+
+    // Button click event handlers for starting and stopping impedance measurement for channel 0
+    document.getElementById('channel0StartButton').addEventListener('click', () => activateImpedanceMeasurement(0));
+    document.getElementById('channel0StopButton').addEventListener('click', () => deactivateImpedanceMeasurement(0));
+</script>
+
+
+
+</body>
+</html>
