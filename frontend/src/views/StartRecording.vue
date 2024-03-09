@@ -27,7 +27,7 @@ checks, and starting/stopping the recording. * */
     <div v-if="!participantNumberSet">
       <!-- Participant Number Input Page -->
       <div class="header">
-        <h2>Bitte geben Sie Ihre Teilnehmernummer an.</h2>
+        <h2> TEST Bitte geben Sie Ihre Teilnehmernummer an.</h2>
       </div>
       <div class="input">
         <v-text-field
