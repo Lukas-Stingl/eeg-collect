@@ -384,7 +384,7 @@ export class cyton {
     formData.append('fileName', fileName);
     formData.append('csvContent', csvContent);
 
-    fetch('http://localhost:8081/api/save-csv', {
+    fetch('/api/save-csv', {
         method: 'POST',
         body: formData
     })

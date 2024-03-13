@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 8081;
 app.use(cors());
 app.use(formidable());
 
-app.post('/api/save-csv', (req, res) => {
+app.post('/save-csv', (req, res) => {
   const fileName = req.fields.fileName;
   const csvContent = req.fields.csvContent;
   

@@ -715,7 +715,7 @@ export default {
     },
     async fetchImpedance(channel) {
       const response = await fetch(
-        "http://localhost:5000/calculate_impedance",
+        "/data/calculate_impedance",
         {
           method: "POST",
           headers: {
