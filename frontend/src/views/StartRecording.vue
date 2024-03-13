@@ -27,7 +27,7 @@ checks, and starting/stopping the recording. * */
     <div v-if="!participantNumberSet">
       <!-- Participant Number Input Page -->
       <div class="header">
-        <h2> Bitte geben Sie Ihre Teilnehmernummer an.</h2>
+        <h2>Bitte geben Sie Ihre Teilnehmernummer an.</h2>
       </div>
       <div class="input">
         <v-text-field
@@ -660,27 +660,26 @@ export default {
       // Call stopReading
       await this.cytonBoard
         .stopCheck()
-        .then((res) => {
+        .then(async (res) => {
           console.log(res);
           this.data = res;
           this.loading = false;
+          const impedanceData = [];
+          for (let i = 0; i < 8; i++) {
+            const channel = `A${i}`;
+            const data = await this.fetchImpedance(channel);
+            impedanceData.push({ channel, impedance: data.impedance });
+            console.log(impedanceData);
+          }
           this.participantNumberSet = true;
-          this.showIcon1 =
-            this.calculateAverage(this.data["A0"].slice(0, 15)) === 0;
-          this.showIcon2 =
-            this.calculateAverage(this.data["A1"].slice(0, 15)) === 0;
-          this.showIcon3 =
-            this.calculateAverage(this.data["A2"].slice(0, 15)) === 0;
-          this.showIcon4 =
-            this.calculateAverage(this.data["A3"].slice(0, 15)) === 0;
-          this.showIcon5 =
-            this.calculateAverage(this.data["A4"].slice(0, 15)) === 0;
-          this.showIcon6 =
-            this.calculateAverage(this.data["A5"].slice(0, 15)) === 0;
-          this.showIcon7 =
-            this.calculateAverage(this.data["A6"].slice(0, 15)) === 0;
-          this.showIcon8 =
-            this.calculateAverage(this.data["A7"].slice(0, 15)) === 0;
+          this.showIcon1 = impedanceData[0].impedance > 4500;
+          this.showIcon2 = impedanceData[1].impedance > 4500;
+          this.showIcon3 = impedanceData[2].impedance > 4500;
+          this.showIcon4 = impedanceData[3].impedance > 4500;
+          this.showIcon5 = impedanceData[4].impedance > 4500;
+          this.showIcon6 = impedanceData[5].impedance > 4500;
+          this.showIcon7 = impedanceData[6].impedance > 4500;
+          this.showIcon8 = impedanceData[7].impedance > 4500;
           this.showIcon9 =
             this.calculateAverage(this.data["A8"].slice(0, 15)) === 0;
           this.showIcon10 =
@@ -713,6 +712,20 @@ export default {
           console.error("Connection failed", error);
           this.status = "Connection Failed";
         });
+    },
+    async fetchImpedance(channel) {
+      const response = await fetch(
+        "http://localhost:5000/calculate_impedance",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ data_raw: this.data[channel] }),
+        }
+      );
+      const data = await response.json();
+      return data;
     },
     onDecodedCallback(data) {
       this.data = data;
@@ -810,7 +823,7 @@ export default {
         type: "line",
         data: this.chartData1,
         options: {
-           animation: {
+          animation: {
             duration: 1000,
             easing: "linear",
           },

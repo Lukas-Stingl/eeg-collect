@@ -1,9 +1,10 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # Import CORS extension
 import numpy as np
 from scipy.signal import butter, filtfilt, iirnotch
 
 app = Flask(__name__)
-
+CORS(app)  # Enable CORS for all routes
 processing_band_low_Hz = [1, 4, 8, 13, 30]
 processing_band_high_Hz = [4, 8, 13, 30, 55]
 
