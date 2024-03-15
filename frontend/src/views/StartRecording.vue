@@ -714,6 +714,7 @@ export default {
         });
     },
     async fetchImpedance(channel) {
+      let dataArray = Object.values(this.data[channel]);
       const response = await fetch(
         "/data/calculate_impedance",
         {
@@ -721,7 +722,7 @@ export default {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ data_raw: this.data[channel] }),
+          body: JSON.stringify({ data_raw: dataArray}),
         }
       );
       const data = await response.json();
