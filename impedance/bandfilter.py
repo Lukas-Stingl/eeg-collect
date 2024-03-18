@@ -43,7 +43,7 @@ def get_z(rms):
         return 0
     return z / 1000  # Converting to KOhm
 
-@app.route('/data/calculate_impedance', methods=['POST'])
+@app.route('/calculate_impedance', methods=['POST'])
 def calculate_impedance():
     data_raw = request.json.get('data_raw')
     if not data_raw:
