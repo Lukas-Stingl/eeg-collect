@@ -20,7 +20,7 @@ module.exports = defineConfig({
     },
     // Proxy requests prefixed with '/flask-api' to the Flask server
     '/data': {
-      target: 'http://localhost:5000',
+      target: 'http://localhost:5001',
       changeOrigin: true,
       pathRewrite: {
         '^/data': ''
