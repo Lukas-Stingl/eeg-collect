@@ -7,6 +7,7 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
+  "proxy": "http://localhost:5001",
   "dependencies": {
     "@mdi/font": "5.9.55",
     "axios": "^1.6.7",
