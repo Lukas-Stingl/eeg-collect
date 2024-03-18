@@ -52,7 +52,7 @@ def calculate_impedance():
     data_filtered = filter_impedance(data_raw)
     stdUv = np.std(data_filtered)
     impedance = get_z(stdUv)
-    
+    print('impedance: ', impedance)
     return jsonify({'impedance': impedance})
 
 if __name__ == '__main__':
