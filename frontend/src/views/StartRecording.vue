@@ -714,7 +714,7 @@ export default {
         });
     },
     async fetchImpedance(channel) {
-      let dataArray = Object.values(this.data[channel]);
+      let dataArray = Object.values(this.data[channel]).slice(0, this.data.count);
       const response = await fetch(
         "/data/calculate_impedance",
         {
