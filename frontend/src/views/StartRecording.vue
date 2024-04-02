@@ -273,7 +273,9 @@ export default {
     return {
       participantNumber: "",
       status: "Not connected",
+      port: "",
       data: {},
+      reader:"",
       isParticipantHelpOpen: false,
       isConnectHelpOpen: false,
       cytonBoard: null,
@@ -628,19 +630,20 @@ export default {
      * and update the participant number in the Vuex store.
      */
     async connectToCyton() {
-      await this.cytonBoard
-        .setupSerialAsync()
-        .then(() => {
-          this.status = "Connected to Cyton";
-        })
-        .catch((error) => {
-          console.error("Connection failed", error);
-          this.status = "Connection Failed";
-        });
+      try {
+          port = await navigator.serial.requestPort();
+          await port.open({ baudRate: 115200 }); // Set baud rate to 115200
+          reader = port.readable.getReader();
+          document.getElementById("connectButton").disabled = true;
+          document.getElementById("disconnectButton").disabled = false;
+          document.getElementById("channel0StartButton").disabled = false;
+          console.log("Connected to serial port");
+          readData();
+        } catch (error) {
+          console.error("Error connecting to serial port:", error);
+        }
     },
-    isVarianceHigh(value) {
-      return value > -187400 && value < -187600;
-    },
+    
     async deviceCheck() {
       // Show loading spinner
       await this.cytonBoard

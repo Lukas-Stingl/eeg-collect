@@ -1,283 +1,473 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cyton Serial Communication</title>
-<script src="cyton.js"></script>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cyton Serial Communication</title>
+    <script src="cyton.js"></script>
+  </head>
+  <body>
+    <button onclick="connect()">ConnectClass</button>
+    <button id="connectButton">Connect to Serial Port</button>
+    <button id="disconnectButton" disabled>Disconnect from Serial Port</button
+    ><br /><br />
 
+    <button id="ImpedanceCheck" disabled>Start Impedance Check</button>
+    <button id="channel0StopButton" disabled>
+      Stop Impedance Measurement for Channel 0</button
+    ><br />
+    <button onclick="startRecording()">Start Recording</button>
+    <button onclick="stopRecording()">Stop Recording</button>
+    <!-- New button for stopping recording -->
+    <input type="text" id="commandInput" placeholder="Enter command" />
+    <button onclick="sendCommand()">Send</button>
+    <canvas id="plot" width="800" height="400"></canvas>
+    <script src="dsp.js"></script>
 
-<button onclick="connect()">ConnectClass</button>
-<button id="connectButton">Connect to Serial Port</button>
-    <button id="disconnectButton" disabled>Disconnect from Serial Port</button><br><br>
+    <button onclick="generateDenoisedPlot()">Generate Plot</button>
 
-    <button id="channel0StartButton" disabled>Start Impedance Measurement for Channel 0</button>
-    <button id="channel0StopButton" disabled>Stop Impedance Measurement for Channel 0</button><br>
-<button onclick="startRecording()">Start Recording</button>
-<button onclick="stopRecording()">Stop Recording</button> <!-- New button for stopping recording -->
-<input type="text" id="commandInput" placeholder="Enter command">
-<button onclick="sendCommand()">Send</button>
-<canvas id="plot" width="800" height="400"></canvas>
-<script src="dsp.js"></script>
+    <script>
+      let reader;
+      let port;
+      var data = {
+        count: "",
+        A1: [],
+        A2: [],
+        A3: [],
+        A4: [],
+        A5: [],
+        A6: [],
+        A7: [],
+        A8: [],
+      };
+      let impedance = {};
+      // Create an instance of the cyton class
+      const myCyton = new window.cyton();
 
-<button onclick="generateDenoisedPlot()">Generate Plot</button>
-
-
-<script>
-        let reader;
-        let port;
-    // Create an instance of the cyton class
-    const myCyton = new window.cyton();
-
-    // Function to connect to the serial port
-    async function connect() {
+      // Function to connect to the serial port
+      async function connect() {
         try {
-            await myCyton.setupSerialAsync();
-            console.log("Connected to serial port!");
+          await myCyton.setupSerialAsync();
+          console.log("Connected to serial port!");
         } catch (error) {
-            console.error("Error connecting to serial port:", error);
+          console.error("Error connecting to serial port:", error);
         }
-    }
-    async function connectSerialPort() {
-            try {
-                port = await navigator.serial.requestPort();
-                await port.open({ baudRate: 115200, bufferSize: 200000  }); // Set baud rate to 115200
-                reader = port.readable.getReader();
-                document.getElementById('connectButton').disabled = true;
-                document.getElementById('disconnectButton').disabled = false;
-                document.getElementById('channel0StartButton').disabled = false;
-                console.log('Connected to serial port');
+      }
+      // Function to connect to the web serial port
+      async function connectSerialPort() {
+        try {
+          port = await navigator.serial.requestPort();
+          await port.open({ baudRate: 115200 }); // Set baud rate to 115200
+          reader = port.readable.getReader();
+          document.getElementById("connectButton").disabled = true;
+          document.getElementById("disconnectButton").disabled = false;
+          document.getElementById("ImpedanceCheck").disabled = false;
+          console.log("Connected to serial port");
+          readData();
         } catch (error) {
-                console.error('Error connecting to serial port:', error);
-            }
+          console.error("Error connecting to serial port:", error);
         }
+      }
 
+      //   // Function to start recording data
+      //   async function startRecording() {
+      //     try {
+      //       await myCyton.startReading();
+      //       console.log("Recording started.");
+      //     } catch (error) {
+      //       console.error("Error starting recording:", error);
+      //     }
+      //   }
 
-//   // Function to start recording data
-//   async function startRecording() {
-//     try {
-//       await myCyton.startReading();
-//       console.log("Recording started.");
-//     } catch (error) {
-//       console.error("Error starting recording:", error);
-//     }
-//   }
-
-//   // Function to stop recording data
-//   async function stopRecording() {
-//     try {
-//       await myCyton.stopReading();
-//       console.log("Recording stopped.");
-//     } catch (error) {
-//       console.error("Error stopping recording:", error);
-//     }
-//   }
-async function startRecording() {
-  try {
-    // Check if the port is writable before writing data
-    if (port && port.writable) {
-      const writer = port.writable.getWriter();
-      const command = 'b'; // Command to start recording
-      const commandBytes = new TextEncoder().encode(command);
-      await writer.write(commandBytes);
-      console.log('Recording started');
-      writer.releaseLock();
-    } else {
-      console.error('Serial port is not writable');
-    }
-  } catch (error) {
-    console.error('Error starting recording:', error);
-  }
-}
-
-async function stopRecording() {
-  try {
-    // Check if the port is writable before writing data
-    if (port && port.writable) {
-      const writer = port.writable.getWriter();
-      const command = 's'; // Command to stop recording
-      const commandBytes = new TextEncoder().encode(command);
-      await writer.write(commandBytes);
-      console.log('Recording stopped');
-      writer.releaseLock();
-      let data = myCyton.getData();
-      console.log(data);
-    } else {
-      console.error('Serial port is not writable');
-    }
-  } catch (error) {
-    console.error('Error stopping recording:', error);
-  }
-}
-
-  
-
-   // Function to read data from the serial port continuously
-   async function readData() {
-      try {
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) {
-            reader.releaseLock();
-            break;
+      //   // Function to stop recording data
+      //   async function stopRecording() {
+      //     try {
+      //       await myCyton.stopReading();
+      //       console.log("Recording stopped.");
+      //     } catch (error) {
+      //       console.error("Error stopping recording:", error);
+      //     }
+      //   }
+      async function startRecording() {
+        try {
+          // Check if the port is writable before writing data
+          if (port && port.writable) {
+            const writer = port.writable.getWriter();
+            const command = "b"; // Command to start recording
+            const commandBytes = new TextEncoder().encode(command);
+            await writer.write(commandBytes);
+            console.log("Recording started");
+            writer.releaseLock();
+          } else {
+            console.error("Serial port is not writable");
           }
-          // Convert the received byte array to text
-          // Process the received text 
-          const text = new TextDecoder().decode(value);
-          // console.log(text)
-          myCyton.decode(value);
+        } catch (error) {
+          console.error("Error starting recording:", error);
         }
-      } catch (error) {
-        console.error('Error reading data:', error);
       }
-    }
 
-    // Function to disconnect from the serial port
-    async function disconnectSerialPort() {
-      if (port && port.readable) {
-        await reader.cancel();
-        await port.close();
-        console.log('Serial port disconnected');
-        document.getElementById('connectButton').disabled = false;
-        document.getElementById('disconnectButton').disabled = true;
-        document.getElementById('channel0StartButton').disabled = true;
-        document.getElementById('channel0StopButton').disabled = true;
+      async function stopRecording() {
+        try {
+          // Check if the port is writable before writing data
+          if (port && port.writable) {
+            const writer = port.writable.getWriter();
+            const command = "s"; // Command to stop recording
+            const commandBytes = new TextEncoder().encode(command);
+            await writer.write(commandBytes);
+            console.log("Recording stopped");
+            writer.releaseLock();
+            console.log(data);
+            data.count = data.A1.length;
+          } else {
+            console.error("Serial port is not writable");
+          }
+        } catch (error) {
+          console.error("Error stopping recording:", error);
+        }
+        const objectKeys = Object.keys(data);
+        this.exportCSV(data, objectKeys, "LukasTestLocal");
+        data = {
+          count: "",
+          A1: [],
+          A2: [],
+          A3: [],
+          A4: [],
+          A5: [],
+          A6: [],
+          A7: [], 
+          A8: [],
+        };
       }
-    }
 
-    // Function to activate impedance measurement for a specific channel
-    async function activateImpedanceMeasurement(channel=1) {
-  try {
-    // Check if the port is writable before writing data
-    if (port && port.writable) {
-      const writer = port.writable.getWriter();
-      let command;
-      if (channel >= 0 && channel <= 7) {
-        command = `z110Z`; // Command to activate impedance measurement
-        const commandBytes = new TextEncoder().encode(command);
-        await writer.write(commandBytes);
-        console.log(`Impedance measurement activated for channel ${channel}`);
-        // Start continuous reading for 5 seconds
-        readData();
-      } else {
-        console.error('Invalid channel number:', channel);
+      function exportCSV(content, objectKeys, participantNumber) {
+        const csvContent = parseAndExportData(content, objectKeys);
+        let startTime = Math.floor(
+          new Date(this.startRecording).getTime() / 1000
+        );
+        const fileName = `${participantNumber}-${startTime}.csv`;
+
+        const formData = new FormData();
+        formData.append("fileName", fileName);
+        formData.append("csvContent", csvContent);
+
+        fetch("http://localhost:8081/save-csv", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log("CSV file saved successfully:", data.filePath);
+          })
+          .catch((error) => {
+            console.error("Error saving CSV file:", error);
+          });
       }
-      writer.releaseLock();
-    } else {
-      console.error('Serial port is not writable');
-    }
-  } catch (error) {
-    console.error('Error activating impedance measurement:', error);
-  }
-}
 
-    // Function to deactivate impedance measurement for a specific channel
-    async function deactivateImpedanceMeasurement(channel) {
-      try {
-        // Check if the port is writable before writing data
-        if (port && port.writable) {
-          const writer = port.writable.getWriter();
-          const command = new Uint8Array([122, channel, 48, 32, 48, 32, 90]); // Command to deactivate impedance measurement
-          await writer.write(command);
-          console.log(`Impedance measurement deactivated for channel ${channel}`);
-          writer.releaseLock();
+      function getReadableTimestamp() {
+        const now = new Date(); // Current date and time
+
+        // Get individual components of the date
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0"); // months are 0-indexed
+        const day = String(now.getDate()).padStart(2, "0");
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        const seconds = String(now.getSeconds()).padStart(2, "0");
+
+        // Format the date and time in a readable format (YYYY-MM-DD HH:MM:SS)
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+      }
+
+      function parseAndExportData(data, objectKeys) {
+        // Add headers using objectKeys
+        const headers = objectKeys.join(";");
+
+        // Transpose data
+        const transposedData = objectKeys.map((key) => {
+          if (Array.isArray(data[key])) {
+            return data[key];
+          } else {
+            // If it's a string, create an array with a single element
+            return [data[key]];
+          }
+        });
+
+        // Find the maximum length among the arrays
+        const maxLength = Math.max(...transposedData.map((arr) => arr.length));
+
+        // Fill shorter arrays with empty strings to match the maximum length
+        const filledData = transposedData.map((arr) => {
+          const diff = maxLength - arr.length;
+          return arr.concat(Array(diff).fill(""));
+        });
+
+        // Create rows by taking values at the same index from each array
+        const rows = [];
+        for (let i = 0; i < maxLength; i++) {
+          const rowData = filledData.map((arr) => arr[i]);
+          rows.push(rowData.join(";"));
+        }
+
+       
+        // Combine rows with newline characters
+        const csvContent = headers + "\n" + rows.join("\n");
+
+        return csvContent;
+      }
+      async function readData() {
+        try {
+          let buffer = []; // Buffer to accumulate bytes until a complete chunk is formed
+          let headerFound = false;
+
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) {
+              reader.releaseLock();
+              break;
+            }
+            for (let i = 0; i < value.length; i++) {
+              // Check if the header is found
+              if (!headerFound && value[i] === 160) {
+                headerFound = true;
+              } else if (!headerFound && headerFound === false) {
+                const text = new TextDecoder().decode(value);
+                console.log(text);
+              }
+
+              if (headerFound) {
+                buffer.push(value[i]);
+              }
+
+              // Check if a complete chunk is formed
+
+              // Decode the chunk
+
+              // Stop receiving data if the stop byte is found
+              if (value[i] >= 192 && value[i] <= 198 && buffer.length > 30) {
+                headerFound = false;
+                decodeChunk(buffer);
+
+                // Reset buffer for the next chunk
+                buffer = [];
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error reading data:", error);
+        }
+      }
+
+      function decodeChunk(chunk) {
+        // Skip first byte (header) and last byte (stop byte)
+        const byteArray = chunk.slice(1, -1);
+
+        // Extract sample number
+        const sampleNumber = chunk[1];
+
+        // Parse EEG data for all channels
+        const eegData = [];
+        for (let i = 2; i <= 24; i += 3) {
+          const channelData =
+            interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) / 24.0;
+          const channelName = `A${Math.ceil((i - 1) / 3)}`;
+          data[channelName].push(channelData);
+          eegData.push(channelData);
+        }
+
+        // Parse Aux data
+        const auxData = byteArray.slice(25);
+
+        // Print the parsed data
+        // console.log("Sample Number:", sampleNumber);
+        // console.log("EEG Data:", eegData);
+        // console.log("Aux Data:", auxData);
+      }
+
+      function interpret24bitAsInt32(byteArray) {
+        const newInt =
+          ((255 & byteArray[0]) << 16) |
+          ((255 & byteArray[1]) << 8) |
+          (255 & byteArray[2]);
+
+        return newInt & 8388608 ? newInt | 4278190080 : newInt & 16777215;
+      }
+
+      // Function to disconnect from the serial port
+      async function disconnectSerialPort() {
+        if (port && port.readable) {
+          await reader.cancel();
+          await port.close();
+          console.log("Serial port disconnected");
+          document.getElementById("connectButton").disabled = false;
+          document.getElementById("disconnectButton").disabled = true;
+          document.getElementById("channel0StartButton").disabled = true;
+          document.getElementById("channel0StopButton").disabled = true;
+        }
+      }
+
+      async function activateImpedanceMeasurement() {
+        // Loop through each channel to trigger impedance checks
+        for (let i = 1; i <= 8; i++) {
+          await configureBoard(i); // Trigger impedance check for the current channel
+        }
+        // Export data to CSV
+        const objectKeys = Object.keys(impedance);
+        const participantNumber = "LukasImpedance";
+        exportCSV(impedance, objectKeys, participantNumber);
+      }
+      async function configureBoard(command) {
+        const hardcodedCommands = [
+          "x1000100Xz101Z", // Start impedance check for channel 1
+          "x2000100Xz201Z", // Start impedance check for channel 2
+          "x3000100Xz301Z", // Start impedance check for channel 3
+          "x4000100Xz401Z", // Start impedance check for channel 4
+          "x5000100Xz501Z", // Start impedance check for channel 5
+          "x6000100Xz601Z", // Start impedance check for channel 6
+          "x7000100Xz701Z", // Start impedance check for channel 7
+          "x8000100Xz801Z", // Start impedance check for channel 8
+        ];
+        const resetCommands = [
+          "x1060110Xz100Z", // Reset impedance check for channel 1
+          "x2060110Xz200Z", // Reset impedance check for channel 2
+          "x3060110Xz300Z", // Reset impedance check for channel 3
+          "x4060110Xz400Z", // Reset impedance check for channel 4
+          "x5060110Xz500Z", // Reset impedance check for channel 5
+          "x6060110Xz600Z", // Reset impedance check for channel 6
+          "x7060110Xz700Z", // Reset impedance check for channel 7
+          "x8060110Xz800Z", // Reset impedance check for channel 8
+        ];
+
+        const index = parseInt(command); // Assuming command is a number indicating the channel index
+        const impedanceCommand = hardcodedCommands[index - 1]; // Get the corresponding impedance check command
+        const resetCommand = resetCommands[index - 1]; // Get the corresponding reset command
+
+        if (impedanceCommand && resetCommand) {
+          try {
+            // Check if the port is writable before writing data
+            if (port && port.writable) {
+              var writer = port.writable.getWriter();
+              const impedanceCommandBytes = new TextEncoder().encode(
+                impedanceCommand
+              );
+              await writer.write(impedanceCommandBytes);
+              console.log("Impedance check command sent for channel " + index);
+              writer.releaseLock();
+              await startRecording(); // Start recording for 5 seconds
+              await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 seconds
+              console.log("Waiting for 5 sec"); // Deactivate impedance measurement after 5 seconds
+              await stopImpedance("A" + index);
+              writer = port.writable.getWriter();
+              const resetCommandBytes = new TextEncoder().encode(resetCommand);
+              await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for 5 seconds
+              await writer.write(resetCommandBytes);
+              await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait for 5 seconds
+              console.log("Reset command sent for channel " + index);
+              writer.releaseLock();
+            } else {
+              console.error("Serial port is not writable");
+            }
+          } catch (error) {
+            console.error("Error sending commands:", error);
+          }
         } else {
-          console.error('Serial port is not writable');
+          console.error("Invalid channel index:", command);
         }
-      } catch (error) {
-        console.error('Error deactivating impedance measurement:', error);
       }
-    }
-    async function sendCommand() {
-            const commandInput = document.getElementById('commandInput');
-            const command = commandInput.value.trim();
+      async function stopImpedance(channel) {
+        try {
+          // Check if the port is writable before writing data
+          if (port && port.writable) {
+            const writer = port.writable.getWriter();
+            const command = "s"; // Command to stop recording
+            const commandBytes = new TextEncoder().encode(command);
+            await writer.write(commandBytes);
+            console.log("Recording stopped");
+            writer.releaseLock();
+            console.log("finished rec: " + data[channel]);
+            data.count = data[channel].length;
+            // Prepare data to send
+            const raw_data = data[channel].map((value) => parseFloat(value)); // Convert values to floats if necessary
 
-            if (command) {
-                try {
-                    // Check if the port is writable before writing data
-                    if (port && port.writable) {
-                        const writer = port.writable.getWriter();
-                        const commandBytes = new TextEncoder().encode(command);
-                        await writer.write(commandBytes);
-                        console.log('Command sent:', command);
-                        readData();
-                        writer.releaseLock();
-                    } else {
-                        console.error('Serial port is not writable');
-                    }
-                } catch (error) {
-                    console.error('Error sending command:', error);
-                }
+            // Send data to http://localhost:5001/calculate_impedance
+            const response = await fetch(
+              "http://localhost:5001/calculate_impedance",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ data_raw: raw_data }),
+              }
+            );
+            console.log("Data sent to calculate impedance:", raw_data);
+            const impedanceValue = await response.json(); // Get impedance value from the response
+            impedance[channel] = impedanceValue.impedance; // Store impedance value in the global variable
+            console.log(
+              "Impedance value for channel " + channel + ":",
+              impedanceValue.impedance
+            );
+          } else {
+            console.error("Serial port is not writable");
+          }
+        } catch (error) {
+          console.error("Error stopping recording:", error);
+        }
+
+        data = {
+          count: "",
+          A1: [],
+          A2: [],
+          A3: [],
+          A4: [],
+          A5: [],
+          A6: [],
+          A7: [],
+          A8: [],
+        };
+      }
+      async function sendCommand() {
+        const commandInput = document.getElementById("commandInput");
+        const command = commandInput.value.trim();
+
+        if (command) {
+          try {
+            // Check if the port is writable before writing data
+            if (port && port.writable) {
+              const writer = port.writable.getWriter();
+              const commandBytes = new TextEncoder().encode(command);
+              await writer.write(commandBytes);
+              console.log("Command sent:", command);
+              writer.releaseLock();
             } else {
-                console.error('Command cannot be empty');
+              console.error("Serial port is not writable");
             }
+          } catch (error) {
+            console.error("Error sending command:", error);
+          }
+        } else {
+          console.error("Command cannot be empty");
         }
+      }
 
-        function generateDenoisedPlot() {
- 
-        
-        var sampleRate = 250; // Sample rate is 250 Hz
-        var lowcut = 31 - 0.5; // Lower cutoff frequency
-        var highcut = 31 + 0.5; // Upper cutoff frequency
+      document
+        .getElementById("connectButton")
+        .addEventListener("click", connectSerialPort);
+      document
+        .getElementById("disconnectButton")
+        .addEventListener("click", disconnectSerialPort);
 
-        // Order of the filter
-        var order = 5;
-
-        // Example EEG data (replace this with your actual EEG data)
-        // Generating synthetic data for demonstration purpose
-
-      
-        var eegData = myCyton.getData();
-        var numSamples = eegData.length;
-        for (var i = 0; i < numSamples; i++) {
-            t[i] = i / sampleRate;
-            eegData[i] = Math.sin(2 * Math.PI * 31.5 * t[i]) + (Math.random() - 0.5) * 0.5;
-        }
-
-        // Apply bandpass filter to EEG data
-        var filteredEegData = DSP.BiquadFilter(DSP.BPF, sampleRate, lowcut, highcut, order, eegData);
-
-        // Plot original and filtered EEG data
-        var canvas = document.getElementById('plot');
-        var ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = 'blue';
-        ctx.beginPath();
-        for (var i = 0; i < numSamples; i++) {
-            var x = i / numSamples * canvas.width;
-            var y = canvas.height / 2 - eegData[i] * canvas.height / 4;
-            if (i === 0) {
-                ctx.moveTo(x, y);
-            } else {
-                ctx.lineTo(x, y);
-            }
-        }
-        ctx.stroke();
-
-        ctx.strokeStyle = 'red';
-        ctx.beginPath();
-        for (var i = 0; i < numSamples; i++) {
-            var x = i / numSamples * canvas.width;
-            var y = canvas.height / 2 - filteredEegData[i] * canvas.height / 4;
-            if (i === 0) {
-                ctx.moveTo(x, y);
-            } else {
-                ctx.lineTo(x, y);
-            }
-        }
-        ctx.stroke();
-    }
-    document.getElementById('connectButton').addEventListener('click', connectSerialPort);
-    document.getElementById('disconnectButton').addEventListener('click', disconnectSerialPort);
-
-    // Button click event handlers for starting and stopping impedance measurement for channel 0
-    document.getElementById('channel0StartButton').addEventListener('click', () => activateImpedanceMeasurement(0));
-    document.getElementById('channel0StopButton').addEventListener('click', () => deactivateImpedanceMeasurement(0));
-</script>
-
-
-
-</body>
+      // Button click event handlers for starting and stopping impedance measurement for channel 0
+      document
+        .getElementById("ImpedanceCheck")
+        .addEventListener("click", () => activateImpedanceMeasurement());
+      document
+        .getElementById("channel0StopButton")
+        .addEventListener("click", () => deactivateImpedanceMeasurement(0));
+    </script>
+  </body>
 </html>

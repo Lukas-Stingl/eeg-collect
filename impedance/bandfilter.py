@@ -4,9 +4,9 @@ import numpy as np
 from scipy.signal import butter, filtfilt, iirnotch
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
-processing_band_low_Hz = [1, 4, 8, 13, 30]
-processing_band_high_Hz = [4, 8, 13, 30, 55]
+CORS(app, resources={r"/*": {"origins": "*"}})  # Allow CORS for all routes and origins
+processing_band_low_Hz = [27]
+processing_band_high_Hz = [37]
 
 class GenericButterBand:
     def __init__(self, lowcut, highcut, fs, order=4):
@@ -48,7 +48,7 @@ def calculate_impedance():
     data_raw = request.json.get('data_raw')
     if not data_raw:
         return jsonify({'error': 'No data provided'}), 400
-    
+    print('data_raw: ', data_raw)
     data_filtered = filter_impedance(data_raw)
     stdUv = np.std(data_filtered)
     impedance = get_z(stdUv)

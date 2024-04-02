@@ -278,30 +278,14 @@ class cyton {
 
   async onPortSelected(port, baud = this.baudrate) {
     try {
-      try {
-        await port.open({ baudRate: baud, bufferSize: 2000000000 });
-        setTimeout(() => {
-          this.onConnectedCallback();
-          this.connected = true;
-          this.subscribed = true;
-          this.sendMsg("b");
-        }, 500);
-      } catch {
-        //API inconsistency in syntax between linux and windows
-        await port.open({ baudRate: baud, buffersize: 2000000000 });
-        setTimeout(() => {
-          this.onConnectedCallback();
-          this.connected = true;
-          this.subscribed = true;
-          this.sendMsg("b");
-          this.reader = this.port.readable.getReader();
-          // this.subscribe(port); //this.subscribeSafe(port);
-        }, 500);
-      }
-    } catch (err) {
-      console.error(err);
-      this.connected = false;
-    }
+      await port.open({ baudRate: 115200, bufferSize: 200000  }); // Set baud rate to 115200
+      this.reader = port.readable.getReader();
+      
+} catch (error) {
+      console.error('Error connecting to serial port:', error);
+  }
+
+    
     this.connected = true;
     // Automatically start reading on successful connection
   }
@@ -309,56 +293,50 @@ class cyton {
   async startReading() {
     this.startRecording = this.getReadableTimestamp();
     try {
-      this.reader = this.port.readable.getReader();
-      const streamData = async () => {
-        try {
-          const { value } = await this.reader.read();
-          if (value) {
-            try {
-              this.onReceive(value);
-            } catch {
-              console.log("Error decoding data");
-            }
-          }
-          if (this.subscribed === true) {
-            setTimeout(() => {
-              streamData();
-            }, this.readRate);
-          }
-        } catch (error) {
-          alert(
-            "Bitte lade die Seite neu und schalte das EEG Gerät aus und wieder ein. "
-          );
-          console.log(error);
-        }
-      };
-      streamData();
+      // Check if the port is writable before writing data
+      if (this.port && this.port.writable) {
+        const writer = this.port.writable.getWriter();
+        const command = 'b'; // Command to start recording
+        const commandBytes = new TextEncoder().encode(command);
+        await writer.write(commandBytes);
+        writer.releaseLock();
+        this.readData()
+      } else {
+        console.error('Serial port is not writable');
+      }
     } catch (error) {
-      console.error("Error creating reader:", error);
-      this.closePort();
+      console.error('Error starting recording:', error);
     }
   }
   getData() {
     return this.data;
   }
   async stopReading(participantNumber) {
-    this.endRecording = this.getReadableTimestamp();
-
-    this.connected = false;
     try {
-      // Close the reader and release the lock
-      await this.reader.cancel();
+      // Check if the port is writable before writing data
+      if (this.port && this.port.writable) {
+        const writer = this.port.writable.getWriter();
+        const command = 's'; // Command to stop recording
+        const commandBytes = new TextEncoder().encode(command);
+        await writer.write(commandBytes);
+        console.log('Recording stopped');
+        writer.releaseLock();
+        let data = this.getData();
+        console.log(data);
+      } else {
+        console.error('Serial port is not writable');
+      }
     } catch (error) {
-      console.log("Error releasing lock:", error);
+      console.error('Error stopping recording:', error);
     }
     const objectKeys = Object.keys(this.data);
     this.exportCSV(this.data, objectKeys, participantNumber);
     this.buffer = [];
-
+    
     console.log("Stopped reading from serial port and buffer is reset");
-
-    console.log("Stopped reading from serial port");
-  }
+  
+  console.log("Stopped reading from serial port");
+}
 
   exportCSV(content, objectKeys, participantNumber) {
     const csvContent = this.parseAndExportData(content, objectKeys);
@@ -368,7 +346,7 @@ class cyton {
     formData.append("fileName", fileName);
     formData.append("csvContent", csvContent);
 
-    fetch("http://localhost:8081/api/save-csv", {
+    fetch("http://localhost:8081/save-csv", {
       method: "POST",
       body: formData,
     })
@@ -493,33 +471,12 @@ class cyton {
   async setupSerialAsync(baudrate = 115200) {
     //You can specify baudrate just in case
     this.port = await navigator.serial.requestPort();
-    navigator.serial.addEventListener("disconnect", (e) => {
-      console.log(e);
-      this.closePort(this.port);
-    });
     this.onPortSelected(this.port, baudrate);
 
     //navigator.serial.addEventListener("onReceive", (e) => {console.log(e)});//this.onReceive(e));
   }
 
-  async checkDevice(baudrate = 115200) {
-    try {
-      //You can specify baudrate just in case
-      this.port = await navigator.serial.requestPort();
-      navigator.serial.addEventListener("disconnect", (e) => {
-        console.log(e);
-        this.closePort(this.port);
-      });
-      await this.onPortSelected(this.port, baudrate);
-      // this.startReading()
-      // await new Promise((resolve) => setTimeout(resolve, 5000));
-      // await this.stopCheck();
 
-      console.log("Done capturing data for approximately 10 seconds");
-    } catch (error) {
-      console.error("Error checking device:", error);
-    }
-  }
 
   //navigator.serial.addEventListener("onReceive", (e) => {console.log(e)});//this.onReceive(e));
 
@@ -643,6 +600,7 @@ class cyton {
         const text = new TextDecoder().decode(value);
         // Process the received text
         console.log("Received data:", text);
+        this.decode(value);
       }
     } catch (error) {
       console.error("Error reading data:", error);
