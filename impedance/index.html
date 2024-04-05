@@ -42,7 +42,7 @@
       };
       let impedance = {};
       // Create an instance of the cyton class
-      const myCyton = new window.cyton();
+      
 
       // Function to connect to the serial port
       async function connect() {
@@ -282,10 +282,10 @@
         // Parse Aux data
         const auxData = byteArray.slice(25);
 
-        // Print the parsed data
-        // console.log("Sample Number:", sampleNumber);
-        // console.log("EEG Data:", eegData);
-        // console.log("Aux Data:", auxData);
+
+        console.log("Sample Number:", sampleNumber);
+        console.log("EEG Data:", eegData);
+        console.log("Aux Data:", auxData);
       }
 
       function interpret24bitAsInt32(byteArray) {
@@ -358,7 +358,7 @@
               console.log("Impedance check command sent for channel " + index);
               writer.releaseLock();
               await startRecording(); // Start recording for 5 seconds
-              await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 seconds
+              await new Promise((resolve) => setTimeout(resolve, 7500)); // Wait for 5 seconds
               console.log("Waiting for 5 sec"); // Deactivate impedance measurement after 5 seconds
               await stopImpedance("A" + index);
               writer = port.writable.getWriter();
@@ -391,8 +391,10 @@
             console.log("finished rec: " + data[channel]);
             data.count = data[channel].length;
             // Prepare data to send
-            const raw_data = data[channel].map((value) => parseFloat(value)); // Convert values to floats if necessary
-
+            let raw_data = data[channel].map((value) => parseFloat(value)); // Convert values to floats if necessary
+            if (raw_data.length > 800) {
+              raw_data = raw_data.slice(raw_data.length - 800);
+             }
             // Send data to http://localhost:5001/calculate_impedance
             const response = await fetch(
               "http://localhost:5001/calculate_impedance",

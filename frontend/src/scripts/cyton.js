@@ -41,40 +41,19 @@ export class cyton {
 
     this.mode = mode;
     this.odd = false; //
-
+    this.impedance = {};
     this.data = {
-      //Data object to keep our head from exploding. Get current data with e.g. this.data.A0[this.data.count-1]
-      count: 0,
-      startms: 0,
-      ms: [],
-      A0: [],
-      A1: [],
-      A2: [],
-      A3: [],
-      A4: [],
-      A5: [],
-      A6: [],
-      A7: [], //ADC 0
-      A8: [],
-      A9: [],
-      A10: [],
-      A11: [],
-      A12: [],
-      A13: [],
-      A14: [],
-      A15: [],
-      A16: [],
-      A17: [],
-      A18: [],
-      A19: [],
-      A20: [], //ADC 1
-      Ax: [],
-      Ay: [],
-      Az: [],
-      Gx: [],
-      Gy: [],
-      Gz: [], //Peripheral data (accelerometer, gyroscope)
+        count: "",
+        A1: [],
+        A2: [],
+        A3: [],
+        A4: [],
+        A5: [],
+        A6: [],
+        A7: [], 
+        A8: []
     };
+
 
     this.resetDataBuffers();
 
@@ -98,6 +77,37 @@ export class cyton {
       }
     }
   }
+  getImpedance() {
+    const impedanceArray = [];
+    const numChannels = 19;
+
+    for (let i = 1; i < numChannels+1; i++) {
+        const channel = "A" + i;
+        let impedanceValue = this.impedance[channel];
+        let state;
+
+        if (impedanceValue === undefined) {
+            state = 0; // Set state to 0 if channel not found
+            impedanceValue = 0; // Set impedance to 0 if channel not found
+        } else if (impedanceValue === 0) {
+            state = 1;
+        } else if (impedanceValue < 100) {
+            state = 3;
+        } else if (impedanceValue < 300) {
+            state = 2;
+        } else {
+            state = 1;
+        }
+
+        impedanceArray.push({
+            node_id: i,
+            state: state,
+            impedance: impedanceValue
+        });
+    }
+
+    return impedanceArray;
+}
 
   setScalar(gain = 24, stepSize = 1 / (Math.pow(2, 23) - 1), vref = 4.5) {
     this.stepSize = stepSize;
@@ -151,156 +161,82 @@ export class cyton {
   }
 
   interpret24bitAsInt32(byteArray) {
-    let newInt =
-      ((0xff & byteArray[0]) << 16) |
-      ((0xff & byteArray[1]) << 8) |
-      (0xff & byteArray[2]);
+    const newInt =
+      ((255 & byteArray[0]) << 16) |
+      ((255 & byteArray[1]) << 8) |
+      (255 & byteArray[2]);
 
-    if (newInt & 0x00800000) {
-      newInt |= 0xff000000;
-    } else {
-      newInt &= 0x00ffffff;
-    }
-
-    return newInt;
+    return newInt & 8388608 ? newInt | 4278190080 : newInt & 16777215;
   }
 
-  int24ToBytes(y) {
-    //Turns a 24 bit int into a 3 byte sequence
-    return [y & 0xff, (y >> 8) & 0xff, (y >> 16) & 0xff];
+  async startImpedanceCheck() {
+    // Loop through each channel to trigger impedance checks
+    for (let i = 1; i <= 8; i++) {
+      await this.configureBoard(i); // Trigger impedance check for the current channel
+    }
+    // Export data to CSV
+    const objectKeys = Object.keys(this.impedance);
+    const participantNumber = "LukasImpedance";
+    this.exportCSV(this.impedance, objectKeys, participantNumber);
   }
 
-  async decode(buffer) {
-    var needle = this.searchString;
-    var haystack = buffer;
-    var search = this.boyerMoore(needle);
-    var skip = search.byteLength;
-    var indices = [];
-    let newLines = 0;
+  async configureBoard(command) {
+    const hardcodedCommands = [
+      "x1000100Xz101Z", // Start impedance check for channel 1
+      "x2000100Xz201Z", // Start impedance check for channel 2
+      "x3000100Xz301Z", // Start impedance check for channel 3
+      "x4000100Xz401Z", // Start impedance check for channel 4
+      "x5000100Xz501Z", // Start impedance check for channel 5
+      "x6000100Xz601Z", // Start impedance check for channel 6
+      "x7000100Xz701Z", // Start impedance check for channel 7
+      "x8000100Xz801Z", // Start impedance check for channel 8
+    ];
+    const resetCommands = [
+      "x1060110Xz100Z", // Reset impedance check for channel 1
+      "x2060110Xz200Z", // Reset impedance check for channel 2
+      "x3060110Xz300Z", // Reset impedance check for channel 3
+      "x4060110Xz400Z", // Reset impedance check for channel 4
+      "x5060110Xz500Z", // Reset impedance check for channel 5
+      "x6060110Xz600Z", // Reset impedance check for channel 6
+      "x7060110Xz700Z", // Reset impedance check for channel 7
+      "x8060110Xz800Z", // Reset impedance check for channel 8
+    ];
 
-    for (var i = search(haystack); i !== -1; i = search(haystack, i + skip)) {
-        indices.push(i);
-    }
+    const index = parseInt(command); // Assuming command is a number indicating the channel index
+    const impedanceCommand = hardcodedCommands[index - 1]; // Get the corresponding impedance check command
+    const resetCommand = resetCommands[index - 1]; // Get the corresponding reset command
 
-    if (indices.length >= 2) {
-        for (let k = 1; k < indices.length; k++) {
-            if (indices[k] - indices[k - 1] === 33) {
-                var line = buffer.slice(indices[k - 1], indices[k] + 1); // Slice out this line to be decoded
-
-                let odd = line[2] % 2 !== 0;
-
-                if (
-                    this.data.count < this.maxBufferedSamples &&
-                    ((this.mode === "daisy" && odd) || this.mode !== "daisy")
-                ) {
-                    this.data.count++;
-                }
-
-                this.data.ms[this.data.count - 1] = Date.now(); // Always create a new timestamp
-
-                for (i = 3; i < 27; i += 3) {
-                    let channel;
-                    if (this.mode === "daisy") {
-                        if (odd) {
-                            channel = "A" + (i - 3) / 3;
-                            this.odd = false;
-                        } else {
-                            channel = "A" + (8 + (i - 3) / 3);
-                            this.odd = true;
-                        }
-                    } else {
-                        channel = "A" + (i - 3) / 3;
-                    }
-                    this.data[channel][this.data.count - 1] = this.bytesToInt24(
-                        line[i],
-                        line[i + 1],
-                        line[i + 2]
-                    ) * 0.02235;
-
-                    if (this.data.count >= this.maxBufferedSamples) {
-                        this.data[channel].splice(0, 5120);
-                        this.data[channel].push(new Array(5120).fill(0));
-                    }
-                }
-
-                if (!odd) {
-                    this.data["Ax"][this.data.count - 1] = this.bytesToInt16(
-                        line[27],
-                        line[28]
-                    );
-                    this.data["Ay"][this.data.count - 1] = this.bytesToInt16(
-                        line[29],
-                        line[30]
-                    );
-                    this.data["Az"][this.data.count - 1] = this.bytesToInt16(
-                        line[31],
-                        line[32]
-                    );
-                }
-
-                if (this.data.count >= this.maxBufferedSamples) {
-                    this.data["Ax"].splice(0, 5120);
-                    this.data["Ay"].splice(0, 5120);
-                    this.data["Az"].splice(0, 5120);
-                    this.data["Ax"].push(new Array(5120).fill(0));
-                    this.data["Ay"].push(new Array(5120).fill(0));
-                    this.data["Az"].push(new Array(5120).fill(0));
-                    this.data.count -= 5120;
-                }
-
-                newLines++;
-            }
+    if (impedanceCommand && resetCommand) {
+      try {
+        // Check if the port is writable before writing data
+        if (this.port && this.port.writable) {
+          var writer = this.port.writable.getWriter();
+          const impedanceCommandBytes = new TextEncoder().encode(
+            impedanceCommand
+          );
+          await writer.write(impedanceCommandBytes);
+          console.log("Impedance check command sent for channel " + index);
+          writer.releaseLock();
+          await this.startReading(); // Start recording for 5 seconds
+          await new Promise((resolve) => setTimeout(resolve, 7500)); // Wait for 5 seconds
+          console.log("Waiting for 5 sec"); // Deactivate impedance measurement after 5 seconds
+          await this.stopImpedance("A" + index);
+          writer = this.port.writable.getWriter();
+          const resetCommandBytes = new TextEncoder().encode(resetCommand);
+          await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for 5 seconds
+          await writer.write(resetCommandBytes);
+          await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait for 5 seconds
+          console.log("Reset command sent for channel " + index);
+          writer.releaseLock();
+        } else {
+          console.error("Serial port is not writable");
         }
-
-        if (newLines > 0 &&  buffer instanceof ArrayBuffer ) buffer.splice(0, indices[indices.length - 1]);
-        return newLines;
+      } catch (error) {
+        console.error("Error sending commands:", error);
+      }
+    } else {
+      console.error("Invalid channel index:", command);
     }
-}
-
-  //Callbacks
-  onDecodedCallback(newLinesInt) {
-    console.log("new samples:", newLinesInt);
-  }
-
-  onConnectedCallback() {
-    console.log("port connected!");
-  }
-
-  onDisconnectedCallback() {
-    console.log("port disconnected!");
-  }
-
-  onReceive(value) {
-    this.buffer.push(...value);
-    //console.log(this.buffer);
-    //console.log("decoding... ", this.buffer.length)
-    let newLines = this.buffer;
-    console.log(newLines);
-    //console.log(this.data)
-    this.decode(this.buffer);
-  }
-
-  async sendMsg(msg) {
-    msg += "\n";
-    var bytes = this.encoder.encode(msg); 
-    const writer = this.port.writable.getWriter();
-    await writer.write(bytes);
-    writer.releaseLock();
-    return true;
-  }
-
-  async onPortSelected(port) {
-    try {
-      await port.open({ baudRate: 115200, bufferSize: 200000  }); // Set baud rate to 115200
-      this.reader = port.readable.getReader();
-      
-} catch (error) {
-      console.error('Error connecting to serial port:', error);
-  }
-
-    
-    this.connected = true;
-    // Automatically start reading on successful connection
   }
 
   async startReading() {
@@ -309,37 +245,84 @@ export class cyton {
       // Check if the port is writable before writing data
       if (this.port && this.port.writable) {
         const writer = this.port.writable.getWriter();
-        const command = 'b'; // Command to start recording
+        const command = "b"; // Command to start recording
         const commandBytes = new TextEncoder().encode(command);
         await writer.write(commandBytes);
+        console.log("Recording started");
+
         writer.releaseLock();
-        this.readData()
       } else {
-        console.error('Serial port is not writable');
+        console.error("Serial port is not writable");
       }
     } catch (error) {
-      console.error('Error starting recording:', error);
+      console.error("Error starting recording:", error);
     }
   }
   async readData() {
     try {
-      while (this.connected) {
-        setTimeout(() => {
-        }, 20);
+      let buffer = []; // Buffer to accumulate bytes until a complete chunk is formed
+      let headerFound = false;
+
+      while (this.connected === true) {
         const { value, done } = await this.reader.read();
         if (done) {
           this.reader.releaseLock();
           break;
         }
-        // Convert the received byte array to text
-        // Process the received text 
-        const text = new TextDecoder().decode(value);
-        console.log(text)
-        this.decode(value);
+        for (let i = 0; i < value.length; i++) {
+          // Check if the header is found
+          if (!headerFound && value[i] === 160) {
+            headerFound = true;
+          } else if (!headerFound && headerFound === false) {
+            const text = new TextDecoder().decode(value);
+            console.log(text);
+          }
+
+          if (headerFound) {
+            buffer.push(value[i]);
+          }
+
+          // Check if a complete chunk is formed
+
+          // Decode the chunk
+
+          // Stop receiving data if the stop byte is found
+          if (value[i] >= 192 && value[i] <= 198 && buffer.length > 30) {
+            headerFound = false;
+            this.decodeChunk(buffer);
+
+            // Reset buffer for the next chunk
+            buffer = [];
+          }
+        }
       }
     } catch (error) {
-      console.error('Error reading data:', error);
+      console.error("Error reading data:", error);
     }
+  }
+
+   decodeChunk(chunk) {
+    // Skip first byte (header) and last byte (stop byte)
+    const byteArray = chunk.slice(1, -1);
+
+
+
+    // Parse EEG data for all channels
+    const eegData = [];
+    for (let i = 2; i <= 24; i += 3) {
+      const channelData =
+      this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) / 24.0;
+      const channelName = `A${Math.ceil((i - 1) / 3)}`;
+      this.data[channelName].push(channelData);
+      eegData.push(channelData);
+    }
+
+
+
+    // Print the parsed data
+    // console.log("Sample Number:", sampleNumber);
+    // console.log("EEG Data:", eegData);
+    // console.log("Aux Data:", auxData);
   }
 
   getData() {
@@ -347,92 +330,114 @@ export class cyton {
   }
   async stopReading(participantNumber) {
     this.endRecording = this.getReadableTimestamp();
-   
-      
-      try {
-        // Check if the port is writable before writing data
-        if (this.port && this.port.writable) {
-          const writer = this.port.writable.getWriter();
-          const command = 's'; // Command to stop recording
-          const commandBytes = new TextEncoder().encode(command);
-          await writer.write(commandBytes);
-          console.log('Recording stopped');
-          writer.releaseLock();
-          let data = this.getData();
-          console.log(data);
-        } else {
-          console.error('Serial port is not writable');
-        }
-      } catch (error) {
-        console.error('Error stopping recording:', error);
+
+    try {
+      // Check if the port is writable before writing data
+      if (this.port && this.port.writable) {
+        const writer = this.port.writable.getWriter();
+        const command = "s"; // Command to stop recording
+        const commandBytes = new TextEncoder().encode(command);
+        await writer.write(commandBytes);
+        console.log("Recording stopped");
+        writer.releaseLock();
+        let data = this.getData();
+        console.log(data);
+      } else {
+        console.error("Serial port is not writable");
       }
-      const objectKeys = Object.keys(this.data);
-      this.exportCSV(this.data, objectKeys, participantNumber);
-      this.buffer = [];
-      
-      console.log("Stopped reading from serial port and buffer is reset");
-    
+    } catch (error) {
+      console.error("Error stopping recording:", error);
+    }
+    const objectKeys = Object.keys(this.data);
+    this.exportCSV(this.data, objectKeys, participantNumber);
+    this.buffer = [];
+
+    console.log("Stopped reading from serial port and buffer is reset");
+
     console.log("Stopped reading from serial port");
   }
 
   exportCSV(content, objectKeys, participantNumber) {
     const csvContent = this.parseAndExportData(content, objectKeys);
-    let startTime = Math.floor(new Date(this.startRecording).getTime() / 1000)
+    let startTime = Math.floor(new Date(this.startRecording).getTime() / 1000);
     const fileName = `${participantNumber}-${startTime}.csv`;
 
     const formData = new FormData();
-    formData.append('fileName', fileName);
-    formData.append('csvContent', csvContent);
+    formData.append("fileName", fileName);
+    formData.append("csvContent", csvContent);
 
-    fetch('/api/save-csv', {
-        method: 'POST',
-        body: formData
+    fetch("/api/save-csv", {
+      method: "POST",
+      body: formData,
     })
-    .then(response => {
+      .then((response) => {
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+          throw new Error("Network response was not ok");
         }
         return response.json();
-    })
-    .then(data => {
-        console.log('CSV file saved successfully:', data.filePath);
-    })
-    .catch(error => {
-        console.error('Error saving CSV file:', error);
-    });
-}
-
-
-
-  async stopCheck() {
-    this.endRecording = this.getReadableTimestamp();
-    if (this.connected && this.reader) {
-      
-      try {
-        // Check if the port is writable before writing data
-        if (this.port && this.port.writable) {
-          const writer = this.port.writable.getWriter();
-          const command = 's'; // Command to stop recording
-          const commandBytes = new TextEncoder().encode(command);
-          await writer.write(commandBytes);
-          console.log('Recording stopped');
-          writer.releaseLock();
-          let data = this.getData();
-          console.log(data);
-        } else {
-          console.error('Serial port is not writable');
-        }
-      } catch (error) {
-        console.error('Error stopping recording:', error);
-      }
-      this.buffer = [];
-      console.log("Stopped reading from serial port and buffer is reset");
-    }
-    console.log("Stopped reading from serial port");
-    return this.data
+      })
+      .then((data) => {
+        console.log("CSV file saved successfully:", data.filePath);
+      })
+      .catch((error) => {
+        console.error("Error saving CSV file:", error);
+      });
   }
 
+  async stopImpedance(channel) {
+    try {
+      // Check if the port is writable before writing data
+      if (this.port && this.port.writable) {
+        const writer = this.port.writable.getWriter();
+        const command = "s"; // Command to stop recording
+        const commandBytes = new TextEncoder().encode(command);
+        await writer.write(commandBytes);
+        console.log("Recording stopped");
+        writer.releaseLock();
+        console.log("finished rec: " + this.data[channel]);
+        this.data.count = this.data[channel].length;
+        // Prepare data to send
+        let raw_data = this.data[channel].map((value) => parseFloat(value)); // Convert values to floats if necessary
+        if (raw_data.length > 800) {
+          raw_data = raw_data.slice(raw_data.length - 800);
+        }
+        // Send data to http://localhost:5001/calculate_impedance
+        const response = await fetch(
+          "http://localhost:5001/calculate_impedance",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ data_raw: raw_data }),
+          }
+        );
+        console.log("Data sent to calculate impedance:", raw_data);
+        const impedanceValue = await response.json(); // Get impedance value from the response
+        this.impedance[channel] = impedanceValue.impedance; // Store impedance value in the global variable
+        console.log(
+          "Impedance value for channel " + channel + ":",
+          impedanceValue.impedance
+        );
+      } else {
+        console.error("Serial port is not writable");
+      }
+    } catch (error) {
+      console.error("Error stopping recording:", error);
+    }
 
+    this.data = {
+      count: "",
+      A1: [],
+      A2: [],
+      A3: [],
+      A4: [],
+      A5: [],
+      A6: [],
+      A7: [],
+      A8: [],
+    };
+  }
 
   getReadableTimestamp() {
     const now = new Date(); // Current date and time
@@ -454,188 +459,58 @@ export class cyton {
     const headers = objectKeys.join(";");
 
     // Transpose data
-    const transposedData = objectKeys.map(key => {
-        if (Array.isArray(data[key])) {
-            return data[key];
-        } else {
-            // If it's a string, create an array with a single element
-            return [data[key]];
-        }
+    const transposedData = objectKeys.map((key) => {
+      if (Array.isArray(data[key])) {
+        return data[key];
+      } else {
+        // If it's a string, create an array with a single element
+        return [data[key]];
+      }
     });
 
     // Find the maximum length among the arrays
-    const maxLength = Math.max(...transposedData.map(arr => arr.length));
+    const maxLength = Math.max(...transposedData.map((arr) => arr.length));
 
     // Fill shorter arrays with empty strings to match the maximum length
-    const filledData = transposedData.map(arr => {
-        const diff = maxLength - arr.length;
-        return arr.concat(Array(diff).fill(""));
+    const filledData = transposedData.map((arr) => {
+      const diff = maxLength - arr.length;
+      return arr.concat(Array(diff).fill(""));
     });
 
     // Create rows by taking values at the same index from each array
     const rows = [];
     for (let i = 0; i < parseInt(filledData[0][0]); i++) {
-        const index = i + 1;
-        let datetime = "";
-        // Calculate datetime based on startms and previous datetime
-        datetime = new Date(filledData[2][i]).toLocaleString();
-        
-        // Format datetime manually to avoid locale issues
+      const index = i + 1;
+      let datetime = "";
+      // Calculate datetime based on startms and previous datetime
+      datetime = new Date(filledData[2][i]).toLocaleString();
 
-        const rowValues = [index, datetime].concat(filledData.map(arr => arr[i]));
-        rows.push(rowValues.join(";"));
+      // Format datetime manually to avoid locale issues
+
+      const rowValues = [index, datetime].concat(
+        filledData.map((arr) => arr[i])
+      );
+      rows.push(rowValues.join(";"));
     }
 
     // Combine rows with newline characters
     const csvContent = "Index;Datetime;" + headers + "\n" + rows.join("\n");
 
     return csvContent;
-}
-
-
-
-  convertBytesToInt(bytes) {
-    // Convert 3-byte EEG data to a 24-bit signed integer
-    let value = (bytes[0] << 16) | (bytes[1] << 8) | bytes[2];
-    // Assuming it's a 24-bit two's complement integer
-    if (value & 0x800000) {
-      value = value - 0x1000000;
-    }
-    return value;
   }
 
-  async closePort(port = this.port) {
-    //if(this.reader) {this.reader.releaseLock();}
-    if (this.port) {
-      this.subscribed = false;
-      this.sendMsg("s");
-      setTimeout(async () => {
-        if (this.reader) {
-          this.reader = null;
-        }
-        await port.close();
-        this.port = null;
-        this.connected = false;
-        this.onDisconnectedCallback();
-      }, 100);
+  async setupSerialAsync() {
+    try {
+      this.port = await navigator.serial.requestPort();
+      await this.port.open({ baudRate: 115200 }); // Set baud rate to 115200
+      this.reader = this.port.readable.getReader();
+      this.connected = true;
+      this.readData();
+    } catch (error) {
+      console.error("Error connecting to serial port:", error);
     }
   }
 
-  async setupSerialAsync(baudrate = 115200) {
-    //You can specify baudrate just in case
-    this.port = await navigator.serial.requestPort();
-    navigator.serial.addEventListener("disconnect", (e) => {
-      console.log(e);
-      this.closePort(this.port);
-    });
-    this.onPortSelected(this.port, baudrate);
 
-    //navigator.serial.addEventListener("onReceive", (e) => {console.log(e)});//this.onReceive(e));
-  }
-
-  async checkDevice(baudrate = 115200) {
-	try {
-    //You can specify baudrate just in case
-    this.port = await navigator.serial.requestPort();
-    navigator.serial.addEventListener("disconnect", (e) => {
-      console.log(e);
-      this.closePort(this.port);
-    });
-    await this.onPortSelected(this.port, baudrate)
-	// this.startReading()
-	// await new Promise((resolve) => setTimeout(resolve, 5000));
-	// await this.stopCheck();
-
-    console.log("Done capturing data for approximately 10 seconds");
-} catch (error) {
-    console.error("Error checking device:", error);
-  }
-
-}
-
-    //navigator.serial.addEventListener("onReceive", (e) => {console.log(e)});//this.onReceive(e));
-  
-  //Boyer Moore fast byte search method copied from https://codereview.stackexchange.com/questions/20136/uint8array-indexof-method-that-allows-to-search-for-byte-sequences
-  asUint8Array(input) {
-    if (input instanceof Uint8Array) {
-      return input;
-    } else if (typeof input === "string") {
-      // This naive transform only supports ASCII patterns. UTF-8 support
-      // not necessary for the intended use case here.
-      var arr = new Uint8Array(input.length);
-      for (var i = 0; i < input.length; i++) {
-        var c = input.charCodeAt(i);
-        if (c > 127) {
-          throw new TypeError("Only ASCII patterns are supported");
-        }
-        arr[i] = c;
-      }
-      return arr;
-    } else {
-      // Assume that it's already something that can be coerced.
-      return new Uint8Array(input);
-    }
-  }
-
-  boyerMoore(patternBuffer) {
-    // Implementation of Boyer-Moore substring search ported from page 772 of
-    // Algorithms Fourth Edition (Sedgewick, Wayne)
-    // http://algs4.cs.princeton.edu/53substring/BoyerMoore.java.html
-    /*
-		USAGE:
-			// needle should be ASCII string, ArrayBuffer, or Uint8Array
-			// haystack should be an ArrayBuffer or Uint8Array
-			var search = boyerMoore(needle);
-			var skip = search.byteLength;
-			var indices = [];
-			for (var i = search(haystack); i !== -1; i = search(haystack, i + skip)) {
-				indices.push(i);
-			}
-		*/
-    var pattern = this.asUint8Array(patternBuffer);
-    var M = pattern.length;
-    if (M === 0) {
-      throw new TypeError("patternBuffer must be at least 1 byte long");
-    }
-    // radix
-    var R = 256;
-    var rightmost_positions = new Int32Array(R);
-    // position of the rightmost occurrence of the byte c in the pattern
-    for (var c = 0; c < R; c++) {
-      // -1 for bytes not in pattern
-      rightmost_positions[c] = -1;
-    }
-    for (var j = 0; j < M; j++) {
-      // rightmost position for bytes in pattern
-      rightmost_positions[pattern[j]] = j;
-    }
-    var boyerMooreSearch = (txtBuffer, start, end) => {
-      // Return offset of first match, -1 if no match.
-      var txt = this.asUint8Array(txtBuffer);
-      if (start === undefined) start = 0;
-      if (end === undefined) end = txt.length;
-      var pat = pattern;
-      var right = rightmost_positions;
-      var lastIndex = end - pat.length;
-      var lastPatIndex = pat.length - 1;
-      var skip;
-      for (var i = start; i <= lastIndex; i += skip) {
-        skip = 0;
-        for (var j = lastPatIndex; j >= 0; j--) {
-          var c = txt[i + j];
-          if (pat[j] !== c) {
-            skip = Math.max(1, j - right[c]);
-            break;
-          }
-        }
-        if (skip === 0) {
-          return i;
-        }
-      }
-      return -1;
-    };
-    boyerMooreSearch.byteLength = pattern.byteLength;
-    return boyerMooreSearch;
-  }
 }
 // At the end of cyton.js

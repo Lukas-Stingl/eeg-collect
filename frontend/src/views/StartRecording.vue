@@ -10,7 +10,7 @@ checks, and starting/stopping the recording. * */
           <v-card-title>Hinweis</v-card-title>
           <v-card-text>
             {{
-              "Das EEG Gerät wird gerade auf Funktionalität überprüft. Das kann bis zu 10 Sekunden dauern. Bitte warten Sie kurz."
+              "Das EEG Gerät wird gerade auf Funktionalität überprüft. Das kann bis zu 2 Minuten dauern. Bitte warten Sie kurz und bewegen Sie sich nicht."
             }}
           </v-card-text>
         </v-card>
@@ -76,111 +76,43 @@ checks, and starting/stopping the recording. * */
     <h2 v-if="showContinueButton && participantNumberSet">Device Check</h2>
     <h1 v-if="!showContinueButton && participantNumberSet">Aufnahme</h1>
 
-    <v-container
-      v-if="showContinueButton && participantNumberSet"
-      class="content"
-    >
+    <div v-show="showContinueButton && participantNumberSet" class="headphones">
       <!-- Device Check Content -->
-      <v-row justify="center">
-        <v-col
-          cols="12"
-          class="image-container"
-          :style="{ flexBasis: colWidth, maxWidth: colWidth }"
-        >
-          <v-img
-            :src="require('@/assets/headphones.png')"
-            class="my-3"
-            contain
-          />
-          <v-icon v-if="showIcon2" class="v-icon-2" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon3" class="v-icon-3" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon4" class="v-icon-4" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon5" class="v-icon-5" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon6" class="v-icon-6" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon7" class="v-icon-7" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon8" class="v-icon-8" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon9" class="v-icon-9" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon10" class="v-icon-10" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon11" class="v-icon-11" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon12" class="v-icon-12" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon13" class="v-icon-13" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon14" class="v-icon-14" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon15" class="v-icon-15" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon16" class="v-icon-16" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon17" class="v-icon-17" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon18" class="v-icon-18" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon19" class="v-icon-19" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon20" class="v-icon-20" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-          <v-icon v-if="showIcon21" class="v-icon-21" color="red" size="15"
-            >mdi-alert-outline</v-icon
-          >
-        </v-col>
-      </v-row>
 
-      <div class="button-container">
-        <v-btn @click="redirectToStartRecording">Weiter</v-btn>
-        <v-icon
-          color="info"
-          class="help"
-          icon="mdi-help-circle-outline"
-          size="x-small"
-          @click="connectHelp"
-        ></v-icon>
-      </div>
+      <svg ref="baseModel" width="1500" height="700"></svg>
+      <div class="tooltip"></div>
+    </div>
+    <div
+      v-show="showContinueButton && participantNumberSet"
+      class="button-container"
+    >
+      <v-btn @click="redirectToStartRecording">Weiter</v-btn>
+      <v-icon
+        color="info"
+        class="help"
+        icon="mdi-help-circle-outline"
+        size="x-small"
+        @click="connectHelp"
+      ></v-icon>
+    </div>
 
-      <v-dialog v-model="isConnectHelpOpen" max-width="500px">
-        <v-card>
-          <v-card-title>Hilfe</v-card-title>
-          <v-card-text>
-            Falls einzelne Kanäle ein Fehlersymbol anzeigen, schalten Sie das
-            Gerät bitte aus und wieder ein und achten Sie darauf, dass die
-            Elektrotroden korrekt angebracht sind.
-          </v-card-text>
-          <v-card-actions>
-            <v-btn @click="connectHelp">Schließen</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-    </v-container>
-
+    <v-dialog
+      v-show="showContinueButton && participantNumberSet"
+      v-model="isConnectHelpOpen"
+      max-width="500px"
+    >
+      <v-card>
+        <v-card-title>Hilfe</v-card-title>
+        <v-card-text>
+          Falls einzelne Kanäle ein Fehlersymbol anzeigen, schalten Sie das
+          Gerät bitte aus und wieder ein und achten Sie darauf, dass die
+          Elektrotroden korrekt angebracht sind.
+        </v-card-text>
+        <v-card-actions>
+          <v-btn @click="connectHelp">Schließen</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <div v-if="!showContinueButton && participantNumberSet">
       <!-- Cyton Connector Content -->
       <div class="recordButtons">
@@ -267,6 +199,7 @@ checks, and starting/stopping the recording. * */
 <script>
 import { cyton } from "../scripts/cyton.js";
 import Chart from "chart.js";
+import * as d3 from "d3";
 
 export default {
   data() {
@@ -275,7 +208,7 @@ export default {
       status: "Not connected",
       port: "",
       data: {},
-      reader:"",
+      reader: "",
       isParticipantHelpOpen: false,
       isConnectHelpOpen: false,
       cytonBoard: null,
@@ -558,6 +491,53 @@ export default {
           },
         ],
       },
+      nodes: [
+        { id: 1, x: 663, y: 188, r: 18 },
+        { id: 2, x: 729, y: 170, r: 18 },
+        { id: 3, x: 796, y: 188, r: 18 },
+        { id: 4, x: 593, y: 412, r: 18 },
+        { id: 5, x: 635, y: 404, r: 18 },
+        { id: 6, x: 600, y: 467, r: 18 },
+        { id: 7, x: 654, y: 446, r: 18 },
+        { id: 8, x: 622, y: 540, r: 18 },
+        { id: 9, x: 679, y: 516, r: 18 },
+        { id: 10, x: 648, y: 592, r: 18 },
+        { id: 11, x: 683, y: 580, r: 18 },
+        { id: 12, x: 831, y: 401, r: 18 },
+        { id: 13, x: 865, y: 418, r: 18 },
+        { id: 14, x: 799, y: 447, r: 18 },
+        { id: 15, x: 853, y: 467, r: 18 },
+        { id: 16, x: 776, y: 511, r: 18 },
+        { id: 17, x: 826, y: 535, r: 18 },
+        { id: 18, x: 762, y: 563, r: 18 },
+        { id: 19, x: 804, y: 582, r: 18 },
+      ],
+      nodeData: [
+        { node_id: 1, state: 2, impedance: 3000000 },
+        { node_id: 2, state: 3, impedance: 4000 },
+        { node_id: 3, state: 0, impedance: 4000 },
+        { node_id: 4, state: 1, impedance: 3000000 },
+        { node_id: 5, state: 0, impedance: 4000 },
+        { node_id: 6, state: 3, impedance: 4000 },
+        { node_id: 7, state: 0, impedance: 4000 },
+        { node_id: 8, state: 1, impedance: 3000000 },
+        { node_id: 9, state: 3, impedance: 3000000 },
+        { node_id: 10, state: 2, impedance: 4000 },
+        { node_id: 11, state: 3, impedance: 3000000 },
+        { node_id: 12, state: 3, impedance: 4000 },
+        { node_id: 13, state: 2, impedance: 4000 },
+        { node_id: 14, state: 2, impedance: 4000 },
+        { node_id: 15, state: 3, impedance: 4000 },
+        { node_id: 16, state: 0, impedance: 4000 },
+        { node_id: 17, state: 2, impedance: 3000000 },
+        { node_id: 18, state: 3, impedance: 4000 },
+        { node_id: 19, state: 1, impedance: 3000000 },
+      ],
+      svg: null,
+      tooltip: null,
+      circles: null,
+      impedance: {},
+      writer: "",
     };
   },
   mounted() {
@@ -582,7 +562,6 @@ export default {
     this.renderChart18();
     this.renderChart19();
     this.renderChart20();
-
     this.cytonBoard = new cyton(
       this.onDecodedCallback,
       this.onConnectedCallback,
@@ -615,8 +594,8 @@ export default {
     this.renderChart20();
     this.updateDataFromCyton();
     // Set interval to call updateDataFromCyton method every 5 seconds (adjust as needed)
-
     setInterval(this.updateDataFromCyton, 500);
+    this.initializeD3();
   },
   computed: {
     colWidth() {
@@ -629,109 +608,129 @@ export default {
      * This allows the component to easily call the 'setParticipantNumber' mutation
      * and update the participant number in the Vuex store.
      */
+    initializeD3() {
+      if (!this.$refs.baseModel) {
+        console.error("SVG reference not found.");
+        return;
+      }
+      console.log("Initializing D3");
+      this.svg = d3
+        .select(this.$refs.baseModel)
+        .append("image")
+        .attr("xlink:href", require("@/assets/baseModel.png"))
+        .attr("width", 1500)
+        .attr("height", 800);
+      this.tooltip = d3.select(".tooltip");
+
+      this.svg = d3.select(this.$refs.baseModel);
+      this.circles = this.svg
+        .selectAll("circle")
+        .data(this.nodes)
+        .enter()
+        .append("circle")
+        .attr("id", (d) => `node-${d.id}`)
+        .attr("cx", (d) => d.x)
+        .attr("cy", (d) => d.y)
+        .attr("r", (d) => d.r)
+        .attr("class", "node");
+
+      // Update circles
+      this.updateCircles();
+    },
+
+    updateCircles() {
+      this.svg = d3.select(this.$refs.baseModel);
+      this.svg
+        .selectAll("circle")
+        .data(this.nodeData, (d) => d.node_id)
+        .join(
+          (enter) =>
+            enter
+              .append("circle")
+              .attr("class", (d) => `node ${this.stateToClass(d.state)}`)
+              .attr(
+                "cx",
+                (d) => this.nodes.find((n) => n.id === d.node_id)?.x || 0
+              )
+              .attr(
+                "cy",
+                (d) => this.nodes.find((n) => n.id === d.node_id)?.y || 0
+              )
+              .attr("r", 18)
+              .on("mouseover", this.handleMouseOver)
+              .on("mouseout", this.handleMouseOut),
+          (update) =>
+            update.attr("class", (d) => `node ${this.stateToClass(d.state)}`)
+        );
+    },
+    stateToClass(state) {
+      const stateClasses = ["off", "bad", "moderate", "good"];
+      return stateClasses[state] || "unknown";
+    },
+    handleMouseOver(event, d) {
+      this.tooltip
+        .style("opacity", 1)
+        .html(
+          `Node ID: ${d.node_id}<br/>State: ${this.stateToClass(
+            d.state
+          )}<br/>Impedance: ${d.impedance}Ω`
+        )
+        .style("left", `${event.layerX + 5}px`)
+        .style("top", `${event.layerY + 10}px`);
+
+      // Select the current circle element using D3's event handling
+      d3.select(event.target).attr("r", 22); // Enlarge on hover
+
+      // Desaturate other circles
+      this.svg
+        .selectAll("circle")
+        .filter((node) => node.node_id !== d.node_id)
+        .classed("desaturated", true);
+    },
+    handleMouseOut(event) {
+      this.tooltip.style("opacity", 0);
+      d3.select(event.target).attr("r", 18); // Reset radius
+
+      // Remove desaturation from all circles
+      this.svg.selectAll("circle").classed("desaturated", false);
+    },
     async connectToCyton() {
-      try {
-          port = await navigator.serial.requestPort();
-          await port.open({ baudRate: 115200 }); // Set baud rate to 115200
-          reader = port.readable.getReader();
-          document.getElementById("connectButton").disabled = true;
-          document.getElementById("disconnectButton").disabled = false;
-          document.getElementById("channel0StartButton").disabled = false;
-          console.log("Connected to serial port");
-          readData();
-        } catch (error) {
-          console.error("Error connecting to serial port:", error);
+      await this.cytonBoard
+        .setupSerialAsync()
+        .then(() => {
+          this.status = "Connected to Cyton";
+        })
+        .catch((error) => {
+          console.error("Connection failed", error);
+          this.status = "Connection Failed";
+        });
+      
+      await this.cytonBoard.startReading();
+    },
+    async deviceCheck() {
+      await this.cytonBoard.setupSerialAsync();
+      this.loading = true;
+      await this.cytonBoard.startImpedanceCheck().then(
+        () => {
+          this.loading = false;
+          this.status = "Device check completed";
+          let impedance = this.cytonBoard.getImpedance();
+          this.nodeData = impedance;
+          this.updateCircles();
+          this.showContinueButton = true;
+          this.participantNumberSet = true;
+
+        },
+        (error) => {
+          this.loading = false;
+          this.status = "Device check failed";
+          console.error("Device check failed", error);
         }
+      ); // Trigger impedance check for the current channel
+
     },
     
-    async deviceCheck() {
-      // Show loading spinner
-      await this.cytonBoard
-        .checkDevice()
-        .then(() => {
-          this.loading = true;
-        })
-        .catch((error) => {
-          console.error("Connection failed", error);
-          this.status = "Connection Failed";
-        });
-      await this.cytonBoard.startReading();
-
-      // Wait for 5 seconds
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-
-      // Call stopReading
-      await this.cytonBoard
-        .stopCheck()
-        .then(async (res) => {
-          console.log(res);
-          this.data = res;
-          this.loading = false;
-          const impedanceData = [];
-          for (let i = 0; i < 8; i++) {
-            const channel = `A${i}`;
-            const data = await this.fetchImpedance(channel);
-            impedanceData.push({ channel, impedance: data.impedance });
-            console.log(impedanceData);
-          }
-          this.participantNumberSet = true;
-          this.showIcon1 = impedanceData[0].impedance > 4500;
-          this.showIcon2 = impedanceData[1].impedance > 4500;
-          this.showIcon3 = impedanceData[2].impedance > 4500;
-          this.showIcon4 = impedanceData[3].impedance > 4500;
-          this.showIcon5 = impedanceData[4].impedance > 4500;
-          this.showIcon6 = impedanceData[5].impedance > 4500;
-          this.showIcon7 = impedanceData[6].impedance > 4500;
-          this.showIcon8 = impedanceData[7].impedance > 4500;
-          this.showIcon9 =
-            this.calculateAverage(this.data["A8"].slice(0, 15)) === 0;
-          this.showIcon10 =
-            this.calculateAverage(this.data["A9"].slice(0, 15)) === 0;
-          this.showIcon11 =
-            this.calculateAverage(this.data["A10"].slice(0, 15)) === 0;
-          this.showIcon12 =
-            this.calculateAverage(this.data["A11"].slice(0, 15)) === 0;
-          this.showIcon13 =
-            this.calculateAverage(this.data["A12"].slice(0, 15)) === 0;
-          this.showIcon14 =
-            this.calculateAverage(this.data["A13"].slice(0, 15)) === 0;
-          this.showIcon15 =
-            this.calculateAverage(this.data["A14"].slice(0, 15)) === 0;
-          this.showIcon16 =
-            this.calculateAverage(this.data["A15"].slice(0, 15)) === 0;
-          this.showIcon17 =
-            this.calculateAverage(this.data["A16"].slice(0, 15)) === 0;
-          this.showIcon18 =
-            this.calculateAverage(this.data["A17"].slice(0, 15)) === 0;
-          this.showIcon19 =
-            this.calculateAverage(this.data["A18"].slice(0, 15)) === 0;
-          this.showIcon20 =
-            this.calculateAverage(this.data["A19"].slice(0, 15)) === 0;
-          this.showIcon21 =
-            this.calculateAverage(this.data["A20"].slice(0, 15)) === 0;
-          this.updateDataFromCyton();
-        })
-        .catch((error) => {
-          console.error("Connection failed", error);
-          this.status = "Connection Failed";
-        });
-    },
-    async fetchImpedance(channel) {
-      let dataArray = Object.values(this.data[channel]).slice(0, this.data.count);
-      const response = await fetch(
-        "/data/calculate_impedance",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ data_raw: dataArray}),
-        }
-      );
-      const data = await response.json();
-      return data;
-    },
-    onDecodedCallback(data) {
+decodedCallback(data) {
       this.data = data;
     },
     onDisconnectedCallback() {
@@ -745,20 +744,54 @@ export default {
     handleResize() {
       this.$forceUpdate();
     },
-    startRecording() {
-      this.cytonBoard
-        .startReading()
-        .then(() => {
-          console.log("Recording started");
-        })
-        .catch((error) => {
+    async startRecording() {
+      try {
+          // Check if the port is writable before writing data
+          if (this.port && this.port.writable) {
+            this.writer = this.port.writable.getWriter();
+            const command = "b"; // Command to start recording
+            const commandBytes = new TextEncoder().encode(command);
+            await  this.writer.write(commandBytes);
+            console.log("Recording started");
+            this.writer.releaseLock();
+          } else {
+            console.error("Serial port is not writable");
+          }
+        } catch (error) {
           console.error("Error starting recording:", error);
-        });
+        }
     },
-    stopRecording() {
-      this.cytonBoard.stopReading(this.participantNumber).then(() => {
-        console.log("Recording stopped");
-      });
+   async stopRecording() {
+      try {
+          // Check if the port is writable before writing data
+          if (this.port && this.port.writable) {
+            this.writer = this.port.writable.getWriter();
+            const command = "s"; // Command to stop recording
+            const commandBytes = new TextEncoder().encode(command);
+            await  this.writer.write(commandBytes);
+            console.log("Recording stopped");
+            this.writer.releaseLock();
+            console.log(this.data);
+            this.data.count = this.data.A1.length;
+          } else {
+            console.error("Serial port is not writable");
+          }
+        } catch (error) {
+          console.error("Error stopping recording:", error);
+        }
+        const objectKeys = Object.keys(this.data);
+        this.exportCSV(this.data, objectKeys, "LukasTestLocal");
+        this.data = {
+          count: "",
+          A1: [],
+          A2: [],
+          A3: [],
+          A4: [],
+          A5: [],
+          A6: [],
+          A7: [], 
+          A8: [],
+        };
     },
     partHelp() {
       this.isParticipantHelpOpen = !this.isParticipantHelpOpen;
@@ -777,6 +810,7 @@ export default {
     },
     async setParticipantNumberAndContinue() {
       this.participantNumber = document.getElementById("participantNr").value;
+      
       await this.deviceCheck();
     },
     async renderChart0() {
@@ -1467,6 +1501,7 @@ export default {
       for (let i = 0; i < 20; i++) {
         // Update chartData with new data
         const dataIndex = "A" + i;
+        if(this.data[dataIndex]){
         let cleanedData = this.data[dataIndex].filter((value) => value !== 0);
         cleanedData = cleanedData.slice(-500); // Take only the last 100 non-zero values
         this["chartData" + i].datasets[0].data = cleanedData;
@@ -1476,6 +1511,7 @@ export default {
 
         // Get canvas reference
         const canvas = this.$refs["Chart" + i];
+
         if (!canvas) {
           // Exit if the canvas element is not found
           return;
@@ -1484,6 +1520,7 @@ export default {
         // Update the chart
         this["Chart" + i].update();
       }
+    }
     },
   },
   beforeUnmount() {
@@ -1492,7 +1529,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 /* Add your styles specific to this component if needed */
 h2 {
   top: 10%;
@@ -1502,153 +1539,10 @@ h2 {
 .image-container {
   position: relative;
 }
-
-/* Center the icons relative to the image dimensions */
-.v-icon-1 {
-  position: absolute;
-  top: 62.6%;
-  left: 23%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-2 {
-  position: absolute;
-  top: 74%;
-  left: 23%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-3 {
-  position: absolute;
-  top: 83.9%;
-  left: 28%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-4 {
-  position: absolute;
-  top: 83.9%;
-  left: 37.2%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-5 {
-  position: absolute;
-  top: 74%;
-  left: 42.2%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-6 {
-  position: absolute;
-  top: 62.6%;
-  left: 42.2%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-7 {
-  position: absolute;
-  top: 53%;
-  left: 37.2%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-8 {
-  position: absolute;
-  top: 52.8%;
-  left: 28%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-9 {
-  position: absolute;
-  top: 62.6%;
-  left: 58%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-10 {
-  position: absolute;
-  top: 74%;
-  left: 57.9%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-11 {
-  position: absolute;
-  top: 83.9%;
-  left: 62.9%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-12 {
-  position: absolute;
-  top: 83.9%;
-  left: 72.1%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-13 {
-  position: absolute;
-  top: 74%;
-  left: 77.1%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-14 {
-  position: absolute;
-  top: 62.6%;
-  left: 77.1%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-15 {
-  position: absolute;
-  top: 53%;
-  left: 72.1%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-16 {
-  position: absolute;
-  top: 52.8%;
-  left: 62.9%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-17 {
-  position: absolute;
-  top: 36.8%;
-  left: 30.4%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-18 {
-  position: absolute;
-  top: 21.3%;
-  left: 37.3%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-19 {
-  position: absolute;
-  top: 13.9%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-20 {
-  position: absolute;
-  top: 21.3%;
-  left: 63.4%;
-  transform: translate(-50%, -50%);
-}
-
-.v-icon-21 {
-  position: absolute;
-  top: 36.8%;
-  left: 69.8%;
-  transform: translate(-50%, -50%);
+.headphones {
+  position: relative;
+  display: flex;
+  justify-content: center;
 }
 .help {
   z-index: 9999999;
@@ -1709,7 +1603,7 @@ div#card_connect {
   margin-bottom: 105px;
 }
 .chart-container {
-  width: 50% %; /* Ensure each chart takes up full width of its container */
+  width: 50%; /* Ensure each chart takes up full width of its container */
   height: 90px; /* Adjust height of charts as needed */
 }
 .charts {
@@ -1719,6 +1613,39 @@ div#card_connect {
 }
 .recordButtons {
   margin-bottom: 15px;
+}
+.node {
+  fill-opacity: 0.8;
+  stroke: white;
+  stroke-width: 2;
+}
+.off {
+  fill: gray;
+}
+.bad {
+  fill: red;
+}
+.moderate {
+  fill: orange;
+}
+.good {
+  fill: green;
+}
+
+.tooltip {
+  position: absolute;
+  text-align: center;
+  width: auto;
+  padding: 4px;
+  font: 12px sans-serif;
+  background: lightsteelblue;
+  border: 0px;
+  border-radius: 8px;
+  pointer-events: none; /* Don't block mouse events */
+  opacity: 0; /* Hidden by default */
+}
+.desaturated {
+  opacity: 0.2;
 }
 /* Continue this pattern for the rest of the icons */
 </style>
