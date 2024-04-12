@@ -745,53 +745,10 @@ decodedCallback(data) {
       this.$forceUpdate();
     },
     async startRecording() {
-      try {
-          // Check if the port is writable before writing data
-          if (this.port && this.port.writable) {
-            this.writer = this.port.writable.getWriter();
-            const command = "b"; // Command to start recording
-            const commandBytes = new TextEncoder().encode(command);
-            await  this.writer.write(commandBytes);
-            console.log("Recording started");
-            this.writer.releaseLock();
-          } else {
-            console.error("Serial port is not writable");
-          }
-        } catch (error) {
-          console.error("Error starting recording:", error);
-        }
+      this.cytonBoard.startReading();
     },
    async stopRecording() {
-      try {
-          // Check if the port is writable before writing data
-          if (this.port && this.port.writable) {
-            this.writer = this.port.writable.getWriter();
-            const command = "s"; // Command to stop recording
-            const commandBytes = new TextEncoder().encode(command);
-            await  this.writer.write(commandBytes);
-            console.log("Recording stopped");
-            this.writer.releaseLock();
-            console.log(this.data);
-            this.data.count = this.data.A1.length;
-          } else {
-            console.error("Serial port is not writable");
-          }
-        } catch (error) {
-          console.error("Error stopping recording:", error);
-        }
-        const objectKeys = Object.keys(this.data);
-        this.exportCSV(this.data, objectKeys, "LukasTestLocal");
-        this.data = {
-          count: "",
-          A1: [],
-          A2: [],
-          A3: [],
-          A4: [],
-          A5: [],
-          A6: [],
-          A7: [], 
-          A8: [],
-        };
+      this.cytonBoard.stopReading(this.participantNumber);
     },
     partHelp() {
       this.isParticipantHelpOpen = !this.isParticipantHelpOpen;

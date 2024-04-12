@@ -31,6 +31,8 @@
       let port;
       var data = {
         count: "",
+        sampleNumber: [],
+        timestamp: [],
         A1: [],
         A2: [],
         A3: [],
@@ -128,6 +130,8 @@
         this.exportCSV(data, objectKeys, "LukasTestLocal");
         data = {
           count: "",
+          sampleNumber: [], 
+          timestamp: [],
           A1: [],
           A2: [],
           A3: [],
@@ -261,32 +265,34 @@
           console.error("Error reading data:", error);
         }
       }
+    
 
-      function decodeChunk(chunk) {
-        // Skip first byte (header) and last byte (stop byte)
-        const byteArray = chunk.slice(1, -1);
-
-        // Extract sample number
-        const sampleNumber = chunk[1];
-
-        // Parse EEG data for all channels
-        const eegData = [];
-        for (let i = 2; i <= 24; i += 3) {
-          const channelData =
-            interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) / 24.0;
-          const channelName = `A${Math.ceil((i - 1) / 3)}`;
-          data[channelName].push(channelData);
-          eegData.push(channelData);
-        }
-
-        // Parse Aux data
-        const auxData = byteArray.slice(25);
+   function   decodeChunk(chunk) {
+    // Skip first byte (header) and last byte (stop byte)
+    const byteArray = chunk.slice(1, -1);
+    const sampleNumber = chunk[1];
+    this.data["sampleNumber"].push(sampleNumber);
+    this.data["timestamp"].push(new Date().getTime());
 
 
-        console.log("Sample Number:", sampleNumber);
-        console.log("EEG Data:", eegData);
-        console.log("Aux Data:", auxData);
-      }
+    // Parse EEG data for all channels
+    const eegData = [];
+    for (let i = 2; i <= 24; i += 3) {
+      const channelData =
+      this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) / 24.0;
+      const channelName = `A${Math.ceil((i - 1) / 3)}`;
+      this.data[channelName].push(channelData);
+
+      eegData.push(channelData);
+    }
+
+
+
+    // Print the parsed data
+    // console.log("Sample Number:", sampleNumber);
+    // console.log("EEG Data:", eegData);
+    // console.log("Aux Data:", auxData);
+  }
 
       function interpret24bitAsInt32(byteArray) {
         const newInt =
@@ -422,6 +428,8 @@
 
         data = {
           count: "",
+          sampleNumber: [],
+          timestamp: [],
           A1: [],
           A2: [],
           A3: [],

@@ -43,17 +43,18 @@ export class cyton {
     this.odd = false; //
     this.impedance = {};
     this.data = {
-        count: "",
-        A1: [],
-        A2: [],
-        A3: [],
-        A4: [],
-        A5: [],
-        A6: [],
-        A7: [], 
-        A8: []
+      count: "",
+      sampleNumber: [],
+      timestamp: [],
+      A1: [],
+      A2: [],
+      A3: [],
+      A4: [],
+      A5: [],
+      A6: [],
+      A7: [],
+      A8: [],
     };
-
 
     this.resetDataBuffers();
 
@@ -81,33 +82,33 @@ export class cyton {
     const impedanceArray = [];
     const numChannels = 19;
 
-    for (let i = 1; i < numChannels+1; i++) {
-        const channel = "A" + i;
-        let impedanceValue = this.impedance[channel];
-        let state;
+    for (let i = 1; i < numChannels + 1; i++) {
+      const channel = "A" + i;
+      let impedanceValue = this.impedance[channel];
+      let state;
 
-        if (impedanceValue === undefined) {
-            state = 0; // Set state to 0 if channel not found
-            impedanceValue = 0; // Set impedance to 0 if channel not found
-        } else if (impedanceValue === 0) {
-            state = 1;
-        } else if (impedanceValue < 100) {
-            state = 3;
-        } else if (impedanceValue < 300) {
-            state = 2;
-        } else {
-            state = 1;
-        }
+      if (impedanceValue === undefined) {
+        state = 0; // Set state to 0 if channel not found
+        impedanceValue = 0; // Set impedance to 0 if channel not found
+      } else if (impedanceValue === 0) {
+        state = 1;
+      } else if (impedanceValue < 100) {
+        state = 3;
+      } else if (impedanceValue < 300) {
+        state = 2;
+      } else {
+        state = 1;
+      }
 
-        impedanceArray.push({
-            node_id: i,
-            state: state,
-            impedance: impedanceValue
-        });
+      impedanceArray.push({
+        node_id: i,
+        state: state,
+        impedance: impedanceValue,
+      });
     }
 
     return impedanceArray;
-}
+  }
 
   setScalar(gain = 24, stepSize = 1 / (Math.pow(2, 23) - 1), vref = 4.5) {
     this.stepSize = stepSize;
@@ -169,14 +170,13 @@ export class cyton {
     return newInt & 8388608 ? newInt | 4278190080 : newInt & 16777215;
   }
 
-  async startImpedanceCheck() {
+  async startImpedanceCheck(participantNumber) {
     // Loop through each channel to trigger impedance checks
     for (let i = 1; i <= 8; i++) {
       await this.configureBoard(i); // Trigger impedance check for the current channel
     }
     // Export data to CSV
     const objectKeys = Object.keys(this.impedance);
-    const participantNumber = "LukasImpedance";
     this.exportCSV(this.impedance, objectKeys, participantNumber);
   }
 
@@ -301,23 +301,22 @@ export class cyton {
     }
   }
 
-   decodeChunk(chunk) {
+  decodeChunk(chunk) {
     // Skip first byte (header) and last byte (stop byte)
     const byteArray = chunk.slice(1, -1);
-
-
+    const sampleNumber = chunk[1];
+    this.data["sampleNumber"].push(sampleNumber);
+    this.data["timestamp"].push(new Date().getTime());
 
     // Parse EEG data for all channels
     const eegData = [];
     for (let i = 2; i <= 24; i += 3) {
       const channelData =
-      this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) / 24.0;
+        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) / 24.0;
       const channelName = `A${Math.ceil((i - 1) / 3)}`;
       this.data[channelName].push(channelData);
       eegData.push(channelData);
     }
-
-
 
     // Print the parsed data
     // console.log("Sample Number:", sampleNumber);
@@ -340,8 +339,8 @@ export class cyton {
         await writer.write(commandBytes);
         console.log("Recording stopped");
         writer.releaseLock();
-        let data = this.getData();
-        console.log(data);
+        console.log(this.data);
+        this.data.count = this.data.A1.length;
       } else {
         console.error("Serial port is not writable");
       }
@@ -350,11 +349,19 @@ export class cyton {
     }
     const objectKeys = Object.keys(this.data);
     this.exportCSV(this.data, objectKeys, participantNumber);
-    this.buffer = [];
-
-    console.log("Stopped reading from serial port and buffer is reset");
-
-    console.log("Stopped reading from serial port");
+    this.data = {
+      count: "",
+      sampleNumber: [],
+      timestamp: [],
+      A1: [],
+      A2: [],
+      A3: [],
+      A4: [],
+      A5: [],
+      A6: [],
+      A7: [],
+      A8: [],
+    };
   }
 
   exportCSV(content, objectKeys, participantNumber) {
@@ -428,6 +435,8 @@ export class cyton {
 
     this.data = {
       count: "",
+      sampleNumber: [],
+      timestamp: [],
       A1: [],
       A2: [],
       A3: [],
@@ -510,7 +519,5 @@ export class cyton {
       console.error("Error connecting to serial port:", error);
     }
   }
-
-
 }
 // At the end of cyton.js
