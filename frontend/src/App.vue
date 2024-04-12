@@ -2,22 +2,14 @@
   <div id="app">
     <!-- Application Header with Menu Button -->
     <header>
-      <div class="menu-button" @click="toggleMenu">&#9776;</div>
       <h1 class="app-title">EEG Aufnahme</h1>
     </header>
 
-    <!-- Menu -->
-    <div v-if="isMenuOpen" class="menu">
-      <router-link to="/start" class="menu-item">Aufnahme</router-link>
-      <div class="menu-separator"></div>
-      <router-link to="/impressum" class="menu-item">Impressum</router-link>
-      <router-link to="/faq" class="menu-item">FAQ</router-link>
-    </div>
-
     <!-- Content Area with left margin -->
-    <div class="content" :style="{ marginLeft: isMenuOpen ? '200px' : '0' }">
+    <div v-if="isPassphraseValid" class="content" :style="{ marginLeft: isMenuOpen ? '200px' : '0' }">
       <router-view></router-view>
     </div>
+    <div v-else class="forbidden">403 Forbidden</div>
   </div>
 </template>
 
@@ -25,18 +17,38 @@
 export default {
   data() {
     return {
-      isMenuOpen: false
+      isMenuOpen: false,
+      isPassphraseValid: false
     };
   },
   methods: {
     toggleMenu() {
       this.isMenuOpen = !this.isMenuOpen;
+    },
+    checkPassphrase() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const passphraseParam = urlParams.get('passphrase');
+      if (passphraseParam) {
+        const decodedPassphrase = atob(passphraseParam);
+        this.isPassphraseValid = decodedPassphrase === 'iism4ever';
+      }
     }
+  },
+  mounted() {
+    this.checkPassphrase();
   }
 };
 </script>
 
 <style>
+/* Add this style for the forbidden message */
+.forbidden {
+  margin-top: 57px; /* Same as the top value of the menu */
+  padding: 20px; /* Add some padding for better readability */
+  text-align: center;
+  font-size: 24px;
+  color: red;
+}
 #app {
   font-family: 'Arial', sans-serif;
   overflow-x: hidden; /* Hide horizontal scrollbar when content overflows */

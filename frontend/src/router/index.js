@@ -1,12 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Recording from '@/views/StartRecording.vue';
-import Participant from '@/views/ParticipantSelection.vue';
+import Participant from '@/views/StartScreen.vue';
 import Check from '@/views/DeviceCheck.vue';
 
 const routes = [
   {
     path: '/',
-    redirect: 'recording'
+    redirect: 'start'
   },
   {
     path: '/start',

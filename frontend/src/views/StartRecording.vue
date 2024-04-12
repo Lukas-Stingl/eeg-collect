@@ -73,13 +73,13 @@ checks, and starting/stopping the recording. * */
       </div>
     </div>
 
-    <h2 v-if="showContinueButton && participantNumberSet">Device Check</h2>
+    <h2 v-if="showContinueButton && participantNumberSet">Geräteüberprüfung</h2>
     <h1 v-if="!showContinueButton && participantNumberSet">Aufnahme</h1>
 
     <div v-show="showContinueButton && participantNumberSet" class="headphones">
       <!-- Device Check Content -->
 
-      <svg ref="baseModel" width="1500" height="700"></svg>
+      <svg ref="baseModel" width="1500" height="800"></svg>
       <div class="tooltip"></div>
     </div>
     <div
