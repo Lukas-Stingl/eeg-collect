@@ -9,9 +9,7 @@ checks, and starting/stopping the recording. * */
         <v-card id="card_connect">
           <v-card-title>Hinweis</v-card-title>
           <v-card-text>
-            {{
-              "Das EEG Gerät wird gerade auf Funktionalität überprüft. Das kann bis zu 2 Minuten dauern. Bitte warten Sie kurz und bewegen Sie sich nicht."
-            }}
+            {{ message }}
           </v-card-text>
         </v-card>
 
@@ -79,7 +77,7 @@ checks, and starting/stopping the recording. * */
     <div v-show="showContinueButton && participantNumberSet" class="headphones">
       <!-- Device Check Content -->
 
-      <svg ref="baseModel" width="1500" height="800"></svg>
+      <svg ref="baseModel" width="1000" height="500"></svg>
       <div class="tooltip"></div>
     </div>
     <div
@@ -492,52 +490,53 @@ export default {
         ],
       },
       nodes: [
-        { id: 1, x: 663, y: 188, r: 18 },
-        { id: 2, x: 729, y: 170, r: 18 },
-        { id: 3, x: 796, y: 188, r: 18 },
-        { id: 4, x: 593, y: 412, r: 18 },
-        { id: 5, x: 635, y: 404, r: 18 },
-        { id: 6, x: 600, y: 467, r: 18 },
-        { id: 7, x: 654, y: 446, r: 18 },
-        { id: 8, x: 622, y: 540, r: 18 },
-        { id: 9, x: 679, y: 516, r: 18 },
-        { id: 10, x: 648, y: 592, r: 18 },
-        { id: 11, x: 683, y: 580, r: 18 },
-        { id: 12, x: 831, y: 401, r: 18 },
-        { id: 13, x: 865, y: 418, r: 18 },
-        { id: 14, x: 799, y: 447, r: 18 },
-        { id: 15, x: 853, y: 467, r: 18 },
-        { id: 16, x: 776, y: 511, r: 18 },
-        { id: 17, x: 826, y: 535, r: 18 },
-        { id: 18, x: 762, y: 563, r: 18 },
-        { id: 19, x: 804, y: 582, r: 18 },
+        { id: "C3", x: 663 * (2 / 3), y: 188 * (5 / 8), r: 10 },
+        { id: "Cz", x: 729 * (2 / 3), y: 170 * (5 / 8), r: 10 },
+        { id: "C4", x: 796 * (2 / 3), y: 188 * (5 / 8), r: 10 },
+        { id: "L3", x: 593 * (2 / 3), y: 412 * (5 / 8), r: 10 },
+        { id: "L2", x: 635 * (2 / 3), y: 404 * (5 / 8), r: 10 },
+        { id: "L4", x: 600 * (2 / 3), y: 467 * (5 / 8), r: 10 },
+        { id: "L1", x: 654 * (2 / 3), y: 446 * (5 / 8), r: 10 },
+        { id: "L5", x: 622 * (2 / 3), y: 540 * (5 / 8), r: 10 },
+        { id: "L8", x: 679 * (2 / 3), y: 516 * (5 / 8), r: 10 },
+        { id: "L6", x: 648 * (2 / 3), y: 592 * (5 / 8), r: 10 },
+        { id: "L7", x: 683 * (2 / 3), y: 580 * (5 / 8), r: 10 },
+        { id: "R2", x: 831 * (2 / 3), y: 401 * (5 / 8), r: 10 },
+        { id: "R3", x: 865 * (2 / 3), y: 418 * (5 / 8), r: 10 },
+        { id: "R1", x: 799 * (2 / 3), y: 447 * (5 / 8), r: 10 },
+        { id: "R4", x: 853 * (2 / 3), y: 467 * (5 / 8), r: 10 },
+        { id: "R8", x: 776 * (2 / 3), y: 511 * (5 / 8), r: 10 },
+        { id: "R5", x: 826 * (2 / 3), y: 535 * (5 / 8), r: 10 },
+        { id: "R7", x: 762 * (2 / 3), y: 563 * (5 / 8), r: 10 },
+        { id: "R6", x: 804 * (2 / 3), y: 582 * (5 / 8), r: 10 },
       ],
       nodeData: [
-        { node_id: 1, state: 2, impedance: 3000000 },
-        { node_id: 2, state: 3, impedance: 4000 },
-        { node_id: 3, state: 0, impedance: 4000 },
-        { node_id: 4, state: 1, impedance: 3000000 },
-        { node_id: 5, state: 0, impedance: 4000 },
-        { node_id: 6, state: 3, impedance: 4000 },
-        { node_id: 7, state: 0, impedance: 4000 },
-        { node_id: 8, state: 1, impedance: 3000000 },
-        { node_id: 9, state: 3, impedance: 3000000 },
-        { node_id: 10, state: 2, impedance: 4000 },
-        { node_id: 11, state: 3, impedance: 3000000 },
-        { node_id: 12, state: 3, impedance: 4000 },
-        { node_id: 13, state: 2, impedance: 4000 },
-        { node_id: 14, state: 2, impedance: 4000 },
-        { node_id: 15, state: 3, impedance: 4000 },
-        { node_id: 16, state: 0, impedance: 4000 },
-        { node_id: 17, state: 2, impedance: 3000000 },
-        { node_id: 18, state: 3, impedance: 4000 },
-        { node_id: 19, state: 1, impedance: 3000000 },
+        { node_id: "C3", state: 0, impedance: 0 },
+        { node_id: "Cz", state: 0, impedance: 0 },
+        { node_id: "C4", state: 0, impedance: 0 },
+        { node_id: "L3", state: 0, impedance: 0 },
+        { node_id: "L2", state: 0, impedance: 0 },
+        { node_id: "L4", state: 0, impedance: 0 },
+        { node_id: "L1", state: 0, impedance: 0 },
+        { node_id: "L5", state: 0, impedance: 0 },
+        { node_id: "L8", state: 0, impedance: 0 },
+        { node_id: "L6", state: 0, impedance: 0 },
+        { node_id: "L7", state: 0, impedance: 0 },
+        { node_id: "R2", state: 0, impedance: 0 },
+        { node_id: "R3", state: 0, impedance: 0 },
+        { node_id: "R1", state: 0, impedance: 0 },
+        { node_id: "R4", state: 0, impedance: 0 },
+        { node_id: "R8", state: 0, impedance: 0 },
+        { node_id: "R5", state: 0, impedance: 0 },
+        { node_id: "R7", state: 0, impedance: 0 },
+        { node_id: "R6", state: 0, impedance: 0 },
       ],
       svg: null,
       tooltip: null,
       circles: null,
       impedance: {},
       writer: "",
+      message: "Channel 1 wird überprüft.",
     };
   },
   mounted() {
@@ -618,8 +617,8 @@ export default {
         .select(this.$refs.baseModel)
         .append("image")
         .attr("xlink:href", require("@/assets/baseModel.png"))
-        .attr("width", 1500)
-        .attr("height", 800);
+        .attr("width", 1000)
+        .attr("height", 500);
       this.tooltip = d3.select(".tooltip");
 
       this.svg = d3.select(this.$refs.baseModel);
@@ -635,11 +634,14 @@ export default {
         .attr("class", "node");
 
       // Update circles
+      let impedance = this.cytonBoard.getImpedance();
+      this.nodeData = impedance;
       this.updateCircles();
     },
 
     updateCircles() {
       this.svg = d3.select(this.$refs.baseModel);
+
       this.svg
         .selectAll("circle")
         .data(this.nodeData, (d) => d.node_id)
@@ -656,7 +658,7 @@ export default {
                 "cy",
                 (d) => this.nodes.find((n) => n.id === d.node_id)?.y || 0
               )
-              .attr("r", 18)
+              .attr("r", 12)
               .on("mouseover", this.handleMouseOver)
               .on("mouseout", this.handleMouseOut),
           (update) =>
@@ -679,7 +681,7 @@ export default {
         .style("top", `${event.layerY + 10}px`);
 
       // Select the current circle element using D3's event handling
-      d3.select(event.target).attr("r", 22); // Enlarge on hover
+      d3.select(event.target).attr("r", 14); // Enlarge on hover
 
       // Desaturate other circles
       this.svg
@@ -689,7 +691,7 @@ export default {
     },
     handleMouseOut(event) {
       this.tooltip.style("opacity", 0);
-      d3.select(event.target).attr("r", 18); // Reset radius
+      d3.select(event.target).attr("r", 12); // Reset radius
 
       // Remove desaturation from all circles
       this.svg.selectAll("circle").classed("desaturated", false);
@@ -704,22 +706,22 @@ export default {
           console.error("Connection failed", error);
           this.status = "Connection Failed";
         });
-      
+
       await this.cytonBoard.startReading();
     },
     async deviceCheck() {
       await this.cytonBoard.setupSerialAsync();
-      this.loading = true;
-      await this.cytonBoard.startImpedanceCheck().then(
+      this.showContinueButton = true;
+      this.participantNumberSet = true;
+      await this.startImpedanceCheck().then(
         () => {
-          this.loading = false;
           this.status = "Device check completed";
           let impedance = this.cytonBoard.getImpedance();
           this.nodeData = impedance;
           this.updateCircles();
           this.showContinueButton = true;
           this.participantNumberSet = true;
-
+          this.cytonBoard.exportImpedanceCSV(this.participantNumber);
         },
         (error) => {
           this.loading = false;
@@ -727,10 +729,20 @@ export default {
           console.error("Device check failed", error);
         }
       ); // Trigger impedance check for the current channel
-
     },
-    
-decodedCallback(data) {
+    async startImpedanceCheck() {
+      for (let i = 1; i <= 8; i++) {
+        this.loading = true;
+        this.message = `Channel ${i} wird überprüft. Das kann einige Sekunden dauern. Bitte warten Sie und bewegen Sie den Kopf nicht.`;
+        await this.cytonBoard.configureBoard(i).then(() => {
+          let impedance = this.cytonBoard.getImpedance();
+          this.nodeData = impedance;
+          this.updateCircles();
+          this.loading = false;
+        }); // Trigger impedance check for the current channel
+      }
+    },
+    decodedCallback(data) {
       this.data = data;
     },
     onDisconnectedCallback() {
@@ -747,7 +759,7 @@ decodedCallback(data) {
     async startRecording() {
       this.cytonBoard.startReading();
     },
-   async stopRecording() {
+    async stopRecording() {
       this.cytonBoard.stopReading(this.participantNumber);
     },
     partHelp() {
@@ -767,7 +779,7 @@ decodedCallback(data) {
     },
     async setParticipantNumberAndContinue() {
       this.participantNumber = document.getElementById("participantNr").value;
-      
+
       await this.deviceCheck();
     },
     async renderChart0() {
@@ -1458,26 +1470,26 @@ decodedCallback(data) {
       for (let i = 0; i < 20; i++) {
         // Update chartData with new data
         const dataIndex = "A" + i;
-        if(this.data[dataIndex]){
-        let cleanedData = this.data[dataIndex].filter((value) => value !== 0);
-        cleanedData = cleanedData.slice(-500); // Take only the last 100 non-zero values
-        this["chartData" + i].datasets[0].data = cleanedData;
-        this["chartData" + i].labels = Array(cleanedData.length)
-          .fill()
-          .map((_, j) => j);
+        if (this.data[dataIndex]) {
+          let cleanedData = this.data[dataIndex].filter((value) => value !== 0);
+          cleanedData = cleanedData.slice(-500); // Take only the last 100 non-zero values
+          this["chartData" + i].datasets[0].data = cleanedData;
+          this["chartData" + i].labels = Array(cleanedData.length)
+            .fill()
+            .map((_, j) => j);
 
-        // Get canvas reference
-        const canvas = this.$refs["Chart" + i];
+          // Get canvas reference
+          const canvas = this.$refs["Chart" + i];
 
-        if (!canvas) {
-          // Exit if the canvas element is not found
-          return;
+          if (!canvas) {
+            // Exit if the canvas element is not found
+            return;
+          }
+
+          // Update the chart
+          this["Chart" + i].update();
         }
-
-        // Update the chart
-        this["Chart" + i].update();
       }
-    }
     },
   },
   beforeUnmount() {
@@ -1536,7 +1548,7 @@ h2 {
   height: 100%;
 }
 .v-overlay {
-  background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent overlay */
+  background-color: rgba(0, 0, 0, 0.3); /* Semi-transparent overlay */
   display: flex;
   align-items: top;
   justify-content: center;

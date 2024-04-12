@@ -1,4 +1,5 @@
 //Joshua Brewster, AGPL (copyleft)
+const channelAssignment = require('../config/channelAssignment.json');
 
 export class cyton {
   //Contains structs and necessary functions/API calls to analyze serial data for the OpenBCI Cyton and Daisy-Cyto
@@ -80,13 +81,12 @@ export class cyton {
   }
   getImpedance() {
     const impedanceArray = [];
-    const numChannels = 19;
-
-    for (let i = 1; i < numChannels + 1; i++) {
-      const channel = "A" + i;
+  
+    for (const channel in channelAssignment) {
+      const node_id = channelAssignment[channel];
       let impedanceValue = this.impedance[channel];
       let state;
-
+  
       if (impedanceValue === undefined) {
         state = 0; // Set state to 0 if channel not found
         impedanceValue = 0; // Set impedance to 0 if channel not found
@@ -99,14 +99,14 @@ export class cyton {
       } else {
         state = 1;
       }
-
+      
       impedanceArray.push({
-        node_id: i,
+        node_id: node_id,
         state: state,
         impedance: impedanceValue,
       });
     }
-
+  
     return impedanceArray;
   }
 
@@ -170,12 +170,8 @@ export class cyton {
     return newInt & 8388608 ? newInt | 4278190080 : newInt & 16777215;
   }
 
-  async startImpedanceCheck(participantNumber) {
-    // Loop through each channel to trigger impedance checks
-    for (let i = 1; i <= 8; i++) {
-      await this.configureBoard(i); // Trigger impedance check for the current channel
-    }
-    // Export data to CSV
+  
+  exportImpedanceCSV(participantNumber) {
     const objectKeys = Object.keys(this.impedance);
     this.exportCSV(this.impedance, objectKeys, participantNumber);
   }
@@ -218,7 +214,7 @@ export class cyton {
           console.log("Impedance check command sent for channel " + index);
           writer.releaseLock();
           await this.startReading(); // Start recording for 5 seconds
-          await new Promise((resolve) => setTimeout(resolve, 7500)); // Wait for 5 seconds
+          await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for 5 seconds
           console.log("Waiting for 5 sec"); // Deactivate impedance measurement after 5 seconds
           await this.stopImpedance("A" + index);
           writer = this.port.writable.getWriter();
@@ -405,8 +401,8 @@ export class cyton {
         this.data.count = this.data[channel].length;
         // Prepare data to send
         let raw_data = this.data[channel].map((value) => parseFloat(value)); // Convert values to floats if necessary
-        if (raw_data.length > 800) {
-          raw_data = raw_data.slice(raw_data.length - 800);
+        if (raw_data.length > 600) {
+          raw_data = raw_data.slice(raw_data.length - 600);
         }
         // Send data to http://localhost:5001/calculate_impedance
         const response = await fetch(
