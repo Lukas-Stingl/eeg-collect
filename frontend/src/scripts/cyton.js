@@ -92,9 +92,9 @@ export class cyton {
         impedanceValue = 0; // Set impedance to 0 if channel not found
       } else if (impedanceValue === 0) {
         state = 1;
-      } else if (impedanceValue < 100) {
+      } else if (impedanceValue < 200) {
         state = 3;
-      } else if (impedanceValue < 300) {
+      } else if (impedanceValue < 750) {
         state = 2;
       } else {
         state = 1;
@@ -213,15 +213,16 @@ export class cyton {
           await writer.write(impedanceCommandBytes);
           console.log("Impedance check command sent for channel " + index);
           writer.releaseLock();
-          await this.startReading(); // Start recording for 5 seconds
           await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for 5 seconds
+          await this.startReading(); // Start recording for 5 seconds
+          await new Promise((resolve) => setTimeout(resolve, 7500)); // Wait for 5 seconds
           console.log("Waiting for 5 sec"); // Deactivate impedance measurement after 5 seconds
           await this.stopImpedance("A" + index);
           writer = this.port.writable.getWriter();
           const resetCommandBytes = new TextEncoder().encode(resetCommand);
           await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for 5 seconds
           await writer.write(resetCommandBytes);
-          await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait for 5 seconds
+          await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for 5 seconds
           console.log("Reset command sent for channel " + index);
           writer.releaseLock();
         } else {

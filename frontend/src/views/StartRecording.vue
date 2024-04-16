@@ -81,10 +81,23 @@ checks, and starting/stopping the recording. * */
       <div class="tooltip"></div>
     </div>
     <div
-      v-show="showContinueButton && participantNumberSet"
+      v-show="showContinueButton && participantNumberSet && !participantNrInUrl"
       class="button-container"
     >
       <v-btn @click="redirectToStartRecording">Weiter</v-btn>
+      <v-icon
+        color="info"
+        class="help"
+        icon="mdi-help-circle-outline"
+        size="x-small"
+        @click="connectHelp"
+      ></v-icon>
+    </div>
+        <div
+      v-show="showContinueButton && participantNumberSet && participantNrInUrl"
+      class="button-container"
+    >
+      <v-btn @click="deviceCheck">Start</v-btn>
       <v-icon
         color="info"
         class="help"
@@ -198,19 +211,21 @@ checks, and starting/stopping the recording. * */
 import { cyton } from "../scripts/cyton.js";
 import Chart from "chart.js";
 import * as d3 from "d3";
+import channelAssignment from "../config/channelAssignment.json";
 
 export default {
   data() {
     return {
-      participantNumber: "",
+      participantNr: this.participantNr || '',
+      participantNumberSet: this.participantNumberSet || false,      
       status: "Not connected",
       port: "",
       data: {},
       reader: "",
+      channelAssignment: channelAssignment,
       isParticipantHelpOpen: false,
       isConnectHelpOpen: false,
       cytonBoard: null,
-      participantNumberSet: false,
       showContinueButton: true,
       loading: false, // Add loading state
       minWidth: 960,
@@ -236,6 +251,7 @@ export default {
       showIcon19: false,
       showIcon20: false,
       showIcon21: false,
+      participantNrInUrl : this.participantNrInUrl || false,
       myChart: null,
       chartData0: {
         labels: ["time"],
@@ -539,6 +555,16 @@ export default {
       message: "Channel 1 wird überprüft.",
     };
   },
+  beforeCreate() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const participantNumberParam = urlParams.get("AbXHPCkszw");
+    if (participantNumberParam) {
+      const decodedParticipantNumber = atob(participantNumberParam);
+      this.participantNumber = decodedParticipantNumber;
+      this.participantNumberSet = true;
+      this.participantNrInUrl = true;
+    }
+  },
   mounted() {
     this.renderChart0();
     this.renderChart1();
@@ -710,8 +736,7 @@ export default {
       await this.cytonBoard.startReading();
     },
     async deviceCheck() {
-      await this.cytonBoard.setupSerialAsync();
-      this.showContinueButton = true;
+      await this.cytonBoard.setupSerialAsync(); 
       this.participantNumberSet = true;
       await this.startImpedanceCheck().then(
         () => {
@@ -722,6 +747,8 @@ export default {
           this.showContinueButton = true;
           this.participantNumberSet = true;
           this.cytonBoard.exportImpedanceCSV(this.participantNumber);
+          console.log("IMPORTANT: " + JSON.stringify(this.nodeData))
+          console.log(channelAssignment)
         },
         (error) => {
           this.loading = false;

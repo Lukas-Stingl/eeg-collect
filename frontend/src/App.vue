@@ -27,7 +27,7 @@ export default {
     },
     checkPassphrase() {
       const urlParams = new URLSearchParams(window.location.search);
-      const passphraseParam = urlParams.get('passphrase');
+      const passphraseParam = urlParams.get('aHCWFRZvlU');
       if (passphraseParam) {
         const decodedPassphrase = atob(passphraseParam);
         this.isPassphraseValid = decodedPassphrase === 'iism4ever';
