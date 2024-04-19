@@ -71,10 +71,10 @@ checks, and starting/stopping the recording. * */
       </div>
     </div>
 
-    <h2 v-if="showContinueButton && participantNumberSet">Geräteüberprüfung</h2>
-    <h1 v-if="!showContinueButton && participantNumberSet">Aufnahme</h1>
+    <h2 v-if="!showContinueButton && participantNumberSet">Geräteüberprüfung</h2>
+    <h1 v-if="showContinueButton && participantNumberSet">Aufnahme</h1>
 
-    <div v-show="showContinueButton && participantNumberSet" class="headphones">
+    <div v-show="!showContinueButton && participantNumberSet" class="headphones">
       <!-- Device Check Content -->
 
       <svg ref="baseModel" width="1000" height="500"></svg>
@@ -94,7 +94,7 @@ checks, and starting/stopping the recording. * */
       ></v-icon>
     </div>
         <div
-      v-show="showContinueButton && participantNumberSet && participantNrInUrl"
+      v-show="!showContinueButton && participantNumberSet && participantNrInUrl"
       class="button-container"
     >
       <v-btn @click="deviceCheck">Start</v-btn>
@@ -108,7 +108,7 @@ checks, and starting/stopping the recording. * */
     </div>
 
     <v-dialog
-      v-show="showContinueButton && participantNumberSet"
+      v-show="!showContinueButton && participantNumberSet"
       v-model="isConnectHelpOpen"
       max-width="500px"
     >
@@ -124,7 +124,8 @@ checks, and starting/stopping the recording. * */
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <div v-if="!showContinueButton && participantNumberSet">
+
+    <div v-if="showContinueButton && participantNumberSet">
       <!-- Cyton Connector Content -->
       <div class="recordButtons">
         <v-btn
@@ -139,7 +140,33 @@ checks, and starting/stopping the recording. * */
         >
       </div>
     </div>
-    <div v-show="!showContinueButton && participantNumberSet">
+     <!-- Horizontal line -->
+<div v-show="showContinueButton && participantNumberSet"> 
+  <div v-if="recordingStarted">
+  <v-label style="margin-top: 20px; margin-right: 20px">Aufnahme läuft</v-label>
+  <v-icon :color="recordingStarted ? 'red' : ''" v-if="recordingStarted">mdi-record-circle</v-icon>
+</div>
+  <v-divider style="margin-top: 50px"></v-divider>
+  <v-banner
+      class="my-4"
+      color="warning"
+      icon="$warning"
+      lines="three"
+    >
+      <v-banner-text>
+        Sobald Sie das Experiment beendet haben, klicken Sie auf "Aufnahme stoppen". Anschließend führen Sie bitte erneut eine Geräteüberprüfung durch, um zu Messen, ob die Elektroden immer noch korrekt angebracht sind.
+      </v-banner-text>
+      </v-banner>
+      <div class="headphones">
+      <svg ref="baseModel2" width="1000" height="500"></svg>
+      <div class="tooltip2"></div>
+      
+    </div>
+    <div style="display:flex; justify-content:center;">
+    <v-btn @click="deviceCheck">Geräteüberprüfung starten</v-btn>
+  </div>
+</div>
+    <!-- <div v-show="!showContinueButton && participantNumberSet">
       <div class="chart-container">
         <canvas ref="Chart0"></canvas>
       </div>
@@ -203,7 +230,7 @@ checks, and starting/stopping the recording. * */
       <div class="chart-container">
         <canvas ref="Chart20"></canvas>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -548,11 +575,15 @@ export default {
         { node_id: "R6", state: 0, impedance: 0 },
       ],
       svg: null,
+      svg2: null,
       tooltip: null,
+      tooltip2: null,
       circles: null,
+      circles2: null,
       impedance: {},
       writer: "",
       message: "Channel 1 wird überprüft.",
+      recordingStarted: false,
     };
   },
   beforeCreate() {
@@ -645,9 +676,17 @@ export default {
         .attr("xlink:href", require("@/assets/baseModel.png"))
         .attr("width", 1000)
         .attr("height", 500);
+        this.svg2 = d3
+        .select(this.$refs.baseModel2)
+        .append("image")
+        .attr("xlink:href", require("@/assets/baseModel.png"))
+        .attr("width", 1000)
+        .attr("height", 500);
       this.tooltip = d3.select(".tooltip");
+      this.tooltip2 = d3.select(".tooltip2");
 
       this.svg = d3.select(this.$refs.baseModel);
+      this.svg2 = d3.select(this.$refs.baseModel2);
       this.circles = this.svg
         .selectAll("circle")
         .data(this.nodes)
@@ -658,7 +697,16 @@ export default {
         .attr("cy", (d) => d.y)
         .attr("r", (d) => d.r)
         .attr("class", "node");
-
+        this.circles2 = this.svg2
+        .selectAll("circle")
+        .data(this.nodes)
+        .enter()
+        .append("circle")
+        .attr("id", (d) => `node-${d.id}`)
+        .attr("cx", (d) => d.x)
+        .attr("cy", (d) => d.y)
+        .attr("r", (d) => d.r)
+        .attr("class", "node");
       // Update circles
       let impedance = this.cytonBoard.getImpedance();
       this.nodeData = impedance;
@@ -667,8 +715,31 @@ export default {
 
     updateCircles() {
       this.svg = d3.select(this.$refs.baseModel);
+      this.svg2 = d3.select(this.$refs.baseModel2);
 
       this.svg
+        .selectAll("circle")
+        .data(this.nodeData, (d) => d.node_id)
+        .join(
+          (enter) =>
+            enter
+              .append("circle")
+              .attr("class", (d) => `node ${this.stateToClass(d.state)}`)
+              .attr(
+                "cx",
+                (d) => this.nodes.find((n) => n.id === d.node_id)?.x || 0
+              )
+              .attr(
+                "cy",
+                (d) => this.nodes.find((n) => n.id === d.node_id)?.y || 0
+              )
+              .attr("r", 12)
+              .on("mouseover", this.handleMouseOver)
+              .on("mouseout", this.handleMouseOut),
+          (update) =>
+            update.attr("class", (d) => `node ${this.stateToClass(d.state)}`)
+        );
+        this.svg2
         .selectAll("circle")
         .data(this.nodeData, (d) => d.node_id)
         .join(
@@ -705,6 +776,15 @@ export default {
         )
         .style("left", `${event.layerX + 5}px`)
         .style("top", `${event.layerY + 10}px`);
+        this.tooltip2
+        .style("opacity", 1)
+        .html(
+          `Node ID: ${d.node_id}<br/>State: ${this.stateToClass(
+            d.state
+          )}<br/>Impedance: ${d.impedance}Ω`
+        )
+        .style("left", `${event.layerX + 5}px`)
+        .style("top", `${event.layerY + 10}px`);
 
       // Select the current circle element using D3's event handling
       d3.select(event.target).attr("r", 14); // Enlarge on hover
@@ -714,13 +794,19 @@ export default {
         .selectAll("circle")
         .filter((node) => node.node_id !== d.node_id)
         .classed("desaturated", true);
+        this.svg2
+        .selectAll("circle")
+        .filter((node) => node.node_id !== d.node_id)
+        .classed("desaturated", true);
     },
     handleMouseOut(event) {
       this.tooltip.style("opacity", 0);
+      this.tooltip2.style("opacity", 0);
       d3.select(event.target).attr("r", 12); // Reset radius
 
       // Remove desaturation from all circles
       this.svg.selectAll("circle").classed("desaturated", false);
+      this.svg2.selectAll("circle").classed("desaturated", false);
     },
     async connectToCyton() {
       await this.cytonBoard
@@ -734,6 +820,35 @@ export default {
         });
 
       await this.cytonBoard.startReading();
+    },
+    async impedanceCheck () {
+      await this.startImpedanceCheck().then(
+        () => {
+          this.status = "Device check completed";
+          let impedance = this.cytonBoard.getImpedance();
+          this.nodeData = impedance;
+          this.updateCircles();
+          this.cytonBoard.exportImpedanceCSV(this.participantNumber);
+          console.log("IMPORTANT: " + JSON.stringify(this.nodeData))
+          console.log(channelAssignment)
+          if(
+            this.nodeData && this.nodeData.some(obj => obj.state !== 3)
+          )
+          {
+            console.log("Impedance not sufficient")
+            
+          }
+          else{
+            this.showContinueButton = false;
+          }
+        
+        },
+        (error) => {
+          this.loading = false;
+          this.status = "Device check failed";
+          console.error("Device check failed", error);
+        }
+      ); // Trigger impedance check for the current channel
     },
     async deviceCheck() {
       await this.cytonBoard.setupSerialAsync(); 
@@ -749,6 +864,17 @@ export default {
           this.cytonBoard.exportImpedanceCSV(this.participantNumber);
           console.log("IMPORTANT: " + JSON.stringify(this.nodeData))
           console.log(channelAssignment)
+          if(
+            this.nodeData && this.nodeData.some(obj => obj.state !== 3)
+          )
+          {
+            console.log("Impedance not sufficient")
+            
+          }
+          else{
+            this.showContinueButton = false;
+          }
+        
         },
         (error) => {
           this.loading = false;
@@ -785,9 +911,11 @@ export default {
     },
     async startRecording() {
       this.cytonBoard.startReading();
+      this.recordingStarted = true;
     },
     async stopRecording() {
       this.cytonBoard.stopReading(this.participantNumber);
+      this.recordingStarted = false;
     },
     partHelp() {
       this.isParticipantHelpOpen = !this.isParticipantHelpOpen;
@@ -1629,6 +1757,18 @@ div#card_connect {
 }
 
 .tooltip {
+  position: absolute;
+  text-align: center;
+  width: auto;
+  padding: 4px;
+  font: 12px sans-serif;
+  background: lightsteelblue;
+  border: 0px;
+  border-radius: 8px;
+  pointer-events: none; /* Don't block mouse events */
+  opacity: 0; /* Hidden by default */
+}
+.tooltip2 {
   position: absolute;
   text-align: center;
   width: auto;

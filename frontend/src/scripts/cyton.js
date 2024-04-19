@@ -215,7 +215,7 @@ export class cyton {
           writer.releaseLock();
           await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for 5 seconds
           await this.startReading(); // Start recording for 5 seconds
-          await new Promise((resolve) => setTimeout(resolve, 7500)); // Wait for 5 seconds
+          await new Promise((resolve) => setTimeout(resolve, 9500)); // Wait for 5 seconds
           console.log("Waiting for 5 sec"); // Deactivate impedance measurement after 5 seconds
           await this.stopImpedance("A" + index);
           writer = this.port.writable.getWriter();
@@ -309,7 +309,7 @@ export class cyton {
     const eegData = [];
     for (let i = 2; i <= 24; i += 3) {
       const channelData =
-        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) / 24.0;
+        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 4.5 * 1e6 / (24 * ((2 ** 23) - 1));
       const channelName = `A${Math.ceil((i - 1) / 3)}`;
       this.data[channelName].push(channelData);
       eegData.push(channelData);
@@ -403,7 +403,7 @@ export class cyton {
         // Prepare data to send
         let raw_data = this.data[channel].map((value) => parseFloat(value)); // Convert values to floats if necessary
         if (raw_data.length > 600) {
-          raw_data = raw_data.slice(raw_data.length - 600);
+          raw_data = raw_data.slice(raw_data.length - 50);
         }
         // Send data to http://localhost:5001/calculate_impedance
         const response = await fetch(
