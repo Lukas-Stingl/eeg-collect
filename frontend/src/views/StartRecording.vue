@@ -71,17 +71,17 @@ checks, and starting/stopping the recording. * */
       </div>
     </div>
 
-    <h2 v-if="!showContinueButton && participantNumberSet">Geräteüberprüfung</h2>
-    <h1 v-if="showContinueButton && participantNumberSet">Aufnahme</h1>
+    <h2 v-if="showContinueButton && participantNumberSet">Geräteüberprüfung</h2>
+    <h1 v-if="!showContinueButton && participantNumberSet">Aufnahme</h1>
 
-    <div v-show="!showContinueButton && participantNumberSet" class="headphones">
+    <div v-show="showContinueButton && participantNumberSet" class="headphones">
       <!-- Device Check Content -->
 
       <svg ref="baseModel" width="1000" height="500"></svg>
       <div class="tooltip"></div>
     </div>
     <div
-      v-show="showContinueButton && participantNumberSet && !participantNrInUrl"
+      v-show="!showContinueButton && participantNumberSet && !participantNrInUrl"
       class="button-container"
     >
       <v-btn @click="redirectToStartRecording">Weiter</v-btn>
@@ -94,7 +94,7 @@ checks, and starting/stopping the recording. * */
       ></v-icon>
     </div>
         <div
-      v-show="!showContinueButton && participantNumberSet && participantNrInUrl"
+      v-show="showContinueButton && participantNumberSet && participantNrInUrl"
       class="button-container"
     >
       <v-btn @click="deviceCheck">Start</v-btn>
@@ -108,7 +108,7 @@ checks, and starting/stopping the recording. * */
     </div>
 
     <v-dialog
-      v-show="!showContinueButton && participantNumberSet"
+      v-show="showContinueButton && participantNumberSet"
       v-model="isConnectHelpOpen"
       max-width="500px"
     >
@@ -125,7 +125,7 @@ checks, and starting/stopping the recording. * */
       </v-card>
     </v-dialog>
 
-    <div v-if="showContinueButton && participantNumberSet">
+    <div v-if="!showContinueButton && participantNumberSet">
       <!-- Cyton Connector Content -->
       <div class="recordButtons">
         <v-btn
@@ -141,7 +141,7 @@ checks, and starting/stopping the recording. * */
       </div>
     </div>
      <!-- Horizontal line -->
-<div v-show="showContinueButton && participantNumberSet"> 
+<div v-show="!showContinueButton && participantNumberSet"> 
   <div v-if="recordingStarted">
   <v-label style="margin-top: 20px; margin-right: 20px">Aufnahme läuft</v-label>
   <v-icon :color="recordingStarted ? 'red' : ''" v-if="recordingStarted">mdi-record-circle</v-icon>
