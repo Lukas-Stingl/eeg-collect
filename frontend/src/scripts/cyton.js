@@ -109,7 +109,25 @@ export class cyton {
   
     return impedanceArray;
   }
+  resetImpedance() {
+    const impedanceArray = [];
+    this.impedance = [];
+  
+    for (const channel in channelAssignment) {
+      const node_id = channelAssignment[channel];
+      let impedanceValue = 0;
+      let state = 0;
 
+      impedanceArray.push({
+        node_id: node_id,
+        state: state,
+        impedance: impedanceValue,
+      });
+    }
+     
+  
+    return impedanceArray;
+  }
   setScalar(gain = 24, stepSize = 1 / (Math.pow(2, 23) - 1), vref = 4.5) {
     this.stepSize = stepSize;
     this.vref = vref; //2.5V voltage ref +/- 250nV
@@ -163,17 +181,41 @@ export class cyton {
 
   interpret24bitAsInt32(byteArray) {
     const newInt =
-      ((255 & byteArray[0]) << 16) |
-      ((255 & byteArray[1]) << 8) |
-      (255 & byteArray[2]);
+          ((255 & byteArray[0]) << 16) |
+          ((255 & byteArray[1]) << 8) |
+          (255 & byteArray[2]);
 
-    return newInt & 8388608 ? newInt | 4278190080 : newInt & 16777215;
+        return newInt & 8388608 ? newInt | 4278190080 : newInt & 16777215;
   }
 
   
   exportImpedanceCSV(participantNumber) {
     const objectKeys = Object.keys(this.impedance);
-    this.exportCSV(this.impedance, objectKeys, participantNumber);
+    const csvContent = this.parseAndExportImpedance(this.impedance, objectKeys);
+    let startTime = Math.floor(new Date(this.startRecording).getTime() / 1000);
+    const fileName = `Impedance ${participantNumber}-${startTime}.csv`;
+
+    const formData = new FormData();
+    formData.append("fileName", fileName);
+    formData.append("csvContent", csvContent);
+
+    fetch("/api/save-csv", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("CSV file saved successfully:", data.filePath);
+      })
+      .catch((error) => {
+        console.error("Error saving CSV file:", error);
+      });
+    
   }
 
   async configureBoard(command) {
@@ -211,11 +253,12 @@ export class cyton {
             impedanceCommand
           );
           await writer.write(impedanceCommandBytes);
+          console.log(impedanceCommand)
           console.log("Impedance check command sent for channel " + index);
           writer.releaseLock();
           await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for 5 seconds
           await this.startReading(); // Start recording for 5 seconds
-          await new Promise((resolve) => setTimeout(resolve, 9500)); // Wait for 5 seconds
+          await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 seconds
           console.log("Waiting for 5 sec"); // Deactivate impedance measurement after 5 seconds
           await this.stopImpedance("A" + index);
           writer = this.port.writable.getWriter();
@@ -309,7 +352,7 @@ export class cyton {
     const eegData = [];
     for (let i = 2; i <= 24; i += 3) {
       const channelData =
-        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 4.5 * 1e6 / (24 * ((2 ** 23) - 1));
+        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) /24;
       const channelName = `A${Math.ceil((i - 1) / 3)}`;
       this.data[channelName].push(channelData);
       eegData.push(channelData);
@@ -402,10 +445,10 @@ export class cyton {
         this.data.count = this.data[channel].length;
         // Prepare data to send
         let raw_data = this.data[channel].map((value) => parseFloat(value)); // Convert values to floats if necessary
-        if (raw_data.length > 600) {
-          raw_data = raw_data.slice(raw_data.length - 50);
+        if (raw_data.length > 200) {
+          raw_data = raw_data.slice(raw_data.length - 200);
         }
-        // Send data to http://localhost:5001/calculate_impedance
+          // Send data to http://localhost:5001/calculate_impedance
         const response = await fetch(
           "http://localhost:5001/calculate_impedance",
           {
@@ -502,6 +545,42 @@ export class cyton {
     // Combine rows with newline characters
     const csvContent = "Index;Datetime;" + headers + "\n" + rows.join("\n");
 
+    return csvContent;
+  }
+  parseAndExportImpedance(data, objectKeys) {
+    const headers = `Index;Datetime;${objectKeys.join(";")}`;
+
+    // Transpose data
+    const transposedData = objectKeys.map((key) => {
+      if (Array.isArray(data[key])) {
+        return data[key];
+      } else {
+        // If it's a string, create an array with a single element
+        return [data[key]];
+      }
+    });
+  
+    // Find the maximum length among the arrays
+    const maxLength = Math.max(...transposedData.map((arr) => arr.length));
+  
+    // Fill shorter arrays with empty strings to match the maximum length
+    const filledData = transposedData.map((arr) => {
+      const diff = maxLength - arr.length;
+      return arr.concat(Array(diff).fill(""));
+    });
+  
+    // Add index and current timestamp
+    const timestamp = new Date().toISOString();
+    const firstRow = `1;${timestamp};${filledData.map((arr) => arr[0]).join(";")}`;
+    const remainingRows = [];
+    for (let i = 1; i < maxLength; i++) {
+      const rowData = filledData.map((arr) => arr[i]);
+      remainingRows.push(rowData.join(";"));
+    }
+  
+    // Combine rows with newline characters
+    const csvContent = headers + "\n" + firstRow + "\n" + remainingRows.join("\n");
+  
     return csvContent;
   }
 

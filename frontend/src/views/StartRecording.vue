@@ -11,6 +11,12 @@ checks, and starting/stopping the recording. * */
           <v-card-text>
             {{ message }}
           </v-card-text>
+          <div style="margin: 10px">
+            <v-progress-linear
+              v-model="value"
+              :buffer-value="bufferValue"
+            ></v-progress-linear>
+          </div>
         </v-card>
 
         <v-progress-circular
@@ -58,10 +64,10 @@ checks, and starting/stopping the recording. * */
           <v-card>
             <v-card-title>Hilfe</v-card-title>
             <v-card-text>
-              Gebem Sie Ihre zugeteilte Teilnehmernummer an und verbinden Sie
-              Ihr Gerät. Verwenden Sie den entsprechenden Port des Headsets.
-              Falls Sie einen Mac verwenden lautet dieser "FT231X USB UART"
-              unter Windows "COM3".
+              Bitte geben Sie Ihre zugewiesene Teilnehmernummer an und schließen
+              Sie Ihr Gerät an. Verwenden Sie dabei den entsprechenden Port
+              Ihres Headsets. Wenn Sie einen Mac verwenden, lautet dieser
+              "FT231X USB UART", unter Windows ist es "COM3".
             </v-card-text>
             <v-card-actions>
               <v-btn @click="partHelp">Schließen</v-btn>
@@ -81,7 +87,9 @@ checks, and starting/stopping the recording. * */
       <div class="tooltip"></div>
     </div>
     <div
-      v-show="!showContinueButton && participantNumberSet && !participantNrInUrl"
+      v-show="
+        !showContinueButton && participantNumberSet && !participantNrInUrl
+      "
       class="button-container"
     >
       <v-btn @click="redirectToStartRecording">Weiter</v-btn>
@@ -93,7 +101,7 @@ checks, and starting/stopping the recording. * */
         @click="connectHelp"
       ></v-icon>
     </div>
-        <div
+    <div
       v-show="showContinueButton && participantNumberSet && participantNrInUrl"
       class="button-container"
     >
@@ -115,12 +123,26 @@ checks, and starting/stopping the recording. * */
       <v-card>
         <v-card-title>Hilfe</v-card-title>
         <v-card-text>
-          Falls einzelne Kanäle ein Fehlersymbol anzeigen, schalten Sie das
-          Gerät bitte aus und wieder ein und achten Sie darauf, dass die
-          Elektrotroden korrekt angebracht sind.
+          Bitte wählen Sie den entsprechenden Port Ihres Headsets aus. Wenn Sie
+          einen Mac verwenden, lautet dieser "FT231X USB UART", unter Windows
+          ist es "COM3".
         </v-card-text>
         <v-card-actions>
           <v-btn @click="connectHelp">Schließen</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="badImpedance" max-width="500px">
+      <v-card>
+        <v-card-title>Kopfhörer sitzen nicht richtig</v-card-title>
+        <v-card-text>
+          Die Elektroden des Headsets haben keine zuverlässige Hautverbindung.
+          Bitte stellen Sie sicher, dass keine Haare zwischen der Haut und den
+          Elektroden liegen und drücken Sie die Elektroden fest an. Bitte
+          wiederholen Sie die Geräteüberprüfung.
+        </v-card-text>
+        <v-card-actions>
+          <v-btn @click="restartImpedance">Erneut Starten</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -140,32 +162,33 @@ checks, and starting/stopping the recording. * */
         >
       </div>
     </div>
-     <!-- Horizontal line -->
-<div v-show="!showContinueButton && participantNumberSet"> 
-  <div v-if="recordingStarted">
-  <v-label style="margin-top: 20px; margin-right: 20px">Aufnahme läuft</v-label>
-  <v-icon :color="recordingStarted ? 'red' : ''" v-if="recordingStarted">mdi-record-circle</v-icon>
-</div>
-  <v-divider style="margin-top: 50px"></v-divider>
-  <v-banner
-      class="my-4"
-      color="warning"
-      icon="$warning"
-      lines="three"
-    >
-      <v-banner-text>
-        Sobald Sie das Experiment beendet haben, klicken Sie auf "Aufnahme stoppen". Anschließend führen Sie bitte erneut eine Geräteüberprüfung durch, um zu Messen, ob die Elektroden immer noch korrekt angebracht sind.
-      </v-banner-text>
+    <!-- Horizontal line -->
+    <div v-show="!showContinueButton && participantNumberSet">
+      <div v-if="recordingStarted">
+        <v-label style="margin-top: 20px; margin-right: 20px"
+          >Aufnahme läuft</v-label
+        >
+        <v-icon :color="recordingStarted ? 'red' : ''" v-if="recordingStarted"
+          >mdi-record-circle</v-icon
+        >
+      </div>
+      <v-divider style="margin-top: 50px"></v-divider>
+      <v-banner class="my-4" color="warning" icon="$warning" lines="three">
+        <v-banner-text>
+          Sobald Sie das Experiment beendet haben, klicken Sie auf "Aufnahme
+          stoppen". Anschließend führen Sie bitte erneut eine Geräteüberprüfung
+          durch, um zu Messen, ob die Elektroden immer noch korrekt angebracht
+          sind.
+        </v-banner-text>
       </v-banner>
       <div class="headphones">
-      <svg ref="baseModel2" width="1000" height="500"></svg>
-      <div class="tooltip2"></div>
-      
+        <svg ref="baseModel2" width="1000" height="500"></svg>
+        <div class="tooltip2"></div>
+      </div>
+      <div style="display: flex; justify-content: center">
+        <v-btn @click="deviceCheck">Geräteüberprüfung starten</v-btn>
+      </div>
     </div>
-    <div style="display:flex; justify-content:center;">
-    <v-btn @click="deviceCheck">Geräteüberprüfung starten</v-btn>
-  </div>
-</div>
     <!-- <div v-show="!showContinueButton && participantNumberSet">
       <div class="chart-container">
         <canvas ref="Chart0"></canvas>
@@ -243,8 +266,8 @@ import channelAssignment from "../config/channelAssignment.json";
 export default {
   data() {
     return {
-      participantNr: this.participantNr || '',
-      participantNumberSet: this.participantNumberSet || false,      
+      participantNr: this.participantNr || "",
+      participantNumberSet: this.participantNumberSet || false,
       status: "Not connected",
       port: "",
       data: {},
@@ -278,8 +301,9 @@ export default {
       showIcon19: false,
       showIcon20: false,
       showIcon21: false,
-      participantNrInUrl : this.participantNrInUrl || false,
+      participantNrInUrl: this.participantNrInUrl || false,
       myChart: null,
+      badImpedance: false,
       chartData0: {
         labels: ["time"],
         datasets: [
@@ -584,6 +608,9 @@ export default {
       writer: "",
       message: "Channel 1 wird überprüft.",
       recordingStarted: false,
+      value: 0,
+      bufferValue: 20,
+      interval: 0,
     };
   },
   beforeCreate() {
@@ -676,7 +703,7 @@ export default {
         .attr("xlink:href", require("@/assets/baseModel.png"))
         .attr("width", 1000)
         .attr("height", 500);
-        this.svg2 = d3
+      this.svg2 = d3
         .select(this.$refs.baseModel2)
         .append("image")
         .attr("xlink:href", require("@/assets/baseModel.png"))
@@ -697,7 +724,7 @@ export default {
         .attr("cy", (d) => d.y)
         .attr("r", (d) => d.r)
         .attr("class", "node");
-        this.circles2 = this.svg2
+      this.circles2 = this.svg2
         .selectAll("circle")
         .data(this.nodes)
         .enter()
@@ -739,7 +766,7 @@ export default {
           (update) =>
             update.attr("class", (d) => `node ${this.stateToClass(d.state)}`)
         );
-        this.svg2
+      this.svg2
         .selectAll("circle")
         .data(this.nodeData, (d) => d.node_id)
         .join(
@@ -776,7 +803,7 @@ export default {
         )
         .style("left", `${event.layerX + 5}px`)
         .style("top", `${event.layerY + 10}px`);
-        this.tooltip2
+      this.tooltip2
         .style("opacity", 1)
         .html(
           `Node ID: ${d.node_id}<br/>State: ${this.stateToClass(
@@ -794,7 +821,7 @@ export default {
         .selectAll("circle")
         .filter((node) => node.node_id !== d.node_id)
         .classed("desaturated", true);
-        this.svg2
+      this.svg2
         .selectAll("circle")
         .filter((node) => node.node_id !== d.node_id)
         .classed("desaturated", true);
@@ -821,7 +848,7 @@ export default {
 
       await this.cytonBoard.startReading();
     },
-    async impedanceCheck () {
+    async impedanceCheck() {
       await this.startImpedanceCheck().then(
         () => {
           this.status = "Device check completed";
@@ -829,19 +856,14 @@ export default {
           this.nodeData = impedance;
           this.updateCircles();
           this.cytonBoard.exportImpedanceCSV(this.participantNumber);
-          console.log("IMPORTANT: " + JSON.stringify(this.nodeData))
-          console.log(channelAssignment)
-          if(
-            this.nodeData && this.nodeData.some(obj => obj.state !== 3)
-          )
-          {
-            console.log("Impedance not sufficient")
-            
-          }
-          else{
+          console.log("IMPORTANT: " + JSON.stringify(this.nodeData));
+          console.log(channelAssignment);
+          if (this.nodeData && this.nodeData.some((obj) => obj.state !== 3)) {
+            console.log("Impedance not sufficient");
+            this.badImpedance = true;
+          } else {
             this.showContinueButton = false;
           }
-        
         },
         (error) => {
           this.loading = false;
@@ -851,7 +873,7 @@ export default {
       ); // Trigger impedance check for the current channel
     },
     async deviceCheck() {
-      await this.cytonBoard.setupSerialAsync(); 
+      await this.cytonBoard.setupSerialAsync();
       this.participantNumberSet = true;
       await this.startImpedanceCheck().then(
         () => {
@@ -862,19 +884,14 @@ export default {
           this.showContinueButton = true;
           this.participantNumberSet = true;
           this.cytonBoard.exportImpedanceCSV(this.participantNumber);
-          console.log("IMPORTANT: " + JSON.stringify(this.nodeData))
-          console.log(channelAssignment)
-          if(
-            this.nodeData && this.nodeData.some(obj => obj.state !== 3)
-          )
-          {
-            console.log("Impedance not sufficient")
-            
-          }
-          else{
+          console.log("IMPORTANT: " + JSON.stringify(this.nodeData));
+          console.log(channelAssignment);
+          if (this.nodeData && this.nodeData.some((obj) => obj.state !== 3)) {
+            console.log("Impedance not sufficient");
+            this.badImpedance = true;
+          } else {
             this.showContinueButton = false;
           }
-        
         },
         (error) => {
           this.loading = false;
@@ -887,6 +904,7 @@ export default {
       for (let i = 1; i <= 8; i++) {
         this.loading = true;
         this.message = `Channel ${i} wird überprüft. Das kann einige Sekunden dauern. Bitte warten Sie und bewegen Sie den Kopf nicht.`;
+        this.startBuffer();
         await this.cytonBoard.configureBoard(i).then(() => {
           let impedance = this.cytonBoard.getImpedance();
           this.nodeData = impedance;
@@ -895,11 +913,72 @@ export default {
         }); // Trigger impedance check for the current channel
       }
     },
+    async restartImpedance() {
+      
+      let impedance = this.cytonBoard.resetImpedance();
+      this.nodeData = impedance;
+      this.updateCircles();
+      this.badImpedance = false;
+      this.nodeData;
+      this.participantNumberSet = true;
+      await this.startImpedanceCheck().then(
+        () => {
+          this.status = "Device check completed";
+          let impedance = this.cytonBoard.getImpedance();
+          this.nodeData = impedance;
+          this.updateCircles();
+          this.showContinueButton = true;
+          this.participantNumberSet = true;
+          this.cytonBoard.exportImpedanceCSV(this.participantNumber);
+          console.log("IMPORTANT: " + JSON.stringify(this.nodeData));
+          console.log(channelAssignment);
+          if (this.nodeData && this.nodeData.some((obj) => obj.state !== 3)) {
+            console.log("Impedance not sufficient");
+            this.badImpedance = true;
+          } else {
+            this.showContinueButton = false;
+          }
+        },
+        (error) => {
+          this.loading = false;
+          this.status = "Device check failed";
+          console.error("Device check failed", error);
+        }
+      );
+    },
     decodedCallback(data) {
       this.data = data;
     },
     onDisconnectedCallback() {
       this.status = "Disconnected from Cyton";
+    },
+    startBuffer() {
+      clearInterval(this.interval);
+
+      // Reset progress values
+      this.value = 0;
+      this.bufferValue = 0;
+
+      // Calculate the total time and interval duration
+      const totalTime = 6000; // 5 seconds in milliseconds
+      const steps = 100; // Number of steps to complete progress
+      const intervalDuration = totalTime / steps;
+
+      // Start the interval to update progress
+      this.interval = setInterval(() => {
+        // Increment progress values
+        this.value += 100 / steps;
+        this.bufferValue += 100 / steps;
+
+        // Check if progress has reached 100%
+        if (this.value >= 100) {
+          // Ensure the progress bar is exactly at 100%
+          this.value = 100;
+          this.bufferValue = 100;
+          // Stop the interval after the delay
+          clearInterval(this.interval);
+        }
+      }, intervalDuration);
     },
     onConnectedCallback() {
       // this.cytonBoard.startReading();
@@ -1649,6 +1728,7 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("resize", this.handleResize);
+    clearInterval(this.interval);
   },
 };
 </script>
