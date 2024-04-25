@@ -617,7 +617,7 @@ export default {
     const urlParams = new URLSearchParams(window.location.search);
     const participantNumberParam = urlParams.get("AbXHPCkszw");
     if (participantNumberParam) {
-      const decodedParticipantNumber = atob(participantNumberParam);
+      const decodedParticipantNumber = participantNumberParam;
       this.participantNumber = decodedParticipantNumber;
       this.participantNumberSet = true;
       this.participantNrInUrl = true;
