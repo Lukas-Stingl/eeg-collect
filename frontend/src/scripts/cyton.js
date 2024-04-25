@@ -450,7 +450,7 @@ export class cyton {
         }
           // Send data to http://localhost:5001/calculate_impedance
         const response = await fetch(
-          "http://localhost:5001/calculate_impedance",
+          "/data/calculate_impedance",
           {
             method: "POST",
             headers: {
