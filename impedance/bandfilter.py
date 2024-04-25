@@ -4,7 +4,7 @@ import numpy as np
 from scipy.signal import butter, filtfilt, iirnotch
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})  # Allow CORS for all routes and origins
+CORS(app)  # Enable CORS for all routes
 processing_band_low_Hz = [27]
 processing_band_high_Hz = [37]
 
