@@ -1,5 +1,5 @@
 //Joshua Brewster, AGPL (copyleft)
-const channelAssignment = require('../config/channelAssignment.json');
+const channelAssignment = require("../config/channelAssignment.json");
 
 export class cyton {
   //Contains structs and necessary functions/API calls to analyze serial data for the OpenBCI Cyton and Daisy-Cyto
@@ -7,8 +7,7 @@ export class cyton {
   constructor(
     onDecodedCallback = this.onDecodedCallback,
     onConnectedCallback = this.onConnectedCallback,
-    onDisconnectedCallback = this.onDisconnectedCallback,
-    mode = "daisy" //"daisy", then "single" or whatever, daisy is the only real setting
+    onDisconnectedCallback = this.onDisconnectedCallback
   ) {
     this.onDecodedCallback = onDecodedCallback;
     this.onConnectedCallback = onConnectedCallback;
@@ -40,7 +39,7 @@ export class cyton {
 
     this.maxBufferedSamples = this.sps * 60 * 1; //max samples in buffer this.sps*60*nMinutes = max minutes of data
 
-    this.mode = mode;
+    this.mode = "";
     this.odd = false; //
     this.impedance = {};
     this.data = {
@@ -55,6 +54,14 @@ export class cyton {
       A6: [],
       A7: [],
       A8: [],
+      A9: [],
+      A10: [],
+      A11: [],
+      A12: [],
+      A13: [],
+      A14: [],
+      A15: [],
+      A16: [],
     };
 
     this.resetDataBuffers();
@@ -79,14 +86,41 @@ export class cyton {
       }
     }
   }
-  getImpedance() {
+  getImpedance(config) {
     const impedanceArray = [];
-  
-    for (const channel in channelAssignment) {
-      const node_id = channelAssignment[channel];
+    let assignment = channelAssignment[config];
+    console.log(assignment.length);
+    if (Object.keys(assignment).length > 8) {
+      this.mode = "daisy";
+      this.data = {
+        count: "",
+        sampleNumber: [],
+        timestamp: [],
+        A1: [],
+        A2: [],
+        A3: [],
+        A4: [],
+        A5: [],
+        A6: [],
+        A7: [],
+        A8: [],
+        A9: [],
+        A10: [],
+        A11: [],
+        A12: [],
+        A13: [],
+        A14: [],
+        A15: [],
+        A16: [],
+      };
+    } else {
+      this.mode = "cyton";
+    }
+    for (const channel in assignment) {
+      const node_id = assignment[channel];
       let impedanceValue = this.impedance[channel];
       let state;
-  
+
       if (impedanceValue === undefined) {
         state = 0; // Set state to 0 if channel not found
         impedanceValue = 0; // Set impedance to 0 if channel not found
@@ -99,20 +133,20 @@ export class cyton {
       } else {
         state = 1;
       }
-      
+
       impedanceArray.push({
         node_id: node_id,
         state: state,
         impedance: impedanceValue,
       });
     }
-  
+
     return impedanceArray;
   }
   resetImpedance() {
     const impedanceArray = [];
     this.impedance = [];
-  
+
     for (const channel in channelAssignment) {
       const node_id = channelAssignment[channel];
       let impedanceValue = 0;
@@ -124,8 +158,7 @@ export class cyton {
         impedance: impedanceValue,
       });
     }
-     
-  
+
     return impedanceArray;
   }
   setScalar(gain = 24, stepSize = 1 / (Math.pow(2, 23) - 1), vref = 4.5) {
@@ -181,14 +214,13 @@ export class cyton {
 
   interpret24bitAsInt32(byteArray) {
     const newInt =
-          ((255 & byteArray[0]) << 16) |
-          ((255 & byteArray[1]) << 8) |
-          (255 & byteArray[2]);
+      ((255 & byteArray[0]) << 16) |
+      ((255 & byteArray[1]) << 8) |
+      (255 & byteArray[2]);
 
-        return newInt & 8388608 ? newInt | 4278190080 : newInt & 16777215;
+    return newInt & 8388608 ? newInt | 4278190080 : newInt & 16777215;
   }
 
-  
   exportImpedanceCSV(participantNumber) {
     const objectKeys = Object.keys(this.impedance);
     const csvContent = this.parseAndExportImpedance(this.impedance, objectKeys);
@@ -215,33 +247,73 @@ export class cyton {
       .catch((error) => {
         console.error("Error saving CSV file:", error);
       });
-    
   }
 
   async configureBoard(command) {
-    const hardcodedCommands = [
-      "x1000100Xz101Z", // Start impedance check for channel 1
-      "x2000100Xz201Z", // Start impedance check for channel 2
-      "x3000100Xz301Z", // Start impedance check for channel 3
-      "x4000100Xz401Z", // Start impedance check for channel 4
-      "x5000100Xz501Z", // Start impedance check for channel 5
-      "x6000100Xz601Z", // Start impedance check for channel 6
-      "x7000100Xz701Z", // Start impedance check for channel 7
-      "x8000100Xz801Z", // Start impedance check for channel 8
-    ];
-    const resetCommands = [
-      "x1060110Xz100Z", // Reset impedance check for channel 1
-      "x2060110Xz200Z", // Reset impedance check for channel 2
-      "x3060110Xz300Z", // Reset impedance check for channel 3
-      "x4060110Xz400Z", // Reset impedance check for channel 4
-      "x5060110Xz500Z", // Reset impedance check for channel 5
-      "x6060110Xz600Z", // Reset impedance check for channel 6
-      "x7060110Xz700Z", // Reset impedance check for channel 7
-      "x8060110Xz800Z", // Reset impedance check for channel 8
-    ];
+    let startCommands;
+    let resetCommands;
+    if (this.mode === "daisy") {
+      startCommands = [
+        "x1000100Xz101Z", // Start impedance check for channel 1
+        "x2000100Xz201Z", // Start impedance check for channel 2
+        "x3000100Xz301Z", // Start impedance check for channel 3
+        "x4000100Xz401Z", // Start impedance check for channel 4
+        "x5000100Xz501Z", // Start impedance check for channel 5
+        "x6000100Xz601Z", // Start impedance check for channel 6
+        "x7000100Xz701Z", // Start impedance check for channel 7
+        "x8000100Xz801Z", // Start impedance check for channel 8
+        "xQ000100XzQ01Z", // Start impedance check for channel 9
+        "xW000100XzQ01Z", // Start impedance check for channel 10
+        "xE000100XzQ01Z", // Start impedance check for channel 11
+        "xR000100XzQ01Z", // Start impedance check for channel 12
+        "xT000100XzQ01Z", // Start impedance check for channel 13
+        "xY000100XzQ01Z", // Start impedance check for channel 14
+        "xU000100XzQ01Z", // Start impedance check for channel 15
+        "xI000100XzQ01Z", // Start impedance check for channel 16
+      ];
+      resetCommands = [
+        "x1060110Xz100Z", // Reset impedance check for channel 1
+        "x2060110Xz200Z", // Reset impedance check for channel 2
+        "x3060110Xz300Z", // Reset impedance check for channel 3
+        "x4060110Xz400Z", // Reset impedance check for channel 4
+        "x5060110Xz500Z", // Reset impedance check for channel 5
+        "x6060110Xz600Z", // Reset impedance check for channel 6
+        "x7060110Xz700Z", // Reset impedance check for channel 7
+        "x8060110Xz800Z", // Reset impedance check for channel 8
+        "xQ060110XzQ00Z", // Reset impedance check for channel 9
+        "xW060110XzQ00Z", // Reset impedance check for channel 10
+        "xE060110XzQ00Z", // Reset impedance check for channel 11
+        "xR060110XzQ00Z", // Reset impedance check for channel 12
+        "xT060110XzQ00Z", // Reset impedance check for channel 13
+        "xY060110XzQ00Z", // Reset impedance check for channel 14
+        "xU060110XzQ00Z", // Reset impedance check for channel 15
+        "xI060110XzQ00Z", // Reset impedance check for channel 16
+      ];
+    } else {
+      startCommands = [
+        "x1000100Xz101Z", // Start impedance check for channel 1
+        "x2000100Xz201Z", // Start impedance check for channel 2
+        "x3000100Xz301Z", // Start impedance check for channel 3
+        "x4000100Xz401Z", // Start impedance check for channel 4
+        "x5000100Xz501Z", // Start impedance check for channel 5
+        "x6000100Xz601Z", // Start impedance check for channel 6
+        "x7000100Xz701Z", // Start impedance check for channel 7
+        "x8000100Xz801Z", // Start impedance check for channel 8
+      ];
+      resetCommands = [
+        "x1060110Xz100Z", // Reset impedance check for channel 1
+        "x2060110Xz200Z", // Reset impedance check for channel 2
+        "x3060110Xz300Z", // Reset impedance check for channel 3
+        "x4060110Xz400Z", // Reset impedance check for channel 4
+        "x5060110Xz500Z", // Reset impedance check for channel 5
+        "x6060110Xz600Z", // Reset impedance check for channel 6
+        "x7060110Xz700Z", // Reset impedance check for channel 7
+        "x8060110Xz800Z", // Reset impedance check for channel 8
+      ];
+    }
 
     const index = parseInt(command); // Assuming command is a number indicating the channel index
-    const impedanceCommand = hardcodedCommands[index - 1]; // Get the corresponding impedance check command
+    const impedanceCommand = startCommands[index - 1]; // Get the corresponding impedance check command
     const resetCommand = resetCommands[index - 1]; // Get the corresponding reset command
 
     if (impedanceCommand && resetCommand) {
@@ -253,7 +325,7 @@ export class cyton {
             impedanceCommand
           );
           await writer.write(impedanceCommandBytes);
-          console.log(impedanceCommand)
+          console.log(impedanceCommand);
           console.log("Impedance check command sent for channel " + index);
           writer.releaseLock();
           await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for 5 seconds
@@ -327,12 +399,22 @@ export class cyton {
           // Decode the chunk
 
           // Stop receiving data if the stop byte is found
-          if (value[i] >= 192 && value[i] <= 198 && buffer.length > 30) {
-            headerFound = false;
-            this.decodeChunk(buffer);
+          if (this.mode === "daisy") {
+            if (value[i] >= 192 && value[i] <= 198 && buffer.length > 30) {
+              headerFound = false;
+              this.decodeDaisy(buffer);
 
-            // Reset buffer for the next chunk
-            buffer = [];
+              // Reset buffer for the next chunk
+              buffer = [];
+            }
+          } else {
+            if (value[i] >= 192 && value[i] <= 198 && buffer.length > 30) {
+              headerFound = false;
+              this.decodeChunk(buffer);
+
+              // Reset buffer for the next chunk
+              buffer = [];
+            }
           }
         }
       }
@@ -350,18 +432,56 @@ export class cyton {
 
     // Parse EEG data for all channels
     const eegData = [];
+    console.log("Current mode: ", this.mode);
+
     for (let i = 2; i <= 24; i += 3) {
       const channelData =
-        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) /24;
+        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) / 24;
       const channelName = `A${Math.ceil((i - 1) / 3)}`;
       this.data[channelName].push(channelData);
       eegData.push(channelData);
     }
+  }
+  decodeDaisy(chunk) {
+    let odd = chunk[1] % 2 !== 0;
+    let channelName;
+    let oppositeChannel;
+    // Skip first byte (header) and last byte (stop byte)
+    const byteArray = chunk.slice(1, -1);
+    const sampleNumber = chunk[1];
+    this.data["sampleNumber"].push(sampleNumber);
+    this.data["timestamp"].push(new Date().getTime());
 
-    // Print the parsed data
-    // console.log("Sample Number:", sampleNumber);
-    // console.log("EEG Data:", eegData);
-    // console.log("Aux Data:", auxData);
+    // Parse EEG data for all channels
+    const eegData = [];
+    console.log("Current mode: ", this.mode);
+
+    for (let i = 2; i <= 24; i += 3) {
+      
+      const channelData =
+        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) / 24;
+       
+      if(odd)
+      {
+        channelName = `A${Math.ceil((i - 1) / 3)}`;
+        oppositeChannel = `A${Math.ceil((i - 1) / 3) + 8}`;
+        this.odd = false;
+      }
+      else
+      {
+        channelName = `A${Math.ceil((i - 1) / 3) + 8}`;
+        oppositeChannel = `A${Math.ceil((i - 1) / 3)}`;
+        this.odd = true;
+      }
+      try{
+      this.data[channelName].push(channelData);
+      this.data[oppositeChannel].push(this.data[oppositeChannel][this.data[oppositeChannel].length - 1]);
+      }catch(e){
+        console.log(e);
+        console.log(JSON.stringify(this.data));
+      }
+      eegData.push(channelData);
+    }
   }
 
   getData() {
@@ -448,17 +568,14 @@ export class cyton {
         if (raw_data.length > 200) {
           raw_data = raw_data.slice(raw_data.length - 200);
         }
-          // Send data to http://localhost:5001/calculate_impedance
-        const response = await fetch(
-          "/data/calculate_impedance",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ data_raw: raw_data }),
-          }
-        );
+        // Send data to http://localhost:5001/calculate_impedance
+        const response = await fetch("/data/calculate_impedance", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ data_raw: raw_data }),
+        });
         console.log("Data sent to calculate impedance:", raw_data);
         const impedanceValue = await response.json(); // Get impedance value from the response
         this.impedance[channel] = impedanceValue.impedance; // Store impedance value in the global variable
@@ -485,6 +602,14 @@ export class cyton {
       A6: [],
       A7: [],
       A8: [],
+      A9: [],
+      A10: [],
+      A11: [],
+      A12: [],
+      A13: [],
+      A14: [],
+      A15: [],
+      A16: [],
     };
   }
 
@@ -559,28 +684,31 @@ export class cyton {
         return [data[key]];
       }
     });
-  
+
     // Find the maximum length among the arrays
     const maxLength = Math.max(...transposedData.map((arr) => arr.length));
-  
+
     // Fill shorter arrays with empty strings to match the maximum length
     const filledData = transposedData.map((arr) => {
       const diff = maxLength - arr.length;
       return arr.concat(Array(diff).fill(""));
     });
-  
+
     // Add index and current timestamp
     const timestamp = new Date().toISOString();
-    const firstRow = `1;${timestamp};${filledData.map((arr) => arr[0]).join(";")}`;
+    const firstRow = `1;${timestamp};${filledData
+      .map((arr) => arr[0])
+      .join(";")}`;
     const remainingRows = [];
     for (let i = 1; i < maxLength; i++) {
       const rowData = filledData.map((arr) => arr[i]);
       remainingRows.push(rowData.join(";"));
     }
-  
+
     // Combine rows with newline characters
-    const csvContent = headers + "\n" + firstRow + "\n" + remainingRows.join("\n");
-  
+    const csvContent =
+      headers + "\n" + firstRow + "\n" + remainingRows.join("\n");
+
     return csvContent;
   }
 

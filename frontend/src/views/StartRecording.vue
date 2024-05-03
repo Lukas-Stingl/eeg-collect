@@ -79,10 +79,24 @@ checks, and starting/stopping the recording. * */
 
     <h2 v-if="showContinueButton && participantNumberSet">Geräteüberprüfung</h2>
     <h1 v-if="!showContinueButton && participantNumberSet">Aufnahme</h1>
-
+    <div  max-width="500px">
+      <v-card  
+      class="mx-auto"
+      elevation="16"
+      max-width="800"
+      color="red">
+        <v-card-title>ACHTUNG: Kopfhörer sitzen nicht richtig</v-card-title>
+        <v-card-text>
+          Die Elektroden des Headsets haben keine zuverlässige Hautverbindung.
+          Bitte stellen Sie sicher, dass keine Haare zwischen der Haut und den
+          Elektroden liegen und drücken Sie die Elektroden fest an. Bitte
+          wiederholen Sie die Geräteüberprüfung.
+        </v-card-text>
+      </v-card>
+    </div>
     <div v-show="showContinueButton && participantNumberSet" class="headphones">
       <!-- Device Check Content -->
-
+      
       <svg ref="baseModel" width="1000" height="500"></svg>
       <div class="tooltip"></div>
     </div>
@@ -105,7 +119,7 @@ checks, and starting/stopping the recording. * */
       v-show="showContinueButton && participantNumberSet && participantNrInUrl"
       class="button-container"
     >
-      <v-btn @click="deviceCheck">Start</v-btn>
+      <v-btn @click="deviceCheck">Geräteüberprüfung starten</v-btn>
       <v-icon
         color="info"
         class="help"
@@ -132,20 +146,7 @@ checks, and starting/stopping the recording. * */
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="badImpedance" max-width="500px">
-      <v-card>
-        <v-card-title>Kopfhörer sitzen nicht richtig</v-card-title>
-        <v-card-text>
-          Die Elektroden des Headsets haben keine zuverlässige Hautverbindung.
-          Bitte stellen Sie sicher, dass keine Haare zwischen der Haut und den
-          Elektroden liegen und drücken Sie die Elektroden fest an. Bitte
-          wiederholen Sie die Geräteüberprüfung.
-        </v-card-text>
-        <v-card-actions>
-          <v-btn @click="restartImpedance">Erneut Starten</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+
 
     <div v-if="!showContinueButton && participantNumberSet">
       <!-- Cyton Connector Content -->
@@ -181,79 +182,11 @@ checks, and starting/stopping the recording. * */
           sind.
         </v-banner-text>
       </v-banner>
-      <div class="headphones">
-        <svg ref="baseModel2" width="1000" height="500"></svg>
-        <div class="tooltip2"></div>
-      </div>
+
       <div style="display: flex; justify-content: center">
         <v-btn @click="deviceCheck">Geräteüberprüfung starten</v-btn>
       </div>
     </div>
-    <!-- <div v-show="!showContinueButton && participantNumberSet">
-      <div class="chart-container">
-        <canvas ref="Chart0"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart1"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart2"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart3"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart4"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart5"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart6"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart7"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart8"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart9"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart10"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart11"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart12"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart13"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart14"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart15"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart16"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart17"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart18"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart19"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas ref="Chart20"></canvas>
-      </div>
-    </div> -->
   </div>
 </template>
 
@@ -272,7 +205,8 @@ export default {
       port: "",
       data: {},
       reader: "",
-      channelAssignment: channelAssignment,
+      channelConfig: this.channelConfig || "1", 
+      channelAssignment: channelAssignment[this.channelConfig],
       isParticipantHelpOpen: false,
       isConnectHelpOpen: false,
       cytonBoard: null,
@@ -303,259 +237,7 @@ export default {
       showIcon21: false,
       participantNrInUrl: this.participantNrInUrl || false,
       myChart: null,
-      badImpedance: false,
-      chartData0: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 0",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData1: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 1",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData2: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 2",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData3: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 3",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData4: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 4",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData5: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 5",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData6: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 6",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData7: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 7",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData8: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 8",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData9: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 9",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData10: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 10",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData11: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 11",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData12: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 12",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData13: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 13",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData14: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 14",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData15: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 15",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData16: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 16",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData17: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 17",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData18: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 18",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData19: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 19",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
-      chartData20: {
-        labels: ["time"],
-        datasets: [
-          {
-            label: "Channel 20",
-            backgroundColor: "rgba(0, 135, 108, 0.2)",
-            borderColor: "rgba(0, 135, 108, 1)",
-            borderWidth: 1,
-            data: [], // Fake data for the chart
-          },
-        ],
-      },
+      badImpedance: true,
       nodes: [
         { id: "C3", x: 663 * (2 / 3), y: 188 * (5 / 8), r: 10 },
         { id: "Cz", x: 729 * (2 / 3), y: 170 * (5 / 8), r: 10 },
@@ -616,6 +298,7 @@ export default {
   beforeCreate() {
     const urlParams = new URLSearchParams(window.location.search);
     const participantNumberParam = urlParams.get("AbXHPCkszw");
+    this.channelConfig = urlParams.get("wlmtdoqtqe");
     if (participantNumberParam) {
       const decodedParticipantNumber = participantNumberParam;
       this.participantNumber = decodedParticipantNumber;
@@ -623,28 +306,10 @@ export default {
       this.participantNrInUrl = true;
     }
   },
+  unmounted() {
+    window.removeEventListener("beforeunload", this.confirmLeave);
+  },
   mounted() {
-    this.renderChart0();
-    this.renderChart1();
-    this.renderChart2();
-    this.renderChart3();
-    this.renderChart4();
-    this.renderChart5();
-    this.renderChart6();
-    this.renderChart7();
-    this.renderChart8();
-    this.renderChart9();
-    this.renderChart10();
-    this.renderChart11();
-    this.renderChart12();
-    this.renderChart13();
-    this.renderChart14();
-    this.renderChart15();
-    this.renderChart16();
-    this.renderChart17();
-    this.renderChart18();
-    this.renderChart19();
-    this.renderChart20();
     this.cytonBoard = new cyton(
       this.onDecodedCallback,
       this.onConnectedCallback,
@@ -654,27 +319,6 @@ export default {
       115200
     );
     window.addEventListener("resize", this.handleResize);
-    this.renderChart0();
-    this.renderChart1();
-    this.renderChart2();
-    this.renderChart3();
-    this.renderChart4();
-    this.renderChart5();
-    this.renderChart6();
-    this.renderChart7();
-    this.renderChart8();
-    this.renderChart9();
-    this.renderChart10();
-    this.renderChart11();
-    this.renderChart12();
-    this.renderChart13();
-    this.renderChart14();
-    this.renderChart15();
-    this.renderChart16();
-    this.renderChart17();
-    this.renderChart18();
-    this.renderChart19();
-    this.renderChart20();
     this.updateDataFromCyton();
     // Set interval to call updateDataFromCyton method every 5 seconds (adjust as needed)
     setInterval(this.updateDataFromCyton, 500);
@@ -691,6 +335,12 @@ export default {
      * This allows the component to easily call the 'setParticipantNumber' mutation
      * and update the participant number in the Vuex store.
      */
+    confirmLeave(event) {
+      if (this.participantNumberSet && !this.showContinueButton) {
+        event.preventDefault(); // modern browsers will ignore this but still good practice
+        event.returnValue = `Are you sure you want to leave?`;
+      }
+    },
     initializeD3() {
       if (!this.$refs.baseModel) {
         console.error("SVG reference not found.");
@@ -735,7 +385,7 @@ export default {
         .attr("r", (d) => d.r)
         .attr("class", "node");
       // Update circles
-      let impedance = this.cytonBoard.getImpedance();
+      let impedance = this.cytonBoard.getImpedance(this.channelConfig);
       this.nodeData = impedance;
       this.updateCircles();
     },
@@ -852,7 +502,7 @@ export default {
       await this.startImpedanceCheck().then(
         () => {
           this.status = "Device check completed";
-          let impedance = this.cytonBoard.getImpedance();
+          let impedance = this.cytonBoard.getImpedance(this.channelConfig);
           this.nodeData = impedance;
           this.updateCircles();
           this.cytonBoard.exportImpedanceCSV(this.participantNumber);
@@ -860,7 +510,7 @@ export default {
           console.log(channelAssignment);
           if (this.nodeData && this.nodeData.some((obj) => obj.state !== 3)) {
             console.log("Impedance not sufficient");
-            this.badImpedance = true;
+            this.showContinueButton = false;
           } else {
             this.showContinueButton = false;
           }
@@ -878,7 +528,7 @@ export default {
       await this.startImpedanceCheck().then(
         () => {
           this.status = "Device check completed";
-          let impedance = this.cytonBoard.getImpedance();
+          let impedance = this.cytonBoard.getImpedance(this.channelConfig);
           this.nodeData = impedance;
           this.updateCircles();
           this.showContinueButton = true;
@@ -901,12 +551,14 @@ export default {
       ); // Trigger impedance check for the current channel
     },
     async startImpedanceCheck() {
-      for (let i = 1; i <= 8; i++) {
+      console.log("Channel Assignment: ",Object.keys(this.channelAssignment).length  );
+      let channelNumber = Object.keys(this.channelAssignment).length;
+      for (let i = 1; i <= channelNumber; i++) {
         this.loading = true;
         this.message = `Channel ${i} wird überprüft. Das kann einige Sekunden dauern. Bitte warten Sie und bewegen Sie den Kopf nicht.`;
         this.startBuffer();
         await this.cytonBoard.configureBoard(i).then(() => {
-          let impedance = this.cytonBoard.getImpedance();
+          let impedance = this.cytonBoard.getImpedance(this.channelConfig);
           this.nodeData = impedance;
           this.updateCircles();
           this.loading = false;
@@ -914,7 +566,6 @@ export default {
       }
     },
     async restartImpedance() {
-      
       let impedance = this.cytonBoard.resetImpedance();
       this.nodeData = impedance;
       this.updateCircles();
@@ -924,7 +575,7 @@ export default {
       await this.startImpedanceCheck().then(
         () => {
           this.status = "Device check completed";
-          let impedance = this.cytonBoard.getImpedance();
+          let impedance = this.cytonBoard.getImpedance(this.channelConfig);
           this.nodeData = impedance;
           this.updateCircles();
           this.showContinueButton = true;
@@ -1707,21 +1358,6 @@ export default {
         if (this.data[dataIndex]) {
           let cleanedData = this.data[dataIndex].filter((value) => value !== 0);
           cleanedData = cleanedData.slice(-500); // Take only the last 100 non-zero values
-          this["chartData" + i].datasets[0].data = cleanedData;
-          this["chartData" + i].labels = Array(cleanedData.length)
-            .fill()
-            .map((_, j) => j);
-
-          // Get canvas reference
-          const canvas = this.$refs["Chart" + i];
-
-          if (!canvas) {
-            // Exit if the canvas element is not found
-            return;
-          }
-
-          // Update the chart
-          this["Chart" + i].update();
         }
       }
     },
