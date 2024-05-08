@@ -445,7 +445,6 @@ export class cyton {
   decodeDaisy(chunk) {
     let odd = chunk[1] % 2 !== 0;
     let channelName;
-    let oppositeChannel;
     // Skip first byte (header) and last byte (stop byte)
     const byteArray = chunk.slice(1, -1);
     const sampleNumber = chunk[1];
@@ -454,29 +453,27 @@ export class cyton {
 
     // Parse EEG data for all channels
     const eegData = [];
-    console.log("Current mode: ", this.mode);
+    // console.log("Current mode: ", this.mode);
 
     for (let i = 2; i <= 24; i += 3) {
-      
       const channelData =
-        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) / 24;
-       
-      if(odd)
-      {
+        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) /24;
+
+      if (odd) {
         channelName = `A${Math.ceil((i - 1) / 3)}`;
-        oppositeChannel = `A${Math.ceil((i - 1) / 3) + 8}`;
         this.odd = false;
-      }
-      else
-      {
+      } else {
         channelName = `A${Math.ceil((i - 1) / 3) + 8}`;
-        oppositeChannel = `A${Math.ceil((i - 1) / 3)}`;
         this.odd = true;
       }
-      try{
-      this.data[channelName].push(channelData);
-      this.data[oppositeChannel].push(this.data[oppositeChannel][this.data[oppositeChannel].length - 1]);
-      }catch(e){
+      try {
+        // normally twice, because it has to be upsampled to 250SPS (https://docs.openbci.com/Cyton/CytonDataFormat/#16-channel-data-with-daisy-mdule)
+        // in this case just once, because we use 125SPS
+        this.data[channelName].push(channelData);
+
+
+        // console.log("debug");
+      } catch (e) {
         console.log(e);
         console.log(JSON.stringify(this.data));
       }
@@ -521,6 +518,14 @@ export class cyton {
       A6: [],
       A7: [],
       A8: [],
+      A9: [],
+      A10: [],
+      A11: [],
+      A12: [],
+      A13: [],
+      A14: [],
+      A15: [],
+      A16: [],
     };
   }
 
@@ -565,11 +570,19 @@ export class cyton {
         this.data.count = this.data[channel].length;
         // Prepare data to send
         let raw_data = this.data[channel].map((value) => parseFloat(value)); // Convert values to floats if necessary
-        if (raw_data.length > 200) {
-          raw_data = raw_data.slice(raw_data.length - 200);
+        if (raw_data.length > 300) {
+          raw_data = raw_data
+            .slice(raw_data.length - 300)
+            .filter((value) => value !== null);
+        }
+        if(this.mode === "daisy"){
+          this.sps = 125;
+        }
+        else{
+          this.sps = 250;
         }
         // Send data to http://localhost:5001/calculate_impedance
-        const response = await fetch("/data/calculate_impedance", {
+        const response = await fetch("/data/calculate_impedance/" + this.sps, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

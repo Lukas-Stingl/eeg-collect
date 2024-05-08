@@ -79,7 +79,7 @@ checks, and starting/stopping the recording. * */
 
     <h2 v-if="showContinueButton && participantNumberSet">Geräteüberprüfung</h2>
     <h1 v-if="!showContinueButton && participantNumberSet">Aufnahme</h1>
-    <div  max-width="500px">
+    <div v-if="badImpedance" max-width="500px">
       <v-card  
       class="mx-auto"
       elevation="16"
@@ -120,6 +120,8 @@ checks, and starting/stopping the recording. * */
       class="button-container"
     >
       <v-btn @click="deviceCheck">Geräteüberprüfung starten</v-btn>
+      <div  style="margin-right:10px;"></div>
+      <v-btn v-if="checkFinished" @click="toStartRecording">Zur Aufnahme</v-btn>
       <v-icon
         color="info"
         class="help"
@@ -192,7 +194,6 @@ checks, and starting/stopping the recording. * */
 
 <script>
 import { cyton } from "../scripts/cyton.js";
-import Chart from "chart.js";
 import * as d3 from "d3";
 import channelAssignment from "../config/channelAssignment.json";
 
@@ -205,6 +206,7 @@ export default {
       port: "",
       data: {},
       reader: "",
+      checkFinished: false,
       channelConfig: this.channelConfig || "1", 
       channelAssignment: channelAssignment[this.channelConfig],
       isParticipantHelpOpen: false,
@@ -214,30 +216,9 @@ export default {
       loading: false, // Add loading state
       minWidth: 960,
       maxWidthPercent: 70,
-      showIcon1: false,
-      showIcon2: false,
-      showIcon3: false,
-      showIcon4: false,
-      showIcon5: false,
-      showIcon6: false,
-      showIcon7: false,
-      showIcon8: false,
-      showIcon9: false,
-      showIcon10: false,
-      showIcon11: false,
-      showIcon12: false,
-      showIcon13: false,
-      showIcon14: false,
-      showIcon15: false,
-      showIcon16: false,
-      showIcon17: false,
-      showIcon18: false,
-      showIcon19: false,
-      showIcon20: false,
-      showIcon21: false,
       participantNrInUrl: this.participantNrInUrl || false,
       myChart: null,
-      badImpedance: true,
+      badImpedance: false,
       nodes: [
         { id: "C3", x: 663 * (2 / 3), y: 188 * (5 / 8), r: 10 },
         { id: "Cz", x: 729 * (2 / 3), y: 170 * (5 / 8), r: 10 },
@@ -307,7 +288,9 @@ export default {
     }
   },
   unmounted() {
-    window.removeEventListener("beforeunload", this.confirmLeave);
+    window.onbeforeunload = function() {
+      this.confirmLeave();
+      };
   },
   mounted() {
     this.cytonBoard = new cyton(
@@ -336,10 +319,9 @@ export default {
      * and update the participant number in the Vuex store.
      */
     confirmLeave(event) {
-      if (this.participantNumberSet && !this.showContinueButton) {
+      if (this.)
         event.preventDefault(); // modern browsers will ignore this but still good practice
         event.returnValue = `Are you sure you want to leave?`;
-      }
     },
     initializeD3() {
       if (!this.$refs.baseModel) {
@@ -522,8 +504,14 @@ export default {
         }
       ); // Trigger impedance check for the current channel
     },
+    toStartRecording() {
+      this.showContinueButton = false;
+      this.badImpedance = false;
+    },
     async deviceCheck() {
+      if(this.checkFinished ===false){
       await this.cytonBoard.setupSerialAsync();
+      }
       this.participantNumberSet = true;
       await this.startImpedanceCheck().then(
         () => {
@@ -536,11 +524,13 @@ export default {
           this.cytonBoard.exportImpedanceCSV(this.participantNumber);
           console.log("IMPORTANT: " + JSON.stringify(this.nodeData));
           console.log(channelAssignment);
-          if (this.nodeData && this.nodeData.some((obj) => obj.state !== 3)) {
+          if (this.nodeData.some(obj => obj.state === 1) || this.nodeData.filter(obj => obj.state === 2).length >= 3) {
             console.log("Impedance not sufficient");
             this.badImpedance = true;
+            this.checkFinished = true;
           } else {
             this.showContinueButton = false;
+            this.checkFinished
           }
         },
         (error) => {
@@ -667,688 +657,7 @@ export default {
 
       await this.deviceCheck();
     },
-    async renderChart0() {
-      const canvas0 = this.$refs.Chart0;
-      if (!canvas0) {
-        // Exit if the canvas element is not found
-        return;
-      }
-
-      const ctx0 = canvas0.getContext("2d");
-      this.Chart0 = new Chart(ctx0, {
-        type: "line",
-        data: this.chartData0,
-        options: {
-          animation: {
-            duration: 1000,
-            easing: "linear",
-          },
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart1() {
-      const canvas1 = this.$refs.Chart1;
-      if (!canvas1) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx1 = canvas1.getContext("2d");
-      this.Chart1 = new Chart(ctx1, {
-        type: "line",
-        data: this.chartData1,
-        options: {
-          animation: {
-            duration: 1000,
-            easing: "linear",
-          },
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart2() {
-      const canvas2 = this.$refs.Chart2;
-      if (!canvas2) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx2 = canvas2.getContext("2d");
-      this.Chart2 = new Chart(ctx2, {
-        type: "line",
-        data: this.chartData2,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart3() {
-      const canvas3 = this.$refs.Chart3;
-      if (!canvas3) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx3 = canvas3.getContext("2d");
-      this.Chart3 = new Chart(ctx3, {
-        type: "line",
-        data: this.chartData3,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart4() {
-      const canvas4 = this.$refs.Chart4;
-      if (!canvas4) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx4 = canvas4.getContext("2d");
-      this.Chart4 = new Chart(ctx4, {
-        type: "line",
-        data: this.chartData4,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart5() {
-      const canvas5 = this.$refs.Chart5;
-      if (!canvas5) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx5 = canvas5.getContext("2d");
-      this.Chart5 = new Chart(ctx5, {
-        type: "line",
-        data: this.chartData5,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart6() {
-      const canvas6 = this.$refs.Chart6;
-      if (!canvas6) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx6 = canvas6.getContext("2d");
-      this.Chart6 = new Chart(ctx6, {
-        type: "line",
-        data: this.chartData6,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart7() {
-      const canvas7 = this.$refs.Chart7;
-      if (!canvas7) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx7 = canvas7.getContext("2d");
-      this.Chart7 = new Chart(ctx7, {
-        type: "line",
-        data: this.chartData7,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart8() {
-      const canvas8 = this.$refs.Chart8;
-      if (!canvas8) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx8 = canvas8.getContext("2d");
-      this.Chart8 = new Chart(ctx8, {
-        type: "line",
-        data: this.chartData8,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart9() {
-      const canvas9 = this.$refs.Chart9;
-      if (!canvas9) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx9 = canvas9.getContext("2d");
-      this.Chart9 = new Chart(ctx9, {
-        type: "line",
-        data: this.chartData9,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart10() {
-      const canvas10 = this.$refs.Chart10;
-      if (!canvas10) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx10 = canvas10.getContext("2d");
-      this.Chart10 = new Chart(ctx10, {
-        type: "line",
-        data: this.chartData10,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart11() {
-      const canvas11 = this.$refs.Chart11;
-      if (!canvas11) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx11 = canvas11.getContext("2d");
-      this.Chart11 = new Chart(ctx11, {
-        type: "line",
-        data: this.chartData11,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart12() {
-      const canvas12 = this.$refs.Chart12;
-      if (!canvas12) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx12 = canvas12.getContext("2d");
-      this.Chart12 = new Chart(ctx12, {
-        type: "line",
-        data: this.chartData12,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart13() {
-      const canvas13 = this.$refs.Chart13;
-      if (!canvas13) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx13 = canvas13.getContext("2d");
-      this.Chart13 = new Chart(ctx13, {
-        type: "line",
-        data: this.chartData13,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart14() {
-      const canvas14 = this.$refs.Chart14;
-      if (!canvas14) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx14 = canvas14.getContext("2d");
-      this.Chart14 = new Chart(ctx14, {
-        type: "line",
-        data: this.chartData14,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart15() {
-      const canvas15 = this.$refs.Chart15;
-      if (!canvas15) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx15 = canvas15.getContext("2d");
-      this.Chart15 = new Chart(ctx15, {
-        type: "line",
-        data: this.chartData15,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart16() {
-      const canvas16 = this.$refs.Chart16;
-      if (!canvas16) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx16 = canvas16.getContext("2d");
-      this.Chart16 = new Chart(ctx16, {
-        type: "line",
-        data: this.chartData16,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart17() {
-      const canvas17 = this.$refs.Chart17;
-      if (!canvas17) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx17 = canvas17.getContext("2d");
-      this.Chart17 = new Chart(ctx17, {
-        type: "line",
-        data: this.chartData17,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart18() {
-      const canvas18 = this.$refs.Chart18;
-      if (!canvas18) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx18 = canvas18.getContext("2d");
-      this.Chart18 = new Chart(ctx18, {
-        type: "line",
-        data: this.chartData18,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart19() {
-      const canvas19 = this.$refs.Chart19;
-      if (!canvas19) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx19 = canvas19.getContext("2d");
-      this.Chart19 = new Chart(ctx19, {
-        type: "line",
-        data: this.chartData19,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-    renderChart20() {
-      const canvas20 = this.$refs.Chart20;
-      if (!canvas20) {
-        // Exit if the canvas element is not found
-        return;
-      }
-      const ctx20 = canvas20.getContext("2d");
-      this.Chart20 = new Chart(ctx20, {
-        type: "line",
-        data: this.chartData20,
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: false,
-                },
-              },
-            ],
-          },
-          maintainAspectRatio: false,
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            position: "left",
-          },
-        },
-      });
-    },
-
+  
     updateDataFromCyton() {
       this.data = this.cytonBoard.getData(); // Get the data from cyton.js and assign it to dataFromCyton
 

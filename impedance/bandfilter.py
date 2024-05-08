@@ -32,8 +32,7 @@ def filter_multiple_bands(data, fs, lowcut, highcut):
         filtered_data += band_filter(data, fs)
     return filtered_data
 
-def filter_impedance(data_raw):
-    fs = 250  
+def filter_impedance(data_raw, fs):
     data_notch = notch60(data_raw, fs=fs)
     return filter_multiple_bands(data_notch, fs=fs, lowcut=processing_band_low_Hz, highcut=processing_band_high_Hz)
 
@@ -43,13 +42,13 @@ def get_z(rms):
         return 0
     return z / 1000  # Converting to KOhm
 
-@app.route('/calculate_impedance', methods=['POST'])
-def calculate_impedance():
+@app.route('/calculate_impedance/<int:fs>', methods=['POST'])
+def calculate_impedance(fs):
     data_raw = request.json.get('data_raw')
     if not data_raw:
         return jsonify({'error': 'No data provided'}), 400
     print('data_raw: ', data_raw)
-    data_filtered = filter_impedance(data_raw)
+    data_filtered = filter_impedance(data_raw, fs)
     stdUv = np.std(data_filtered)
     impedance = get_z(stdUv)
     print('impedance: ', impedance)
