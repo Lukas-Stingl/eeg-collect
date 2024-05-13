@@ -319,7 +319,7 @@ export default {
      * and update the participant number in the Vuex store.
      */
     confirmLeave(event) {
-      if (this.)
+      
         event.preventDefault(); // modern browsers will ignore this but still good practice
         event.returnValue = `Are you sure you want to leave?`;
     },
