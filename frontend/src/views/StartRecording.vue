@@ -167,6 +167,22 @@ checks, and starting/stopping the recording. * */
     </div>
     <!-- Horizontal line -->
     <div v-show="!showContinueButton && participantNumberSet">
+      <v-snackbar
+      v-model="snackbar"
+      :timeout="timeout"
+    >
+      {{ text }}
+
+      <template v-slot:actions>
+        <v-btn
+          color="blue"
+          variant="text"
+          @click="snackbar = false"
+        >
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
       <div v-if="recordingStarted">
         <v-label style="margin-top: 20px; margin-right: 20px"
           >Aufnahme läuft</v-label
@@ -200,6 +216,9 @@ import channelAssignment from "../config/channelAssignment.json";
 export default {
   data() {
     return {
+      snackbar: false,
+      text: 'Die Aufnahme wurde erfolgreich gespeichert.',
+      timeout: 2000,
       participantNr: this.participantNr || "",
       participantNumberSet: this.participantNumberSet || false,
       status: "Not connected",
@@ -541,6 +560,10 @@ export default {
       ); // Trigger impedance check for the current channel
     },
     async startImpedanceCheck() {
+      await this.cytonBoard.defaultChannelSettings();
+      let impedance = this.cytonBoard.resetImpedance(this.channelConfig);
+      this.nodeData = impedance;
+      this.updateCircles();
       console.log("Channel Assignment: ",Object.keys(this.channelAssignment).length  );
       let channelNumber = Object.keys(this.channelAssignment).length;
       for (let i = 1; i <= channelNumber; i++) {
@@ -562,6 +585,7 @@ export default {
       this.badImpedance = false;
       this.nodeData;
       this.participantNumberSet = true;
+      await  this.cytonBoard.defaultChannelSettings();
       await this.startImpedanceCheck().then(
         () => {
           this.status = "Device check completed";
@@ -635,6 +659,7 @@ export default {
     },
     async stopRecording() {
       this.cytonBoard.stopReading(this.participantNumber);
+      this.snackbar = true
       this.recordingStarted = false;
     },
     partHelp() {

@@ -62,6 +62,9 @@ export class cyton {
       A14: [],
       A15: [],
       A16: [],
+      Accel0: [],
+      Accel1: [],
+      Accel2: [],
     };
 
     this.resetDataBuffers();
@@ -112,6 +115,9 @@ export class cyton {
         A14: [],
         A15: [],
         A16: [],
+        Accel0: [],
+        Accel1: [],
+        Accel2: [],
       };
     } else {
       this.mode = "cyton";
@@ -143,12 +149,13 @@ export class cyton {
 
     return impedanceArray;
   }
-  resetImpedance() {
+  resetImpedance(config) {
     const impedanceArray = [];
     this.impedance = [];
+    let assignment = channelAssignment[config];
 
-    for (const channel in channelAssignment) {
-      const node_id = channelAssignment[channel];
+    for (const channel in assignment) {
+      const node_id = assignment[channel];
       let impedanceValue = 0;
       let state = 0;
 
@@ -213,12 +220,37 @@ export class cyton {
   }
 
   interpret24bitAsInt32(byteArray) {
-    const newInt =
-      ((255 & byteArray[0]) << 16) |
-      ((255 & byteArray[1]) << 8) |
-      (255 & byteArray[2]);
+    if (byteArray.length !== 3) {
+      throw new Error('Byte array must have exactly 3 elements');
+    }
+  
+    let newInt = (
+      ((0xFF & byteArray[0]) << 16) |
+      ((0xFF & byteArray[1])  << 8) |
+      (0xFF & byteArray[2])
+    );
+  
+    // Check the sign bit (24th bit in this case)
+    if ((newInt & 0x00800000) > 0) {
+      // If the sign bit is set, extend the sign to the 32-bit integer
+      newInt |= 0xFF000000;
+    } else {
+      // Else, ensure the integer is within 24-bit range
+      newInt &= 0x00FFFFFF;
+    }
+  
+    return newInt;
+  }
+  interpret16bitAsInt32(byteArray) {
+    let newInt = ((0xff & byteArray[0]) << 8) | (0xff & byteArray[1]);
 
-    return newInt & 8388608 ? newInt | 4278190080 : newInt & 16777215;
+    if ((newInt & 0x00008000) > 0) {
+      newInt |= 0xffff0000;
+    } else {
+      newInt &= 0x0000ffff;
+    }
+
+    return newInt;
   }
 
   exportImpedanceCSV(participantNumber) {
@@ -254,40 +286,40 @@ export class cyton {
     let resetCommands;
     if (this.mode === "daisy") {
       startCommands = [
-        "x1000100Xz101Z", // Start impedance check for channel 1
-        "x2000100Xz201Z", // Start impedance check for channel 2
-        "x3000100Xz301Z", // Start impedance check for channel 3
-        "x4000100Xz401Z", // Start impedance check for channel 4
-        "x5000100Xz501Z", // Start impedance check for channel 5
-        "x6000100Xz601Z", // Start impedance check for channel 6
-        "x7000100Xz701Z", // Start impedance check for channel 7
-        "x8000100Xz801Z", // Start impedance check for channel 8
-        "xQ000100XzQ01Z", // Start impedance check for channel 9
-        "xW000100XzQ01Z", // Start impedance check for channel 10
-        "xE000100XzQ01Z", // Start impedance check for channel 11
-        "xR000100XzQ01Z", // Start impedance check for channel 12
-        "xT000100XzQ01Z", // Start impedance check for channel 13
-        "xY000100XzQ01Z", // Start impedance check for channel 14
-        "xU000100XzQ01Z", // Start impedance check for channel 15
-        "xI000100XzQ01Z", // Start impedance check for channel 16
+        "z101Z", // Start impedance check for channel 1
+        "z201Z", // Start impedance check for channel 2
+        "z301Z", // Start impedance check for channel 3
+        "z401Z", // Start impedance check for channel 4
+        "z501Z", // Start impedance check for channel 5
+        "z601Z", // Start impedance check for channel 6
+        "z701Z", // Start impedance check for channel 7
+        "z801Z", // Start impedance check for channel 8
+        "zQ01Z", // Start impedance check for channel 9
+        "zW01Z", // Start impedance check for channel 10
+        "zE01Z", // Start impedance check for channel 11
+        "zR01Z", // Start impedance check for channel 12
+        "zT01Z", // Start impedance check for channel 13
+        "zY01Z", // Start impedance check for channel 14
+        "zU01Z", // Start impedance check for channel 15
+        "zI01Z", // Start impedance check for channel 16
       ];
       resetCommands = [
-        "x1060110Xz100Z", // Reset impedance check for channel 1
-        "x2060110Xz200Z", // Reset impedance check for channel 2
-        "x3060110Xz300Z", // Reset impedance check for channel 3
-        "x4060110Xz400Z", // Reset impedance check for channel 4
-        "x5060110Xz500Z", // Reset impedance check for channel 5
-        "x6060110Xz600Z", // Reset impedance check for channel 6
-        "x7060110Xz700Z", // Reset impedance check for channel 7
-        "x8060110Xz800Z", // Reset impedance check for channel 8
-        "xQ060110XzQ00Z", // Reset impedance check for channel 9
-        "xW060110XzQ00Z", // Reset impedance check for channel 10
-        "xE060110XzQ00Z", // Reset impedance check for channel 11
-        "xR060110XzQ00Z", // Reset impedance check for channel 12
-        "xT060110XzQ00Z", // Reset impedance check for channel 13
-        "xY060110XzQ00Z", // Reset impedance check for channel 14
-        "xU060110XzQ00Z", // Reset impedance check for channel 15
-        "xI060110XzQ00Z", // Reset impedance check for channel 16
+        "z100Z", // Reset impedance check for channel 1
+        "z200Z", // Reset impedance check for channel 2
+        "z300Z", // Reset impedance check for channel 3
+        "z400Z", // Reset impedance check for channel 4
+        "z500Z", // Reset impedance check for channel 5
+        "z600Z", // Reset impedance check for channel 6
+        "z700Z", // Reset impedance check for channel 7
+        "z800Z", // Reset impedance check for channel 8
+        "zQ00Z", // Reset impedance check for channel 9
+        "zW00Z", // Reset impedance check for channel 10
+        "zE00Z", // Reset impedance check for channel 11
+        "zR00Z", // Reset impedance check for channel 12
+        "zT00Z", // Reset impedance check for channel 13
+        "Y00Z", // Reset impedance check for channel 14
+        "zU00Z", // Reset impedance check for channel 15
+        "zI00Z", // Reset impedance check for channel 16
       ];
     } else {
       startCommands = [
@@ -350,7 +382,24 @@ export class cyton {
       console.error("Invalid channel index:", command);
     }
   }
+  async defaultChannelSettings(){
+    try{
+    if (this.port && this.port.writable) {
+      const writer = this.port.writable.getWriter();
+      const command = "d"; // Command to start recording
+      const commandBytes = new TextEncoder().encode(command);
+      await writer.write(commandBytes);
+      console.log("Recording started");
 
+      writer.releaseLock();
+    } else {
+      console.error("Serial port is not writable");
+    }
+  } catch (error) {
+    console.error("Error starting recording:", error);
+  }
+}
+  
   async startReading() {
     this.startRecording = this.getReadableTimestamp();
     try {
@@ -441,6 +490,26 @@ export class cyton {
       this.data[channelName].push(channelData);
       eegData.push(channelData);
     }
+    if (chunk[-1] === 192) {
+      for (let i = 0; i < 6; i++) {
+        const auxMapping = ["AX1", "AX0", "AY1", "AY0", "AZ1", "AZ0"];
+
+        let byteIndex = 27 + i; // Calculate the starting index for each pair of bytes
+
+        let auxData =
+          this.interpret16bitAsInt32(chunk.slice(byteIndex, byteIndex + 2)) *
+          0.000125;
+
+        let auxChannel = auxMapping[i / 2];
+
+        try {
+          this.data[auxChannel].push(auxData);
+        } catch (e) {
+          console.log(e);
+          console.log(JSON.stringify(this.data));
+        }
+      }
+    }
   }
   decodeDaisy(chunk) {
     let odd = chunk[1] % 2 !== 0;
@@ -455,10 +524,28 @@ export class cyton {
     const eegData = [];
     // console.log("Current mode: ", this.mode);
 
+  
+
+      
+    let Acc0 = this.interpret16bitAsInt32(chunk.slice(26,28)) * 0.000125;
+    let Acc1 = this.interpret16bitAsInt32(chunk.slice(28,30)) * 0.000125;
+    let Acc2 = this.interpret16bitAsInt32(chunk.slice(30,32)) * 0.000125;
+       
+      
+
+      try {
+        this.data["Accel0"].push(Acc0);
+        this.data["Accel1"].push(Acc1);
+        this.data["Accel2"].push(Acc2);
+      } catch (e) {
+        console.log(e);
+        console.log(JSON.stringify(this.data));
+      }
+    
+
     for (let i = 2; i <= 24; i += 3) {
       const channelData =
-        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) /24;
-
+        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) *0.02235;
       if (odd) {
         channelName = `A${Math.ceil((i - 1) / 3)}`;
         this.odd = false;
@@ -470,7 +557,6 @@ export class cyton {
         // normally twice, because it has to be upsampled to 250SPS (https://docs.openbci.com/Cyton/CytonDataFormat/#16-channel-data-with-daisy-mdule)
         // in this case just once, because we use 125SPS
         this.data[channelName].push(channelData);
-
 
         // console.log("debug");
       } catch (e) {
@@ -526,6 +612,9 @@ export class cyton {
       A14: [],
       A15: [],
       A16: [],
+      Accel0: [],
+      Accel1: [],
+      Accel2: [],
     };
   }
 
@@ -575,10 +664,9 @@ export class cyton {
             .slice(raw_data.length - 300)
             .filter((value) => value !== null);
         }
-        if(this.mode === "daisy"){
+        if (this.mode === "daisy") {
           this.sps = 125;
-        }
-        else{
+        } else {
           this.sps = 250;
         }
         // Send data to http://localhost:5001/calculate_impedance
@@ -623,6 +711,9 @@ export class cyton {
       A14: [],
       A15: [],
       A16: [],
+      Accel0: [],
+      Accel1: [],
+      Accel2: [],
     };
   }
 
