@@ -597,11 +597,13 @@ export default {
           this.cytonBoard.exportImpedanceCSV(this.participantNumber);
           console.log("IMPORTANT: " + JSON.stringify(this.nodeData));
           console.log(channelAssignment);
-          if (this.nodeData && this.nodeData.some((obj) => obj.state !== 3)) {
+          if (this.nodeData.some(obj => obj.state === 1) || this.nodeData.filter(obj => obj.state === 2).length >= 3) {
             console.log("Impedance not sufficient");
             this.badImpedance = true;
+            this.checkFinished = true;
           } else {
             this.showContinueButton = false;
+            this.checkFinished
           }
         },
         (error) => {
