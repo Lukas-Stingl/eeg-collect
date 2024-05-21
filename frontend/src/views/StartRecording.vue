@@ -77,7 +77,7 @@ checks, and starting/stopping the recording. * */
       </div>
     </div>
 
-    <h2 v-if="showContinueButton && participantNumberSet">Geräteüberprüfung</h2>
+    <h2 v-if="showContinueButton && participantNumberSet">Setup</h2>
     <h1 v-if="!showContinueButton && participantNumberSet">Aufnahme</h1>
     <div v-if="badImpedance" max-width="500px">
       <v-card  
@@ -90,7 +90,7 @@ checks, and starting/stopping the recording. * */
           Die Elektroden des Headsets haben keine zuverlässige Hautverbindung.
           Bitte stellen Sie sicher, dass keine Haare zwischen der Haut und den
           Elektroden liegen und drücken Sie die Elektroden fest an. Bitte
-          wiederholen Sie die Geräteüberprüfung.
+          wiederholen Sie das Setup.
         </v-card-text>
       </v-card>
     </div>
@@ -119,7 +119,7 @@ checks, and starting/stopping the recording. * */
       v-show="showContinueButton && participantNumberSet && participantNrInUrl"
       class="button-container"
     >
-      <v-btn @click="deviceCheck">Geräteüberprüfung starten</v-btn>
+      <v-btn @click="deviceCheck">Setup starten</v-btn>
       <div  style="margin-right:10px;"></div>
       <v-btn v-if="checkFinished" @click="toStartRecording">Zur Aufnahme</v-btn>
       <v-icon
@@ -195,14 +195,14 @@ checks, and starting/stopping the recording. * */
       <v-banner class="my-4" color="warning" icon="$warning" lines="three">
         <v-banner-text>
           Sobald Sie das Experiment beendet haben, klicken Sie auf "Aufnahme
-          stoppen". Anschließend führen Sie bitte erneut eine Geräteüberprüfung
+          stoppen". Anschließend führen Sie bitte erneut das Setup
           durch, um zu Messen, ob die Elektroden immer noch korrekt angebracht
           sind.
         </v-banner-text>
       </v-banner>
 
       <div style="display: flex; justify-content: center">
-        <v-btn @click="deviceCheck">Geräteüberprüfung starten</v-btn>
+        <v-btn @click="deviceCheck">Setup starten</v-btn>
       </div>
     </div>
   </div>
