@@ -257,7 +257,7 @@ export class cyton {
     const objectKeys = Object.keys(this.impedance);
     const csvContent = this.parseAndExportImpedance(this.impedance, objectKeys);
     let startTime = Math.floor(new Date(this.startRecording).getTime() / 1000);
-    const fileName = `Impedance ${participantNumber}-${startTime}.csv`;
+    const fileName = `${participantNumber}-${startTime}-Impedance.csv`;
 
     const formData = new FormData();
     formData.append("fileName", fileName);
@@ -621,7 +621,7 @@ export class cyton {
   exportCSV(content, objectKeys, participantNumber) {
     const csvContent = this.parseAndExportData(content, objectKeys);
     let startTime = Math.floor(new Date(this.startRecording).getTime() / 1000);
-    const fileName = `${participantNumber}-${startTime}.csv`;
+    const fileName = `${participantNumber}-${startTime}-Recording.csv`;
 
     const formData = new FormData();
     formData.append("fileName", fileName);

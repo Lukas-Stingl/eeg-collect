@@ -2,7 +2,8 @@
   <div id="app">
     <!-- Application Header with Menu Button -->
     <header>
-      <h1 class="app-title">EEG Aufnahme</h1>
+      <!-- <h1 class="app-title">EEG Aufnahme</h1> -->
+      <h1 class="app-title">EEG Recording</h1>
     </header>
 
     <!-- Content Area with left margin -->

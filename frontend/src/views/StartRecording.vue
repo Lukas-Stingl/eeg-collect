@@ -7,7 +7,8 @@ checks, and starting/stopping the recording. * */
     <v-overlay v-model="loading">
       <div class="overlay_content">
         <v-card id="card_connect">
-          <v-card-title>Hinweis</v-card-title>
+          <!-- <v-card-title>Hinweis</v-card-title> -->
+          <v-card-title>Note</v-card-title>
           <v-card-text>
             {{ message }}
           </v-card-text>
@@ -31,7 +32,8 @@ checks, and starting/stopping the recording. * */
     <div v-if="!participantNumberSet">
       <!-- Participant Number Input Page -->
       <div class="header">
-        <h2>Bitte geben Sie Ihre Teilnehmernummer an.</h2>
+        <!-- <h2>Bitte geben Sie Ihre Teilnehmernummer an.</h2> -->*
+        <h2>Please enter your participant number.</h2>
       </div>
       <div class="input">
         <v-text-field
@@ -62,41 +64,42 @@ checks, and starting/stopping the recording. * */
 
         <v-dialog v-model="isParticipantHelpOpen" max-width="500px">
           <v-card>
-            <v-card-title>Hilfe</v-card-title>
+            <v-card-title>Help</v-card-title>
             <v-card-text>
-              Bitte geben Sie Ihre zugewiesene Teilnehmernummer an und schließen
-              Sie Ihr Gerät an. Verwenden Sie dabei den entsprechenden Port
-              Ihres Headsets. Wenn Sie einen Mac verwenden, lautet dieser
-              "FT231X USB UART", unter Windows ist es "COM3".
+              Please connect your device. Use the appropriate port on your headset. If you are using
+              a Mac, it is "FT231X USB UART", on Windows it is "COM3".
             </v-card-text>
             <v-card-actions>
-              <v-btn @click="partHelp">Schließen</v-btn>
+              <v-btn @click="partHelp">Close</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
       </div>
     </div>
 
-    <h2 v-if="showContinueButton && participantNumberSet">Setup</h2>
-    <h1 v-if="!showContinueButton && participantNumberSet">Aufnahme</h1>
+    <h2 v-if="showContinueButton && participantNumberSet && !finished">
+      Setup
+    </h2>
+    <h4 v-if="showContinueButton && participantNumberSet && !finished">
+      Please initiate the measurement of resistances by clicking "Start Setup".
+    </h4>
+    <h2 v-if="!showContinueButton && participantNumberSet && !finished">
+      Recording
+    </h2>
+    <h2 v-if="finished">The recording has ended.</h2>
+    <h4 v-if="finished">You can now close the tab.</h4>
     <div v-if="badImpedance" max-width="500px">
-      <v-card  
-      class="mx-auto"
-      elevation="16"
-      max-width="800"
-      color="red">
-        <v-card-title>ACHTUNG: Kopfhörer sitzen nicht richtig</v-card-title>
+      <v-card class="mx-auto" elevation="16" max-width="800" color="red">
+        <v-card-title>WARNING: Headphones are not positioned correctly.</v-card-title>
         <v-card-text>
-          Die Elektroden des Headsets haben keine zuverlässige Hautverbindung.
-          Bitte stellen Sie sicher, dass keine Haare zwischen der Haut und den
-          Elektroden liegen und drücken Sie die Elektroden fest an. Bitte
-          wiederholen Sie das Setup.
+          The electrodes of the headset do not have a reliable skin connection. Please ensure that there are no hairs between the skin and the electrodes and firmly press the electrodes onto the skin. Please repeat the setup.
         </v-card-text>
       </v-card>
     </div>
+
     <div v-show="showContinueButton && participantNumberSet" class="headphones">
       <!-- Device Check Content -->
-      
+
       <svg ref="baseModel" width="1000" height="500"></svg>
       <div class="tooltip"></div>
     </div>
@@ -119,9 +122,9 @@ checks, and starting/stopping the recording. * */
       v-show="showContinueButton && participantNumberSet && participantNrInUrl"
       class="button-container"
     >
-      <v-btn @click="deviceCheck">Setup starten</v-btn>
-      <div  style="margin-right:10px;"></div>
-      <v-btn v-if="checkFinished" @click="toStartRecording">Zur Aufnahme</v-btn>
+      <v-btn @click="deviceCheck">Start Setup</v-btn>
+      <div style="margin-right: 10px"></div>
+      <v-btn v-if="checkFinished" @click="toStartRecording">Go to Recording</v-btn>
       <v-icon
         color="info"
         class="help"
@@ -137,11 +140,9 @@ checks, and starting/stopping the recording. * */
       max-width="500px"
     >
       <v-card>
-        <v-card-title>Hilfe</v-card-title>
+        <v-card-title>Help</v-card-title>
         <v-card-text>
-          Bitte wählen Sie den entsprechenden Port Ihres Headsets aus. Wenn Sie
-          einen Mac verwenden, lautet dieser "FT231X USB UART", unter Windows
-          ist es "COM3".
+          Please connect your device. Use the appropriate port on your headset. If you are using a Mac, it is "FT231X USB UART", on Windows it is "COM3".
         </v-card-text>
         <v-card-actions>
           <v-btn @click="connectHelp">Schließen</v-btn>
@@ -149,66 +150,64 @@ checks, and starting/stopping the recording. * */
       </v-card>
     </v-dialog>
 
-
     <div v-if="!showContinueButton && participantNumberSet">
       <!-- Cyton Connector Content -->
       <div class="recordButtons">
-        <v-btn
+        <!-- <v-btn
           @click="startRecording"
           style="margin-right: 20px; margin-top: 20px"
           >Aufnahme starten</v-btn
-        >
-        <v-btn
+        > -->
+        <!-- <v-btn
           @click="stopRecording"
           style="margin-right: 20px; margin-top: 20px"
           >Aufnahme stoppen</v-btn
-        >
+        > -->
       </div>
     </div>
     <!-- Horizontal line -->
     <div v-show="!showContinueButton && participantNumberSet">
-      <v-snackbar
-      v-model="snackbar"
-      :timeout="timeout"
-    >
-      {{ text }}
+      <v-snackbar v-model="snackbar" :timeout="timeout">
+        {{ text }}
 
-      <template v-slot:actions>
-        <v-btn
-          color="blue"
-          variant="text"
-          @click="snackbar = false"
-        >
-          Close
-        </v-btn>
-      </template>
-    </v-snackbar>
-      <div v-if="recordingStarted">
-        <v-label style="margin-top: 20px; margin-right: 20px"
-          >Aufnahme läuft</v-label
+        <template v-slot:actions>
+          <v-btn color="blue" variant="text" @click="snackbar = false">
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
+
+      <h4>
+        At the end of the experiment, you can stop the recording. Please return to the experiment tab now. Please do not close this tab.
+      </h4>
+      <div
+        v-if="recordingStarted && !finished"
+        style="
+          justify-content: center;
+          display: flex;
+          align-items: baseline;
+          margin-bottom: 50px;
+        "
+      >
+        <v-label style="margin-top: 20px; margin-right: 20px; font-size: 20px"
+          >Recording in progress</v-label
         >
         <v-icon :color="recordingStarted ? 'red' : ''" v-if="recordingStarted"
           >mdi-record-circle</v-icon
         >
       </div>
-      <v-divider style="margin-top: 50px"></v-divider>
-      <v-banner class="my-4" color="warning" icon="$warning" lines="three">
-        <v-banner-text>
-          Sobald Sie das Experiment beendet haben, klicken Sie auf "Aufnahme
-          stoppen". Anschließend führen Sie bitte erneut das Setup
-          durch, um zu Messen, ob die Elektroden immer noch korrekt angebracht
-          sind.
-        </v-banner-text>
-      </v-banner>
 
       <div style="display: flex; justify-content: center">
-        <v-btn @click="deviceCheck">Setup starten</v-btn>
+        <v-btn :disabled="isButtonDisabled" @click="stopRecording"
+          >Stop recording</v-btn
+        >
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import { ref, onMounted } from "vue";
 import { cyton } from "../scripts/cyton.js";
 import * as d3 from "d3";
 import channelAssignment from "../config/channelAssignment.json";
@@ -217,8 +216,8 @@ export default {
   data() {
     return {
       snackbar: false,
-      text: 'Die Aufnahme wurde erfolgreich gespeichert.',
-      timeout: 2000,
+      text: "The recording has been successfully saved. Please keep the headset on, resistance measurements will be checked again.",
+      timeout: 6000,
       participantNr: this.participantNr || "",
       participantNumberSet: this.participantNumberSet || false,
       status: "Not connected",
@@ -226,7 +225,7 @@ export default {
       data: {},
       reader: "",
       checkFinished: false,
-      channelConfig: this.channelConfig || "1", 
+      channelConfig: this.channelConfig || "1",
       channelAssignment: channelAssignment[this.channelConfig],
       isParticipantHelpOpen: false,
       isConnectHelpOpen: false,
@@ -238,6 +237,7 @@ export default {
       participantNrInUrl: this.participantNrInUrl || false,
       myChart: null,
       badImpedance: false,
+      finished: false,
       nodes: [
         { id: "C3", x: 663 * (2 / 3), y: 188 * (5 / 8), r: 10 },
         { id: "Cz", x: 729 * (2 / 3), y: 170 * (5 / 8), r: 10 },
@@ -295,6 +295,20 @@ export default {
       interval: 0,
     };
   },
+  setup() {
+    const isButtonDisabled = ref(true);
+
+    onMounted(() => {
+      // Enable the button after 1 minute (60000 milliseconds)
+      setTimeout(() => {
+        isButtonDisabled.value = false;
+      }, 10000);
+    });
+
+    return {
+      isButtonDisabled,
+    };
+  },
   beforeCreate() {
     const urlParams = new URLSearchParams(window.location.search);
     const participantNumberParam = urlParams.get("AbXHPCkszw");
@@ -307,9 +321,9 @@ export default {
     }
   },
   unmounted() {
-    window.onbeforeunload = function() {
+    window.onbeforeunload = function () {
       this.confirmLeave();
-      };
+    };
   },
   mounted() {
     this.cytonBoard = new cyton(
@@ -338,9 +352,8 @@ export default {
      * and update the participant number in the Vuex store.
      */
     confirmLeave(event) {
-      
-        event.preventDefault(); // modern browsers will ignore this but still good practice
-        event.returnValue = `Are you sure you want to leave?`;
+      event.preventDefault(); // modern browsers will ignore this but still good practice
+      event.returnValue = `Are you sure you want to leave?`;
     },
     initializeD3() {
       if (!this.$refs.baseModel) {
@@ -526,10 +539,12 @@ export default {
     toStartRecording() {
       this.showContinueButton = false;
       this.badImpedance = false;
+      this.startRecording();
+      this.recordingStarted = true;
     },
     async deviceCheck() {
-      if(this.checkFinished ===false){
-      await this.cytonBoard.setupSerialAsync();
+      if (this.checkFinished === false) {
+        await this.cytonBoard.setupSerialAsync();
       }
       this.participantNumberSet = true;
       await this.startImpedanceCheck().then(
@@ -543,13 +558,16 @@ export default {
           this.cytonBoard.exportImpedanceCSV(this.participantNumber);
           console.log("IMPORTANT: " + JSON.stringify(this.nodeData));
           console.log(channelAssignment);
-          if (this.nodeData.some(obj => obj.state === 1) || this.nodeData.filter(obj => obj.state === 2).length >= 3) {
+          if (
+            this.nodeData.some((obj) => obj.state === 1) ||
+            this.nodeData.filter((obj) => obj.state === 2).length >= 3
+          ) {
             console.log("Impedance not sufficient");
             this.badImpedance = true;
             this.checkFinished = true;
           } else {
             this.showContinueButton = false;
-            this.checkFinished
+            this.checkFinished;
           }
         },
         (error) => {
@@ -564,11 +582,14 @@ export default {
       let impedance = this.cytonBoard.resetImpedance(this.channelConfig);
       this.nodeData = impedance;
       this.updateCircles();
-      console.log("Channel Assignment: ",Object.keys(this.channelAssignment).length  );
+      console.log(
+        "Channel Assignment: ",
+        Object.keys(this.channelAssignment).length
+      );
       let channelNumber = Object.keys(this.channelAssignment).length;
       for (let i = 1; i <= channelNumber; i++) {
         this.loading = true;
-        this.message = `Channel ${i} wird überprüft. Das kann einige Sekunden dauern. Bitte warten Sie und bewegen Sie den Kopf nicht.`;
+        this.message = `Channel ${i} is being checked. This may take a few seconds. Please wait and do not move your head.`;
         this.startBuffer();
         await this.cytonBoard.configureBoard(i).then(() => {
           let impedance = this.cytonBoard.getImpedance(this.channelConfig);
@@ -585,7 +606,7 @@ export default {
       this.badImpedance = false;
       this.nodeData;
       this.participantNumberSet = true;
-      await  this.cytonBoard.defaultChannelSettings();
+      await this.cytonBoard.defaultChannelSettings();
       await this.startImpedanceCheck().then(
         () => {
           this.status = "Device check completed";
@@ -597,13 +618,16 @@ export default {
           this.cytonBoard.exportImpedanceCSV(this.participantNumber);
           console.log("IMPORTANT: " + JSON.stringify(this.nodeData));
           console.log(channelAssignment);
-          if (this.nodeData.some(obj => obj.state === 1) || this.nodeData.filter(obj => obj.state === 2).length >= 3) {
+          if (
+            this.nodeData.some((obj) => obj.state === 1) ||
+            this.nodeData.filter((obj) => obj.state === 2).length >= 3
+          ) {
             console.log("Impedance not sufficient");
             this.badImpedance = true;
             this.checkFinished = true;
           } else {
             this.showContinueButton = false;
-            this.checkFinished
+            this.checkFinished;
           }
         },
         (error) => {
@@ -661,8 +685,19 @@ export default {
     },
     async stopRecording() {
       this.cytonBoard.stopReading(this.participantNumber);
-      this.snackbar = true
+      this.snackbar = true;
       this.recordingStarted = false;
+      new Promise((resolve) => setTimeout(resolve, 6000)).then(async () => {
+        console.log("Wait for snackbar...");
+
+        await this.startImpedanceCheck().then(() => {
+          this.status = "Device check completed";
+          let impedance = this.cytonBoard.getImpedance(this.channelConfig);
+          this.nodeData = impedance;
+          this.cytonBoard.exportImpedanceCSV(this.participantNumber);
+          this.finished = true;
+        });
+      });
     },
     partHelp() {
       this.isParticipantHelpOpen = !this.isParticipantHelpOpen;
@@ -684,7 +719,7 @@ export default {
 
       await this.deviceCheck();
     },
-  
+
     updateDataFromCyton() {
       this.data = this.cytonBoard.getData(); // Get the data from cyton.js and assign it to dataFromCyton
 
@@ -710,6 +745,12 @@ export default {
 h2 {
   top: 10%;
   text-align: center;
+  margin-bottom: 25px;
+}
+h4 {
+  top: 10%;
+  text-align: center;
+  margin-bottom: 25px;
 }
 
 .image-container {
