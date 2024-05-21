@@ -90,7 +90,7 @@ checks, and starting/stopping the recording. * */
     <h4 v-if="finished">You can now close the tab.</h4>
     <div v-if="badImpedance" max-width="500px">
       <v-card class="mx-auto" elevation="16" max-width="800" color="red">
-        <v-card-title>WARNING: Headphones are not positioned correctly.</v-card-title>
+        <v-card-title>WARNING: Headphone is not positioned correctly.</v-card-title>
         <v-card-text>
           The electrodes of the headset do not have a reliable skin connection. Please ensure that there are no hairs between the skin and the electrodes and firmly press the electrodes onto the skin. Please repeat the setup.
         </v-card-text>
