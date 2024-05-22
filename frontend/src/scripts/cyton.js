@@ -133,10 +133,10 @@ export class cyton {
       } else if (impedanceValue === 0) {
         state = 1;
         // 200kOhm
-      } else if (impedanceValue < 750) {
+      } else if (impedanceValue < 200) {
         state = 3;
         // 750kOhm
-      } else if (impedanceValue < 3000) {
+      } else if (impedanceValue < 750) {
         state = 2;
       } else {
         state = 1;
