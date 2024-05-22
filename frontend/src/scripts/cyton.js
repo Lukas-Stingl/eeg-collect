@@ -132,9 +132,11 @@ export class cyton {
         impedanceValue = 0; // Set impedance to 0 if channel not found
       } else if (impedanceValue === 0) {
         state = 1;
-      } else if (impedanceValue < 200) {
-        state = 3;
+        // 200kOhm
       } else if (impedanceValue < 750) {
+        state = 3;
+        // 750kOhm
+      } else if (impedanceValue < 3000) {
         state = 2;
       } else {
         state = 1;
@@ -257,7 +259,7 @@ export class cyton {
     const objectKeys = Object.keys(this.impedance);
     const csvContent = this.parseAndExportImpedance(this.impedance, objectKeys);
     let startTime = Math.floor(new Date(this.startRecording).getTime() / 1000);
-    const fileName = `${participantNumber}-${startTime}-Impedance.csv`;
+    const fileName = `Impedance ${participantNumber}-${startTime}.csv`;
 
     const formData = new FormData();
     formData.append("fileName", fileName);
@@ -621,7 +623,7 @@ export class cyton {
   exportCSV(content, objectKeys, participantNumber) {
     const csvContent = this.parseAndExportData(content, objectKeys);
     let startTime = Math.floor(new Date(this.startRecording).getTime() / 1000);
-    const fileName = `${participantNumber}-${startTime}-Recording.csv`;
+    const fileName = `${participantNumber}-${startTime}.csv`;
 
     const formData = new FormData();
     formData.append("fileName", fileName);
