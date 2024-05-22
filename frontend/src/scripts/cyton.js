@@ -223,24 +223,23 @@ export class cyton {
 
   interpret24bitAsInt32(byteArray) {
     if (byteArray.length !== 3) {
-      throw new Error('Byte array must have exactly 3 elements');
+      throw new Error("Byte array must have exactly 3 elements");
     }
-  
-    let newInt = (
-      ((0xFF & byteArray[0]) << 16) |
-      ((0xFF & byteArray[1])  << 8) |
-      (0xFF & byteArray[2])
-    );
-  
+
+    let newInt =
+      ((0xff & byteArray[0]) << 16) |
+      ((0xff & byteArray[1]) << 8) |
+      (0xff & byteArray[2]);
+
     // Check the sign bit (24th bit in this case)
     if ((newInt & 0x00800000) > 0) {
       // If the sign bit is set, extend the sign to the 32-bit integer
-      newInt |= 0xFF000000;
+      newInt |= 0xff000000;
     } else {
       // Else, ensure the integer is within 24-bit range
-      newInt &= 0x00FFFFFF;
+      newInt &= 0x00ffffff;
     }
-  
+
     return newInt;
   }
   interpret16bitAsInt32(byteArray) {
@@ -384,24 +383,24 @@ export class cyton {
       console.error("Invalid channel index:", command);
     }
   }
-  async defaultChannelSettings(){
-    try{
-    if (this.port && this.port.writable) {
-      const writer = this.port.writable.getWriter();
-      const command = "d"; // Command to start recording
-      const commandBytes = new TextEncoder().encode(command);
-      await writer.write(commandBytes);
-      console.log("Recording started");
+  async defaultChannelSettings() {
+    try {
+      if (this.port && this.port.writable) {
+        const writer = this.port.writable.getWriter();
+        const command = "d"; // Command to start recording
+        const commandBytes = new TextEncoder().encode(command);
+        await writer.write(commandBytes);
+        console.log("Recording started");
 
-      writer.releaseLock();
-    } else {
-      console.error("Serial port is not writable");
+        writer.releaseLock();
+      } else {
+        console.error("Serial port is not writable");
+      }
+    } catch (error) {
+      console.error("Error starting recording:", error);
     }
-  } catch (error) {
-    console.error("Error starting recording:", error);
   }
-}
-  
+
   async startReading() {
     this.startRecording = this.getReadableTimestamp();
     try {
@@ -487,30 +486,21 @@ export class cyton {
 
     for (let i = 2; i <= 24; i += 3) {
       const channelData =
-        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) / 24;
+        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.02235;
       const channelName = `A${Math.ceil((i - 1) / 3)}`;
       this.data[channelName].push(channelData);
       eegData.push(channelData);
     }
-    if (chunk[-1] === 192) {
-      for (let i = 0; i < 6; i++) {
-        const auxMapping = ["AX1", "AX0", "AY1", "AY0", "AZ1", "AZ0"];
-
-        let byteIndex = 27 + i; // Calculate the starting index for each pair of bytes
-
-        let auxData =
-          this.interpret16bitAsInt32(chunk.slice(byteIndex, byteIndex + 2)) *
-          0.000125;
-
-        let auxChannel = auxMapping[i / 2];
-
-        try {
-          this.data[auxChannel].push(auxData);
-        } catch (e) {
-          console.log(e);
-          console.log(JSON.stringify(this.data));
-        }
-      }
+    let Acc0 = this.interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
+    let Acc1 = this.interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
+    let Acc2 = this.interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
+    try {
+      this.data["Accel0"].push(Acc0);
+      this.data["Accel1"].push(Acc1);
+      this.data["Accel2"].push(Acc2);
+    } catch (e) {
+      console.log(e);
+      console.log(JSON.stringify(this.data));
     }
   }
   decodeDaisy(chunk) {
@@ -526,28 +516,22 @@ export class cyton {
     const eegData = [];
     // console.log("Current mode: ", this.mode);
 
-  
+    let Acc0 = this.interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
+    let Acc1 = this.interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
+    let Acc2 = this.interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
 
-      
-    let Acc0 = this.interpret16bitAsInt32(chunk.slice(26,28)) * 0.000125;
-    let Acc1 = this.interpret16bitAsInt32(chunk.slice(28,30)) * 0.000125;
-    let Acc2 = this.interpret16bitAsInt32(chunk.slice(30,32)) * 0.000125;
-       
-      
-
-      try {
-        this.data["Accel0"].push(Acc0);
-        this.data["Accel1"].push(Acc1);
-        this.data["Accel2"].push(Acc2);
-      } catch (e) {
-        console.log(e);
-        console.log(JSON.stringify(this.data));
-      }
-    
+    try {
+      this.data["Accel0"].push(Acc0);
+      this.data["Accel1"].push(Acc1);
+      this.data["Accel2"].push(Acc2);
+    } catch (e) {
+      console.log(e);
+      console.log(JSON.stringify(this.data));
+    }
 
     for (let i = 2; i <= 24; i += 3) {
       const channelData =
-        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) *0.02235;
+        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.02235;
       if (odd) {
         channelName = `A${Math.ceil((i - 1) / 3)}`;
         this.odd = false;
