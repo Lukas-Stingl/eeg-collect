@@ -318,7 +318,7 @@ export class cyton {
         "zE00Z", // Reset impedance check for channel 11
         "zR00Z", // Reset impedance check for channel 12
         "zT00Z", // Reset impedance check for channel 13
-        "Y00Z", // Reset impedance check for channel 14
+        "zY00Z", // Reset impedance check for channel 14
         "zU00Z", // Reset impedance check for channel 15
         "zI00Z", // Reset impedance check for channel 16
       ];
