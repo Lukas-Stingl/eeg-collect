@@ -177,7 +177,7 @@ checks, and starting/stopping the recording. * */
         </template>
       </v-snackbar>
 
-      <h4>
+      <h4 v-if="!finished"> 
         At the end of the experiment, you can stop the recording. Please return to the experiment tab now. Please do not close this tab.
       </h4>
       <div
@@ -197,7 +197,7 @@ checks, and starting/stopping the recording. * */
         >
       </div>
 
-      <div style="display: flex; justify-content: center">
+      <div v-if="!finished "style="display: flex; justify-content: center">
         <v-btn :disabled="isButtonDisabled" @click="stopRecording"
           >Stop recording</v-btn
         >
