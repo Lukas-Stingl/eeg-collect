@@ -197,7 +197,7 @@ checks, and starting/stopping the recording. * */
         >
       </div>
 
-      <div v-if="!finished "style="display: flex; justify-content: center">
+      <div v-if="!finished" style="display: flex; justify-content: center">
         <v-btn :disabled="isButtonDisabled" @click="stopRecording"
           >Stop recording</v-btn
         >
