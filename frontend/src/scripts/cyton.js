@@ -486,7 +486,7 @@ export class cyton {
 
     for (let i = 2; i <= 24; i += 3) {
       const channelData =
-        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.02235;
+        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.0223517445;
       const channelName = `A${Math.ceil((i - 1) / 3)}`;
       this.data[channelName].push(channelData);
       eegData.push(channelData);
@@ -531,7 +531,7 @@ export class cyton {
 
     for (let i = 2; i <= 24; i += 3) {
       const channelData =
-        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.02235;
+        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.0223517445;
       if (odd) {
         channelName = `A${Math.ceil((i - 1) / 3)}`;
         this.odd = false;
