@@ -1,6 +1,7 @@
 //Joshua Brewster, AGPL (copyleft)
 const channelAssignment = require("../config/channelAssignment.json");
 
+
 export class cyton {
   //Contains structs and necessary functions/API calls to analyze serial data for the OpenBCI Cyton and Daisy-Cyto
 
@@ -8,7 +9,23 @@ export class cyton {
     onDecodedCallback = this.onDecodedCallback,
     onConnectedCallback = this.onConnectedCallback,
     onDisconnectedCallback = this.onDisconnectedCallback
+    
   ) {
+    // Initialize WebSocket connection
+    this.ws = new WebSocket('ws://localhost:8081');
+
+    // Handle WebSocket events
+    this.ws.onopen = () => {
+      console.log('WebSocket connection established');
+    };
+
+    this.ws.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
+
+    this.ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
     this.onDecodedCallback = onDecodedCallback;
     this.onConnectedCallback = onConnectedCallback;
     this.onDisconnectedCallback = onDisconnectedCallback;
@@ -503,56 +520,50 @@ export class cyton {
       console.log(JSON.stringify(this.data));
     }
   }
-  decodeDaisy(chunk) {
-    let odd = chunk[1] % 2 !== 0;
-    let channelName;
-    // Skip first byte (header) and last byte (stop byte)
-    const byteArray = chunk.slice(1, -1);
-    const sampleNumber = chunk[1];
-    this.data["sampleNumber"].push(sampleNumber);
-    this.data["timestamp"].push(new Date().getTime());
-
-    // Parse EEG data for all channels
-    const eegData = [];
-    // console.log("Current mode: ", this.mode);
-
-    let Acc0 = this.interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
-    let Acc1 = this.interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
-    let Acc2 = this.interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
-
-    try {
-      this.data["Accel0"].push(Acc0);
-      this.data["Accel1"].push(Acc1);
-      this.data["Accel2"].push(Acc2);
-    } catch (e) {
-      console.log(e);
-      console.log(JSON.stringify(this.data));
-    }
-
-    for (let i = 2; i <= 24; i += 3) {
-      const channelData =
-        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.0223517445;
-      if (odd) {
-        channelName = `A${Math.ceil((i - 1) / 3)}`;
-        this.odd = false;
-      } else {
-        channelName = `A${Math.ceil((i - 1) / 3) + 8}`;
-        this.odd = true;
-      }
-      try {
-        // normally twice, because it has to be upsampled to 250SPS (https://docs.openbci.com/Cyton/CytonDataFormat/#16-channel-data-with-daisy-mdule)
-        // in this case just once, because we use 125SPS
-        this.data[channelName].push(channelData);
-
-        // console.log("debug");
-      } catch (e) {
-        console.log(e);
-        console.log(JSON.stringify(this.data));
-      }
-      eegData.push(channelData);
-    }
+  async decodeDaisy(chunk) {
+    // let odd = chunk[1] % 2 !== 0;
+    // let channelName;
+    // // Skip first byte (header) and last byte (stop byte)
+    // const byteArray = chunk.slice(1, -1);
+    // const sampleNumber = chunk[1];
+    // this.data["sampleNumber"].push(sampleNumber);
+    // this.data["timestamp"].push(new Date().getTime());
+  
+    // let Acc0 = this.interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
+    // let Acc1 = this.interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
+    // let Acc2 = this.interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
+  
+    // try {
+    //   this.data["Accel0"].push(Acc0);
+    //   this.data["Accel1"].push(Acc1);
+    //   this.data["Accel2"].push(Acc2);
+    // } catch (e) {
+    //   console.log(e);
+    //   console.log(JSON.stringify(this.data));
+    // }
+  
+    // for (let i = 2; i <= 24; i += 3) {
+    //   const channelData =
+    //     this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.0223517445;
+    //   if (odd) {
+    //     channelName = `A${Math.ceil((i - 1) / 3)}`;
+    //     odd = false;
+    //   } else {
+    //     channelName = `A${Math.ceil((i - 1) / 3) + 8}`;
+    //     odd = true;
+    //   }
+  
+    //   // Map the channel data to the channel name in the batch object
+    //   this.data[channelName].push(channelData);
+    // }
+    this.ws.send(chunk);
   }
-
+  sendBatchToWebSocket(batch, callback) {
+    // Send the batch data to the WebSocket server
+    const message = JSON.stringify(batch);
+    // Assuming `ws` is your WebSocket instance
+    this.ws.send(message, callback);
+  }
   getData() {
     return this.data;
   }
