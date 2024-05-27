@@ -5,10 +5,34 @@ export class cyton {
   //Contains structs and necessary functions/API calls to analyze serial data for the OpenBCI Cyton and Daisy-Cyto
 
   constructor(
+    participantNumber,
+    mode,
     onDecodedCallback = this.onDecodedCallback,
     onConnectedCallback = this.onConnectedCallback,
     onDisconnectedCallback = this.onDisconnectedCallback
   ) {
+    this.participantNumber = participantNumber;
+    this.mode = mode;
+    // Initialize WebSocket connection
+    this.ws = new WebSocket(
+      "ws://localhost:3000/websocket/" +
+        this.mode +
+        "/" +
+        this.participantNumber
+    );
+
+    // Handle WebSocket events
+    this.ws.onopen = () => {
+      console.log("WebSocket connection established");
+    };
+
+    this.ws.onclose = () => {
+      console.log("WebSocket connection closed");
+    };
+
+    this.ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
     this.onDecodedCallback = onDecodedCallback;
     this.onConnectedCallback = onConnectedCallback;
     this.onDisconnectedCallback = onDisconnectedCallback;
@@ -38,7 +62,7 @@ export class cyton {
     this.scalar = 1 / (100000 / ((this.vref / this.gain) * this.stepSize)); //steps per uV.
 
     this.maxBufferedSamples = this.sps * 60 * 1; //max samples in buffer this.sps*60*nMinutes = max minutes of data
-
+    this.startingMode = "default";
     this.mode = "";
     this.odd = false; //
     this.impedance = {};
@@ -324,24 +348,24 @@ export class cyton {
       ];
     } else {
       startCommands = [
-        "x1000100Xz101Z", // Start impedance check for channel 1
-        "x2000100Xz201Z", // Start impedance check for channel 2
-        "x3000100Xz301Z", // Start impedance check for channel 3
-        "x4000100Xz401Z", // Start impedance check for channel 4
-        "x5000100Xz501Z", // Start impedance check for channel 5
-        "x6000100Xz601Z", // Start impedance check for channel 6
-        "x7000100Xz701Z", // Start impedance check for channel 7
+        "z101Z", // Start impedance check for channel 1
+        "z201Z", // Start impedance check for channel 2
+        "z301Z", // Start impedance check for channel 3
+        "z401Z", // Start impedance check for channel 4
+        "z501Z", // Start impedance check for channel 5
+        "z601Z", // Start impedance check for channel 6
+        "z701Z", // Start impedance check for channel 7
         "x8000100Xz801Z", // Start impedance check for channel 8
       ];
       resetCommands = [
-        "x1060110Xz100Z", // Reset impedance check for channel 1
-        "x2060110Xz200Z", // Reset impedance check for channel 2
-        "x3060110Xz300Z", // Reset impedance check for channel 3
-        "x4060110Xz400Z", // Reset impedance check for channel 4
-        "x5060110Xz500Z", // Reset impedance check for channel 5
-        "x6060110Xz600Z", // Reset impedance check for channel 6
-        "x7060110Xz700Z", // Reset impedance check for channel 7
-        "x8060110Xz800Z", // Reset impedance check for channel 8
+        "z100Z", // Reset impedance check for channel 1
+        "z200Z", // Reset impedance check for channel 2
+        "z300Z", // Reset impedance check for channel 3
+        "z400Z", // Reset impedance check for channel 4
+        "z500Z", // Reset impedance check for channel 5
+        "z600Z", // Reset impedance check for channel 6
+        "z700Z", // Reset impedance check for channel 7
+        "z800Z", // Reset impedance check for channel 8
       ];
     }
 
@@ -362,7 +386,7 @@ export class cyton {
           console.log("Impedance check command sent for channel " + index);
           writer.releaseLock();
           await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for 5 seconds
-          await this.startReading(); // Start recording for 5 seconds
+          await this.startReading("impedance"); // Start recording for 5 seconds
           await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 seconds
           console.log("Waiting for 5 sec"); // Deactivate impedance measurement after 5 seconds
           await this.stopImpedance("A" + index);
@@ -401,7 +425,8 @@ export class cyton {
     }
   }
 
-  async startReading() {
+  async startReading(mode) {
+    this.startingMode = mode;
     this.startRecording = this.getReadableTimestamp();
     try {
       // Check if the port is writable before writing data
@@ -452,15 +477,22 @@ export class cyton {
           if (this.mode === "daisy") {
             if (value[i] >= 192 && value[i] <= 198 && buffer.length > 30) {
               headerFound = false;
-              this.decodeDaisy(buffer);
-
+              if (this.startingMode === "record") {
+                this.decodeDaisy(buffer);
+              } else if (this.startingMode === "impedance") {
+                this.decodeDaisyImpedance(buffer);
+              }
               // Reset buffer for the next chunk
               buffer = [];
             }
           } else {
             if (value[i] >= 192 && value[i] <= 198 && buffer.length > 30) {
               headerFound = false;
-              this.decodeChunk(buffer);
+              if (this.startingMode === "record") {
+                this.decodeChunk(buffer);
+              } else if (this.startingMode === "impedance") {
+                this.decodeChunkImpedance(buffer);
+              }
 
               // Reset buffer for the next chunk
               buffer = [];
@@ -473,7 +505,7 @@ export class cyton {
     }
   }
 
-  decodeChunk(chunk) {
+  decodeChunkImpedance(chunk) {
     // Skip first byte (header) and last byte (stop byte)
     const byteArray = chunk.slice(1, -1);
     const sampleNumber = chunk[1];
@@ -482,11 +514,11 @@ export class cyton {
 
     // Parse EEG data for all channels
     const eegData = [];
-    console.log("Current mode: ", this.mode);
 
     for (let i = 2; i <= 24; i += 3) {
       const channelData =
-        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.0223517445;
+        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) *
+        0.0223517445;
       const channelName = `A${Math.ceil((i - 1) / 3)}`;
       this.data[channelName].push(channelData);
       eegData.push(channelData);
@@ -500,10 +532,18 @@ export class cyton {
       this.data["Accel2"].push(Acc2);
     } catch (e) {
       console.log(e);
-      console.log(JSON.stringify(this.data));
     }
   }
-  decodeDaisy(chunk) {
+  async decodeDaisy(chunk) {
+    //just send chunk to ws for performance reasons
+    this.ws.send(chunk);
+  }
+  async decodeChunk(chunk) {
+    //just send chunk to ws for performance reasons
+    this.ws.send(chunk);
+  }
+  async decodeDaisyImpedance(chunk) {
+    //calculate impedance for daisy in browser for latency reasons
     let odd = chunk[1] % 2 !== 0;
     let channelName;
     // Skip first byte (header) and last byte (stop byte)
@@ -511,10 +551,6 @@ export class cyton {
     const sampleNumber = chunk[1];
     this.data["sampleNumber"].push(sampleNumber);
     this.data["timestamp"].push(new Date().getTime());
-
-    // Parse EEG data for all channels
-    const eegData = [];
-    // console.log("Current mode: ", this.mode);
 
     let Acc0 = this.interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
     let Acc1 = this.interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
@@ -526,37 +562,34 @@ export class cyton {
       this.data["Accel2"].push(Acc2);
     } catch (e) {
       console.log(e);
-      console.log(JSON.stringify(this.data));
     }
 
     for (let i = 2; i <= 24; i += 3) {
       const channelData =
-        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.0223517445;
+        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) *
+        0.0223517445;
       if (odd) {
         channelName = `A${Math.ceil((i - 1) / 3)}`;
-        this.odd = false;
+        odd = false;
       } else {
         channelName = `A${Math.ceil((i - 1) / 3) + 8}`;
-        this.odd = true;
+        odd = true;
       }
-      try {
-        // normally twice, because it has to be upsampled to 250SPS (https://docs.openbci.com/Cyton/CytonDataFormat/#16-channel-data-with-daisy-mdule)
-        // in this case just once, because we use 125SPS
-        this.data[channelName].push(channelData);
 
-        // console.log("debug");
-      } catch (e) {
-        console.log(e);
-        console.log(JSON.stringify(this.data));
-      }
-      eegData.push(channelData);
+      // Map the channel data to the channel name in the batch object
+      this.data[channelName].push(channelData);
     }
   }
-
+  sendBatchToWebSocket(batch, callback) {
+    // Send the batch data to the WebSocket server
+    const message = JSON.stringify(batch);
+    // Assuming `ws` is your WebSocket instance
+    this.ws.send(message, callback);
+  }
   getData() {
     return this.data;
   }
-  async stopReading(participantNumber) {
+  async stopReading() {
     this.endRecording = this.getReadableTimestamp();
 
     try {
@@ -576,8 +609,9 @@ export class cyton {
     } catch (error) {
       console.error("Error stopping recording:", error);
     }
-    const objectKeys = Object.keys(this.data);
-    this.exportCSV(this.data, objectKeys, participantNumber);
+    this.ws.close();
+    // const objectKeys = Object.keys(this.data);
+    // this.exportCSV(this.data, objectKeys, participantNumber);
     this.data = {
       count: "",
       sampleNumber: [],
@@ -604,32 +638,32 @@ export class cyton {
     };
   }
 
-  exportCSV(content, objectKeys, participantNumber) {
-    const csvContent = this.parseAndExportData(content, objectKeys);
-    let startTime = Math.floor(new Date(this.startRecording).getTime() / 1000);
-    const fileName = `${participantNumber}-${startTime}-Recording.csv`;
+  // exportCSV(content, objectKeys, participantNumber) {
+  //   const csvContent = this.parseAndExportData(content, objectKeys);
+  //   let startTime = Math.floor(new Date(this.startRecording).getTime() / 1000);
+  //   const fileName = `${participantNumber}-${startTime}-Recording.csv`;
 
-    const formData = new FormData();
-    formData.append("fileName", fileName);
-    formData.append("csvContent", csvContent);
+  //   const formData = new FormData();
+  //   formData.append("fileName", fileName);
+  //   formData.append("csvContent", csvContent);
 
-    fetch("/api/save-csv", {
-      method: "POST",
-      body: formData,
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("CSV file saved successfully:", data.filePath);
-      })
-      .catch((error) => {
-        console.error("Error saving CSV file:", error);
-      });
-  }
+  //   fetch("/api/save-csv", {
+  //     method: "POST",
+  //     body: formData,
+  //   })
+  //     .then((response) => {
+  //       if (!response.ok) {
+  //         throw new Error("Network response was not ok");
+  //       }
+  //       return response.json();
+  //     })
+  //     .then((data) => {
+  //       console.log("CSV file saved successfully:", data.filePath);
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error saving CSV file:", error);
+  //     });
+  // }
 
   async stopImpedance(channel) {
     try {
@@ -718,50 +752,50 @@ export class cyton {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   }
 
-  parseAndExportData(data, objectKeys) {
-    // Add headers using objectKeys
-    const headers = objectKeys.join(";");
+  // parseAndExportData(data, objectKeys) {
+  //   // Add headers using objectKeys
+  //   const headers = objectKeys.join(";");
 
-    // Transpose data
-    const transposedData = objectKeys.map((key) => {
-      if (Array.isArray(data[key])) {
-        return data[key];
-      } else {
-        // If it's a string, create an array with a single element
-        return [data[key]];
-      }
-    });
+  //   // Transpose data
+  //   const transposedData = objectKeys.map((key) => {
+  //     if (Array.isArray(data[key])) {
+  //       return data[key];
+  //     } else {
+  //       // If it's a string, create an array with a single element
+  //       return [data[key]];
+  //     }
+  //   });
 
-    // Find the maximum length among the arrays
-    const maxLength = Math.max(...transposedData.map((arr) => arr.length));
+  //   // Find the maximum length among the arrays
+  //   const maxLength = Math.max(...transposedData.map((arr) => arr.length));
 
-    // Fill shorter arrays with empty strings to match the maximum length
-    const filledData = transposedData.map((arr) => {
-      const diff = maxLength - arr.length;
-      return arr.concat(Array(diff).fill(""));
-    });
+  //   // Fill shorter arrays with empty strings to match the maximum length
+  //   const filledData = transposedData.map((arr) => {
+  //     const diff = maxLength - arr.length;
+  //     return arr.concat(Array(diff).fill(""));
+  //   });
 
-    // Create rows by taking values at the same index from each array
-    const rows = [];
-    for (let i = 0; i < parseInt(filledData[0][0]); i++) {
-      const index = i + 1;
-      let datetime = "";
-      // Calculate datetime based on startms and previous datetime
-      datetime = new Date(filledData[2][i]).toLocaleString();
+  //   // Create rows by taking values at the same index from each array
+  //   const rows = [];
+  //   for (let i = 0; i < parseInt(filledData[0][0]); i++) {
+  //     const index = i + 1;
+  //     let datetime = "";
+  //     // Calculate datetime based on startms and previous datetime
+  //     datetime = new Date(filledData[2][i]).toLocaleString();
 
-      // Format datetime manually to avoid locale issues
+  //     // Format datetime manually to avoid locale issues
 
-      const rowValues = [index, datetime].concat(
-        filledData.map((arr) => arr[i])
-      );
-      rows.push(rowValues.join(";"));
-    }
+  //     const rowValues = [index, datetime].concat(
+  //       filledData.map((arr) => arr[i])
+  //     );
+  //     rows.push(rowValues.join(";"));
+  //   }
 
-    // Combine rows with newline characters
-    const csvContent = "Index;Datetime;" + headers + "\n" + rows.join("\n");
+  //   // Combine rows with newline characters
+  //   const csvContent = "Index;Datetime;" + headers + "\n" + rows.join("\n");
 
-    return csvContent;
-  }
+  //   return csvContent;
+  // }
   parseAndExportImpedance(data, objectKeys) {
     const headers = `Index;Datetime;${objectKeys.join(";")}`;
 
