@@ -1,7 +1,6 @@
 //Joshua Brewster, AGPL (copyleft)
 const channelAssignment = require("../config/channelAssignment.json");
 
-
 export class cyton {
   //Contains structs and necessary functions/API calls to analyze serial data for the OpenBCI Cyton and Daisy-Cyto
 
@@ -10,25 +9,29 @@ export class cyton {
     mode,
     onDecodedCallback = this.onDecodedCallback,
     onConnectedCallback = this.onConnectedCallback,
-    onDisconnectedCallback = this.onDisconnectedCallback,
-    
+    onDisconnectedCallback = this.onDisconnectedCallback
   ) {
     this.participantNumber = participantNumber;
-    this.mode   = mode;
+    this.mode = mode;
     // Initialize WebSocket connection
-    this.ws = new WebSocket('ws://localhost:3000/websocket/' + this.mode+"/"+ this.participantNumber);
+    this.ws = new WebSocket(
+      "ws://localhost:3000/websocket/" +
+        this.mode +
+        "/" +
+        this.participantNumber
+    );
 
     // Handle WebSocket events
     this.ws.onopen = () => {
-      console.log('WebSocket connection established');
+      console.log("WebSocket connection established");
     };
 
     this.ws.onclose = () => {
-      console.log('WebSocket connection closed');
+      console.log("WebSocket connection closed");
     };
 
     this.ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
+      console.error("WebSocket error:", error);
     };
     this.onDecodedCallback = onDecodedCallback;
     this.onConnectedCallback = onConnectedCallback;
@@ -345,24 +348,24 @@ export class cyton {
       ];
     } else {
       startCommands = [
-        "x1000100Xz101Z", // Start impedance check for channel 1
-        "x2000100Xz201Z", // Start impedance check for channel 2
-        "x3000100Xz301Z", // Start impedance check for channel 3
-        "x4000100Xz401Z", // Start impedance check for channel 4
-        "x5000100Xz501Z", // Start impedance check for channel 5
-        "x6000100Xz601Z", // Start impedance check for channel 6
-        "x7000100Xz701Z", // Start impedance check for channel 7
+        "z101Z", // Start impedance check for channel 1
+        "z201Z", // Start impedance check for channel 2
+        "z301Z", // Start impedance check for channel 3
+        "z401Z", // Start impedance check for channel 4
+        "z501Z", // Start impedance check for channel 5
+        "z601Z", // Start impedance check for channel 6
+        "z701Z", // Start impedance check for channel 7
         "x8000100Xz801Z", // Start impedance check for channel 8
       ];
       resetCommands = [
-        "x1060110Xz100Z", // Reset impedance check for channel 1
-        "x2060110Xz200Z", // Reset impedance check for channel 2
-        "x3060110Xz300Z", // Reset impedance check for channel 3
-        "x4060110Xz400Z", // Reset impedance check for channel 4
-        "x5060110Xz500Z", // Reset impedance check for channel 5
-        "x6060110Xz600Z", // Reset impedance check for channel 6
-        "x7060110Xz700Z", // Reset impedance check for channel 7
-        "x8060110Xz800Z", // Reset impedance check for channel 8
+        "z100Z", // Reset impedance check for channel 1
+        "z200Z", // Reset impedance check for channel 2
+        "z300Z", // Reset impedance check for channel 3
+        "z400Z", // Reset impedance check for channel 4
+        "z500Z", // Reset impedance check for channel 5
+        "z600Z", // Reset impedance check for channel 6
+        "z700Z", // Reset impedance check for channel 7
+        "z800Z", // Reset impedance check for channel 8
       ];
     }
 
@@ -403,7 +406,6 @@ export class cyton {
     } else {
       console.error("Invalid channel index:", command);
     }
-    
   }
   async defaultChannelSettings() {
     try {
@@ -475,10 +477,9 @@ export class cyton {
           if (this.mode === "daisy") {
             if (value[i] >= 192 && value[i] <= 198 && buffer.length > 30) {
               headerFound = false;
-              if(this.startingMode === "record"){
-              this.decodeDaisy(buffer);
-              }
-              else if(this.startingMode === "impedance"){
+              if (this.startingMode === "record") {
+                this.decodeDaisy(buffer);
+              } else if (this.startingMode === "impedance") {
                 this.decodeDaisyImpedance(buffer);
               }
               // Reset buffer for the next chunk
@@ -487,7 +488,11 @@ export class cyton {
           } else {
             if (value[i] >= 192 && value[i] <= 198 && buffer.length > 30) {
               headerFound = false;
-              this.decodeChunk(buffer);
+              if (this.startingMode === "record") {
+                this.decodeChunk(buffer);
+              } else if (this.startingMode === "impedance") {
+                this.decodeChunkImpedance(buffer);
+              }
 
               // Reset buffer for the next chunk
               buffer = [];
@@ -500,7 +505,7 @@ export class cyton {
     }
   }
 
-  decodeChunk(chunk) {
+  decodeChunkImpedance(chunk) {
     // Skip first byte (header) and last byte (stop byte)
     const byteArray = chunk.slice(1, -1);
     const sampleNumber = chunk[1];
@@ -509,11 +514,11 @@ export class cyton {
 
     // Parse EEG data for all channels
     const eegData = [];
-    console.log("Current mode: ", this.mode);
 
     for (let i = 2; i <= 24; i += 3) {
       const channelData =
-        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.0223517445;
+        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) *
+        0.0223517445;
       const channelName = `A${Math.ceil((i - 1) / 3)}`;
       this.data[channelName].push(channelData);
       eegData.push(channelData);
@@ -527,10 +532,13 @@ export class cyton {
       this.data["Accel2"].push(Acc2);
     } catch (e) {
       console.log(e);
-      console.log(JSON.stringify(this.data));
     }
   }
   async decodeDaisy(chunk) {
+    //just send chunk to ws for performance reasons
+    this.ws.send(chunk);
+  }
+  async decodeChunk(chunk) {
     //just send chunk to ws for performance reasons
     this.ws.send(chunk);
   }
@@ -543,23 +551,23 @@ export class cyton {
     const sampleNumber = chunk[1];
     this.data["sampleNumber"].push(sampleNumber);
     this.data["timestamp"].push(new Date().getTime());
-  
+
     let Acc0 = this.interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
     let Acc1 = this.interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
     let Acc2 = this.interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
-  
+
     try {
       this.data["Accel0"].push(Acc0);
       this.data["Accel1"].push(Acc1);
       this.data["Accel2"].push(Acc2);
     } catch (e) {
       console.log(e);
-      console.log(JSON.stringify(this.data));
     }
-  
+
     for (let i = 2; i <= 24; i += 3) {
       const channelData =
-        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.0223517445;
+        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) *
+        0.0223517445;
       if (odd) {
         channelName = `A${Math.ceil((i - 1) / 3)}`;
         odd = false;
@@ -567,7 +575,7 @@ export class cyton {
         channelName = `A${Math.ceil((i - 1) / 3) + 8}`;
         odd = true;
       }
-  
+
       // Map the channel data to the channel name in the batch object
       this.data[channelName].push(channelData);
     }

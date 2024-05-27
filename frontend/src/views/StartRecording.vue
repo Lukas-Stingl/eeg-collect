@@ -338,12 +338,9 @@ export default {
       this.participantNrInUrl = true;
     }
   },
-  unmounted() {
-    window.onbeforeunload = function () {
-      this.confirmLeave();
-    };
-  },
+
   mounted() {
+    window.addEventListener('beforeunload', this.handleBeforeUnload);
     if (Object.keys(this.channelAssignment).length > 8) {
       this.mode = "daisy";
     } else {
@@ -355,6 +352,8 @@ export default {
     // Set interval to call updateDataFromCyton method every 5 seconds (adjust as needed)
     setInterval(this.updateDataFromCyton, 500);
     this.initializeD3();
+   
+
   },
   computed: {
     colWidth() {
@@ -362,15 +361,18 @@ export default {
     },
   },
   methods: {
+    handleBeforeUnload(event) {
+      const confirmationMessage = 'Are you sure you want to leave? Changes you made may not be saved.';
+      event.returnValue = confirmationMessage; // Standard for most browsers
+      return confirmationMessage; // For some browsers
+    },
     /**
      * Maps the 'setParticipantNumber' mutation to the component's methods.
      * This allows the component to easily call the 'setParticipantNumber' mutation
      * and update the participant number in the Vuex store.
      */
-    confirmLeave(event) {
-      event.preventDefault(); // modern browsers will ignore this but still good practice
-      event.returnValue = `Are you sure you want to leave?`;
-    },
+
+
     initializeD3() {
       if (!this.$refs.baseModel) {
         console.error("SVG reference not found.");
@@ -752,6 +754,7 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("resize", this.handleResize);
+    window.removeEventListener('beforeunload', this.handleBeforeUnload);
     clearInterval(this.interval);
   },
 };
