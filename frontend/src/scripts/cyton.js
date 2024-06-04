@@ -311,61 +311,61 @@ export class cyton {
     let resetCommands;
     if (this.mode === "daisy") {
       startCommands = [
-        "z101Z", // Start impedance check for channel 1
-        "z201Z", // Start impedance check for channel 2
-        "z301Z", // Start impedance check for channel 3
-        "z401Z", // Start impedance check for channel 4
-        "z501Z", // Start impedance check for channel 5
-        "z601Z", // Start impedance check for channel 6
-        "z701Z", // Start impedance check for channel 7
-        "z801Z", // Start impedance check for channel 8
-        "zQ01Z", // Start impedance check for channel 9
-        "zW01Z", // Start impedance check for channel 10
-        "zE01Z", // Start impedance check for channel 11
-        "zR01Z", // Start impedance check for channel 12
-        "zT01Z", // Start impedance check for channel 13
-        "zY01Z", // Start impedance check for channel 14
-        "zU01Z", // Start impedance check for channel 15
-        "zI01Z", // Start impedance check for channel 16
+        "x1060110Xz101Z", // Start impedance check for channel 1
+        "x2060110Xz201Z", // Start impedance check for channel 2
+        "x3060110Xz301Z", // Start impedance check for channel 3
+        "x4060110Xz401Z", // Start impedance check for channel 4
+        "x5060110Xz501Z", // Start impedance check for channel 5
+        "x6060110Xz601Z", // Start impedance check for channel 6
+        "x7060110Xz701Z", // Start impedance check for channel 7
+        "x8060110Xz801Z", // Start impedance check for channel 8
+        "xQ060110XzQ01Z", // Start impedance check for channel 9
+        "xW060110XzW01Z", // Start impedance check for channel 10
+        "xE060110XzE01Z", // Start impedance check for channel 11
+        "xR060110XzR01Z", // Start impedance check for channel 12
+        "xT060110XzT01Z", // Start impedance check for channel 13
+        "xY060110XzY01Z", // Start impedance check for channel 14
+        "xU060110XzU01Z", // Start impedance check for channel 15
+        "xI060110XzI01Z", // Start impedance check for channel 16
       ];
       resetCommands = [
-        "z100Z", // Reset impedance check for channel 1
-        "z200Z", // Reset impedance check for channel 2
-        "z300Z", // Reset impedance check for channel 3
-        "z400Z", // Reset impedance check for channel 4
-        "z500Z", // Reset impedance check for channel 5
-        "z600Z", // Reset impedance check for channel 6
-        "z700Z", // Reset impedance check for channel 7
-        "z800Z", // Reset impedance check for channel 8
-        "zQ00Z", // Reset impedance check for channel 9
-        "zW00Z", // Reset impedance check for channel 10
-        "zE00Z", // Reset impedance check for channel 11
-        "zR00Z", // Reset impedance check for channel 12
-        "zT00Z", // Reset impedance check for channel 13
-        "zY00Z", // Reset impedance check for channel 14
-        "zU00Z", // Reset impedance check for channel 15
-        "zI00Z", // Reset impedance check for channel 16
+        "x1060110Xz100Z", // Reset impedance check for channel 1
+        "x2060110Xz200Z", // Reset impedance check for channel 2
+        "x3060110Xz300Z", // Reset impedance check for channel 3
+        "x4060110Xz400Z", // Reset impedance check for channel 4
+        "x5060110Xz500Z", // Reset impedance check for channel 5
+        "x6060110Xz600Z", // Reset impedance check for channel 6
+        "x7060110Xz700Z", // Reset impedance check for channel 7
+        "x8060110Xz800Z", // Reset impedance check for channel 8
+        "xQ060110XzQ00Z", // Reset impedance check for channel 9  
+        "xW060110XzW00Z", // Reset impedance check for channel 10
+        "xE060110XzE00Z", // Reset impedance check for channel 11
+        "xR060110XzR00Z", // Reset impedance check for channel 12
+        "xT060110XzT00Z", // Reset impedance check for channel 13
+        "xY060110XzY00Z", // Reset impedance check for channel 14
+        "xU060110XzU00Z", // Reset impedance check for channel 15
+        "xI060110XzI00Z", // Reset impedance check for channel 16
       ];
     } else {
       startCommands = [
-        "z101Z", // Start impedance check for channel 1
-        "z201Z", // Start impedance check for channel 2
-        "z301Z", // Start impedance check for channel 3
-        "z401Z", // Start impedance check for channel 4
-        "z501Z", // Start impedance check for channel 5
-        "z601Z", // Start impedance check for channel 6
-        "z701Z", // Start impedance check for channel 7
-        "x8000100Xz801Z", // Start impedance check for channel 8
+        "x1060110Xz101Z", // Start impedance check for channel 1
+        "x2060110Xz201Z", // Start impedance check for channel 2
+        "x3060110Xz301Z", // Start impedance check for channel 3
+        "x4060110Xz401Z", // Start impedance check for channel 4
+        "x5060110Xz501Z", // Start impedance check for channel 5
+        "x6060110Xz601Z", // Start impedance check for channel 6
+        "x7060110Xz701Z", // Start impedance check for channel 7
+        "x8060110Xz801Z", // Start impedance check for channel 8
       ];
       resetCommands = [
-        "z100Z", // Reset impedance check for channel 1
-        "z200Z", // Reset impedance check for channel 2
-        "z300Z", // Reset impedance check for channel 3
-        "z400Z", // Reset impedance check for channel 4
-        "z500Z", // Reset impedance check for channel 5
-        "z600Z", // Reset impedance check for channel 6
-        "z700Z", // Reset impedance check for channel 7
-        "z800Z", // Reset impedance check for channel 8
+        "x1060110Xz100Z", // Reset impedance check for channel 1
+        "x2060110Xz200Z", // Reset impedance check for channel 2
+        "x3060110Xz300Z", // Reset impedance check for channel 3
+        "x4060110Xz400Z", // Reset impedance check for channel 4
+        "x5060110Xz500Z", // Reset impedance check for channel 5
+        "x6060110Xz600Z", // Reset impedance check for channel 6
+        "x7060110Xz700Z", // Reset impedance check for channel 7
+        "x8060110Xz800Z", // Reset impedance check for channel 8
       ];
     }
 
