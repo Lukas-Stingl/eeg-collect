@@ -67,7 +67,7 @@ server.on("connection", (ws, req) => {
   decodeDaisyData = (message) => {
     const str = message.toString();
     const numbers = str.split(",").map(Number);
-
+    
     const chunk = new Uint8Array(numbers);
 
     let odd = chunk[1] % 2 !== 0;
@@ -80,10 +80,16 @@ server.on("connection", (ws, req) => {
       data["sampleNumber"].push(sampleNumber);
       data["timestamp"].push(new Date().getTime());
     }
-    let Acc0 = interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
-    let Acc1 = interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
-    let Acc2 = interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
-
+    if (chunk[chunk.length - 1] === 192) {
+    var Acc0 = interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
+    var Acc1 = interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
+    var Acc2 = interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
+    }
+    else {
+      var Acc0 = 0
+      var Acc1 = 0
+      var Acc2 = 0
+    }
     try {
       data["Accel0"].push(Acc0);
       data["Accel1"].push(Acc1);
