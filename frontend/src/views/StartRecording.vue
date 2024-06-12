@@ -108,7 +108,9 @@ checks, and starting/stopping the recording. * */
 
       <svg ref="baseModel" width="1000" height="500"></svg>
       <div class="tooltip"></div>
+     
     </div>
+
     <div
       v-show="
         !showContinueButton && participantNumberSet && !participantNrInUrl
@@ -124,10 +126,16 @@ checks, and starting/stopping the recording. * */
         @click="connectHelp"
       ></v-icon>
     </div>
+   <div style="display:flex;justify-content:center;">
+     Please ensure that&nbsp;<b style="color: #73AD21"> all electrodes are green </b> &nbsp;before continuing.
+</div>
+
     <div
       v-show="showContinueButton && participantNumberSet && participantNrInUrl"
       class="button-container"
     >
+  
+
       <v-btn @click="deviceCheck">Start Setup</v-btn>
       <div style="margin-right: 10px"></div>
       <v-btn v-if="checkFinished" @click="toStartRecording"
