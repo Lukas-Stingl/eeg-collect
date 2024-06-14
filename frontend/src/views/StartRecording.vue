@@ -561,9 +561,10 @@ export default {
         }
       ); // Trigger impedance check for the current channel
     },
-    toStartRecording() {
+    async toStartRecording() {
       this.showContinueButton = false;
       this.badImpedance = false;
+      await this.cytonBoard.defaultChannelSettings();
       this.startRecording();
       this.recordingStarted = true;
     },
