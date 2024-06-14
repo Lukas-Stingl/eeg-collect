@@ -845,6 +845,7 @@ export class cyton {
       this.readData();
     } catch (error) {
       console.error("Error connecting to serial port:", error);
+      return false
     }
   }
 }

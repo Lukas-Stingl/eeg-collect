@@ -126,7 +126,7 @@ checks, and starting/stopping the recording. * */
         @click="connectHelp"
       ></v-icon>
     </div>
-   <div style="display:flex;justify-content:center;">
+   <div v-show="showContinueButton && participantNumberSet" style="display:flex;justify-content:center;">
      Please ensure that &nbsp;<b style="color: #73AD21"> all electrodes are green </b> &nbsp;before continuing.
 </div>
 
@@ -204,16 +204,15 @@ checks, and starting/stopping the recording. * */
         style="
           justify-content: center;
           display: flex;
-          align-items: baseline;
+          align-items: flex-start;
           margin-bottom: 50px;
         "
       >
         <v-label style="margin-top: 20px; margin-right: 20px; font-size: 20px"
           >Recording in progress</v-label
         >
-        <v-icon :color="recordingStarted ? 'red' : ''" v-if="recordingStarted"
-          >mdi-record-circle</v-icon
-        >
+        <img v-if="recordingStarted" :src="require('@/assets/dot.gif')" :alt="'Recording'"  style="height: 70px;justify-content: flex-end;display: flex;"/>
+
       </div>
 
       <div v-if="!finished" style="display: flex; justify-content: center">
@@ -570,8 +569,9 @@ export default {
     },
     async deviceCheck() {
       if (this.checkFinished === false) {
-        await this.cytonBoard.setupSerialAsync();
+       var connected =  await this.cytonBoard.setupSerialAsync();
       }
+      if(connected !== false) {
       this.participantNumberSet = true;
       await this.startImpedanceCheck().then(
         () => {
@@ -602,6 +602,7 @@ export default {
           console.error("Device check failed", error);
         }
       ); // Trigger impedance check for the current channel
+      }
     },
     async startImpedanceCheck() {
       await this.cytonBoard.defaultChannelSettings();
