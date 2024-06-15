@@ -24,10 +24,18 @@ export class cyton {
     // Handle WebSocket events
     this.ws.onopen = () => {
       console.log("WebSocket connection established");
+      this.heartbeatInterval = setInterval(() => {
+        if (this.ws.readyState === WebSocket.OPEN) {
+          this.ws.send('heartbeat');
+          console.log("Heartbeat sent");
+        }
+      }, 60000);
     };
 
     this.ws.onclose = () => {
       console.log("WebSocket connection closed");
+      clearInterval(this.heartbeatInterval);
+
     };
 
     this.ws.onerror = (error) => {

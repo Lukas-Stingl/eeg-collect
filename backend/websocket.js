@@ -48,10 +48,14 @@ server.on("connection", (ws, req) => {
   // Function to write data to CSV
 
   ws.on("message", (message) => {
-    if (mode === "daisy") {
-      decodeDaisyData(message);
-    } else if (mode === "cyton") {
-      decodeCytonData(message);
+    if (message.toString() === "heartbeat") {
+      return;
+    } else {
+      if (mode === "daisy") {
+        decodeDaisyData(message);
+      } else if (mode === "cyton") {
+        decodeCytonData(message);
+      }
     }
   });
 
@@ -67,7 +71,7 @@ server.on("connection", (ws, req) => {
   decodeDaisyData = (message) => {
     const str = message.toString();
     const numbers = str.split(",").map(Number);
-    
+
     const chunk = new Uint8Array(numbers);
 
     let odd = chunk[1] % 2 !== 0;
@@ -81,14 +85,13 @@ server.on("connection", (ws, req) => {
       data["timestamp"].push(new Date().getTime());
     }
     if (chunk[chunk.length - 1] === 192) {
-    var Acc0 = interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
-    var Acc1 = interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
-    var Acc2 = interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
-    }
-    else {
-      var Acc0 = 0
-      var Acc1 = 0
-      var Acc2 = 0
+      var Acc0 = interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
+      var Acc1 = interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
+      var Acc2 = interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
+    } else {
+      var Acc0 = 0;
+      var Acc1 = 0;
+      var Acc2 = 0;
     }
     try {
       data["Accel0"].push(Acc0);
@@ -129,8 +132,7 @@ server.on("connection", (ws, req) => {
 
     for (let i = 2; i <= 24; i += 3) {
       const channelData =
-        interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) *
-        0.0223517445;
+        interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.0223517445;
       const channelName = `A${Math.ceil((i - 1) / 3)}`;
       data[channelName].push(channelData);
       eegData.push(channelData);
