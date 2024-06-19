@@ -64,7 +64,6 @@ server.on("connection", (ws, req) => {
     if (data.count > 0) {
       writeToCSV(data);
     }
-    console.log("empty? : " + JSON.stringify(data));
     console.log("WebSocket connection closed");
   });
   decodeDaisyData = (message) => {
