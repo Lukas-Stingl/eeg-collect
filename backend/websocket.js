@@ -15,7 +15,6 @@ if (!fs.existsSync(RECORDINGS_DIR)) {
 const server = new WebSocket.Server({ port });
 
 server.on("connection", (ws, req) => {
-  resetDataObject(data);
   console.log("WebSocket connection established");
   const location = url.parse(req.url, true);
   const pathParts = location.pathname.split("/");
