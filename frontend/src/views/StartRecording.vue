@@ -538,6 +538,7 @@ export default {
     //   await this.cytonBoard.startReading();
     // },
     async impedanceCheck() {
+      await this.cytonBoard.defaultChannelSettings();
       await this.startImpedanceCheck().then(
         () => {
           this.status = "Device check completed";
@@ -570,7 +571,8 @@ export default {
     },
     async deviceCheck() {
       if (this.checkFinished === false) {
-       var connected =  await this.cytonBoard.setupSerialAsync();
+        var connected =  await this.cytonBoard.setupSerialAsync();
+        await this.cytonBoard.defaultChannelSettings();
       }
       if(connected !== false) {
       this.participantNumberSet = true;

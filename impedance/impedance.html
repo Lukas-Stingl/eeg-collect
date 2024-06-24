@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bar Chart Example</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Bar Chart Example</h1>
+    <canvas id="chart1" width="300" height="50"></canvas>
+    <canvas id="chart2" width="300" height="50"></canvas>
+    
+    <script>
+        // Data for the first chart
+        const data2306 = ''
+        const data1 = `
+Index;Datetime;A1;A2;A3;A4;A5;A6;A7;A8;A9;A10;A11;A12;A13;A14;A15;A16
+1;2024-06-24T07:41:27.532Z;4715.851924223842;366.7464358890992;260.31578266171203;463.1494902608754;92.0560527581737;0;55.946191515075526;0;122.51776390409916;1376.9814783084648;4730.984489926124;0;28.147522956881776;94.84178804601575;1416.087283771979;1845.5649811896924
+`;        
+        const rows1 = data1.trim().split('\n');
+        const headers1 = rows1[0].split(';');
+        const values1 = rows1[1].split(';');
+        
+        const labels1 = headers1.slice(2);
+        const dataValues1 = values1.slice(2).map(Number);
+        
+        new Chart(document.getElementById('chart1'), {
+            type: 'bar',
+            data: {
+                labels: labels1,
+                datasets: [{
+                    label: 'Our Web App',
+                    data: dataValues1,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'end',
+                        formatter: function(value) {
+                            return value.toFixed(2);
+                        }
+                    }
+                }
+            }
+        });
+
+        // Data for the second chart
+        // const dataValues2 = [
+        //     4800, 222, 269, 4834, 60, 0, 58, 62, 
+        //     206, 231, 4839, 121, 48, 54, 641, 1098
+        // ];
+        const dataValues2306 = [
+            4900,91,222,4873,31,49,31,79,76,648,4840,75,42,43,716,833
+            ];
+
+        new Chart(document.getElementById('chart2'), {
+            type: 'bar',
+            data: {
+                labels: labels1,
+                datasets: [{
+                    label: 'GUI',
+                    data: dataValues2306,
+                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'end',
+                        formatter: function(value) {
+                            return value.toFixed(2);
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

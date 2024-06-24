@@ -319,22 +319,22 @@ export class cyton {
     let resetCommands;
     if (this.mode === "daisy") {
       startCommands = [
-        "x1060110Xz101Z", // Start impedance check for channel 1
-        "x2060110Xz201Z", // Start impedance check for channel 2
-        "x3060110Xz301Z", // Start impedance check for channel 3
-        "x4060110Xz401Z", // Start impedance check for channel 4
-        "x5060110Xz501Z", // Start impedance check for channel 5
-        "x6060110Xz601Z", // Start impedance check for channel 6
-        "x7060110Xz701Z", // Start impedance check for channel 7
-        "x8060110Xz801Z", // Start impedance check for channel 8
-        "xQ060110XzQ01Z", // Start impedance check for channel 9
-        "xW060110XzW01Z", // Start impedance check for channel 10
-        "xE060110XzE01Z", // Start impedance check for channel 11
-        "xR060110XzR01Z", // Start impedance check for channel 12
-        "xT060110XzT01Z", // Start impedance check for channel 13
-        "xY060110XzY01Z", // Start impedance check for channel 14
-        "xU060110XzU01Z", // Start impedance check for channel 15
-        "xI060110XzI01Z", // Start impedance check for channel 16
+        "x1000100Xz101Z", // Start impedance check for channel 1
+        "x2000100Xz201Z", // Start impedance check for channel 2
+        "x3000100Xz301Z", // Start impedance check for channel 3
+        "x4000100Xz401Z", // Start impedance check for channel 4
+        "x5000100Xz501Z", // Start impedance check for channel 5
+        "x6000100Xz601Z", // Start impedance check for channel 6
+        "x7000100Xz701Z", // Start impedance check for channel 7
+        "x8000100Xz801Z", // Start impedance check for channel 8
+        "xQ000100XzQ01Z", // Start impedance check for channel 9
+        "xW000100XzW01Z", // Start impedance check for channel 10
+        "xE000100XzE01Z", // Start impedance check for channel 11
+        "xR000100XzR01Z", // Start impedance check for channel 12
+        "xT000100XzT01Z", // Start impedance check for channel 13
+        "xY000100XzY01Z", // Start impedance check for channel 14
+        "xU000100XzU01Z", // Start impedance check for channel 15
+        "xI000100XzI01Z", // Start impedance check for channel 16
       ];
       resetCommands = [
         "x1060110Xz100Z", // Reset impedance check for channel 1
@@ -395,7 +395,7 @@ export class cyton {
           writer.releaseLock();
           await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for 5 seconds
           await this.startReading("impedance"); // Start recording for 5 seconds
-          await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 seconds
+          await new Promise((resolve) => setTimeout(resolve, 6000)); // Wait for 5 seconds
           console.log("Waiting for 5 sec"); // Deactivate impedance measurement after 5 seconds
           await this.stopImpedance("A" + index);
           writer = this.port.writable.getWriter();
@@ -419,10 +419,10 @@ export class cyton {
     try {
       if (this.port && this.port.writable) {
         const writer = this.port.writable.getWriter();
-        const command = "d"; // Command to start recording
-        const commandBytes = new TextEncoder().encode(command);
+        var command = "C~~"; // Command to start recording
+        var commandBytes = new TextEncoder().encode(command);
         await writer.write(commandBytes);
-        console.log("Recording started");
+        console.log("Default channel settings applied");
 
         writer.releaseLock();
       } else {
@@ -557,9 +557,10 @@ export class cyton {
     // Skip first byte (header) and last byte (stop byte)
     const byteArray = chunk.slice(1, -1);
     const sampleNumber = chunk[1];
+    if(chunk[1] % 2 !== 0){
     this.data["sampleNumber"].push(sampleNumber);
     this.data["timestamp"].push(new Date().getTime());
-
+    }
     let Acc0 = this.interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
     let Acc1 = this.interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
     let Acc2 = this.interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
@@ -571,11 +572,12 @@ export class cyton {
     } catch (e) {
       console.log(e);
     }
+  
 
     for (let i = 2; i <= 24; i += 3) {
       const channelData =
-        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) *
-        0.0223517445;
+      //
+        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2))*0.5364418669;
       if (odd) {
         channelName = `A${Math.ceil((i - 1) / 3)}`;
         odd = false;
@@ -585,6 +587,7 @@ export class cyton {
       }
 
       // Map the channel data to the channel name in the batch object
+
       this.data[channelName].push(channelData);
     }
   }
@@ -687,23 +690,19 @@ export class cyton {
         this.data.count = this.data[channel].length;
         // Prepare data to send
         let raw_data = this.data[channel].map((value) => parseFloat(value)); // Convert values to floats if necessary
-        if (raw_data.length > 300) {
-          raw_data = raw_data
-            .slice(raw_data.length - 300)
-            .filter((value) => value !== null);
-        }
         if (this.mode === "daisy") {
           this.sps = 125;
         } else {
           this.sps = 250;
         }
+        console.log(this.data)
         // Send data to http://localhost:5001/calculate_impedance
         const response = await fetch("/data/calculate_impedance/" + this.sps, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ data_raw: raw_data }),
+          body: JSON.stringify({ data_raw: raw_data, channel: channel}),
         });
         console.log("Data sent to calculate impedance:", raw_data);
         const impedanceValue = await response.json(); // Get impedance value from the response
