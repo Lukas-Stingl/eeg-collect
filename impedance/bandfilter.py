@@ -11,7 +11,7 @@ processing_band_low_Hz = [5]
 processing_band_high_Hz = [50]
 
 class GenericButterBand:
-    def __init__(self, lowcut, highcut, fs, order=3):  # Changed order to 3
+    def __init__(self, lowcut, highcut, fs, order=4):  # Changed order to 3
         nyq = 0.5 * fs
         low = lowcut / nyq
         high = highcut / nyq
@@ -20,12 +20,6 @@ class GenericButterBand:
     def __call__(self, data):
         return filtfilt(self.b, self.a, data)
 
-def bandstop(data, fs, lowcut=58, highcut=62, order=4):
-    nyq = 0.5 * fs
-    low = lowcut / nyq
-    high = highcut / nyq
-    b, a = butter(order, [low, high], btype='bandstop')
-    return filtfilt(b, a, data)
 
 def filter_multiple_bands(data, fs, lowcut, highcut):
     filtered_data = np.zeros_like(data)
@@ -37,8 +31,7 @@ def filter_multiple_bands(data, fs, lowcut, highcut):
 
 
 def filter_impedance(data_raw, fs):
-    data_bandstop = bandstop(data_raw, fs)
-    data_filtered = filter_multiple_bands(data_bandstop, fs, lowcut=processing_band_low_Hz, highcut=processing_band_high_Hz)
+    data_filtered = filter_multiple_bands(data_raw, fs, lowcut=processing_band_low_Hz, highcut=processing_band_high_Hz)
     return data_filtered
 
 def process_data_packets(data_raw, fs):
