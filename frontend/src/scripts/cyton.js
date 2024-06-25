@@ -397,6 +397,7 @@ export class cyton {
           await this.startReading("impedance"); // Start recording for 5 seconds
           await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 seconds
           console.log("Waiting for 5 sec"); // Deactivate impedance measurement after 5 seconds
+          console.log("Impedance check completed for channel " + index);
           await this.stopImpedance("A" + index);
           writer = this.port.writable.getWriter();
           const resetCommandBytes = new TextEncoder().encode(resetCommand);
@@ -557,7 +558,10 @@ export class cyton {
     // Skip first byte (header) and last byte (stop byte)
     const byteArray = chunk.slice(1, -1);
     const sampleNumber = chunk[1];
-    if(chunk[1] % 2 !== 0){
+    if(chunk[1] === 0){
+      return;
+    }
+    if(chunk[1] % 2 === 0){
     this.data["sampleNumber"].push(sampleNumber);
     this.data["timestamp"].push(new Date().getTime());
     }
@@ -580,10 +584,8 @@ export class cyton {
         this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2))*0.5364418669;
       if (odd) {
         channelName = `A${Math.ceil((i - 1) / 3)}`;
-        odd = false;
       } else {
         channelName = `A${Math.ceil((i - 1) / 3) + 8}`;
-        odd = true;
       }
 
       // Map the channel data to the channel name in the batch object
@@ -688,6 +690,8 @@ export class cyton {
         writer.releaseLock();
         console.log("finished rec: " + this.data[channel]);
         this.data.count = this.data[channel].length;
+        console.log("Channel: " + channel)
+        console.log("Data: " + this.data[channel])
         // Prepare data to send
         let raw_data = this.data[channel].map((value) => parseFloat(value)); // Convert values to floats if necessary
         if (this.mode === "daisy") {
