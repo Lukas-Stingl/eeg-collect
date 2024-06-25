@@ -6,8 +6,8 @@ from scipy.signal import butter, filtfilt
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-processing_band_low_Hz = [5]
-processing_band_high_Hz = [50]
+processing_band_low_Hz = [27]
+processing_band_high_Hz = [37]
 
 class GenericButterBand:
     def __init__(self, lowcut, highcut, fs, order=4):  # Changed order to 3
