@@ -393,16 +393,16 @@ export class cyton {
           console.log(impedanceCommand);
           console.log("Impedance check command sent for channel " + index);
           writer.releaseLock();
-          await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for 5 seconds
+          await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
           await this.startReading("impedance"); // Start recording for 5 seconds
-          await new Promise((resolve) => setTimeout(resolve, 6000)); // Wait for 5 seconds
+          await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 seconds
           console.log("Waiting for 5 sec"); // Deactivate impedance measurement after 5 seconds
           await this.stopImpedance("A" + index);
           writer = this.port.writable.getWriter();
           const resetCommandBytes = new TextEncoder().encode(resetCommand);
-          await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for 5 seconds
+          await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
           await writer.write(resetCommandBytes);
-          await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for 5 seconds
+          await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
           console.log("Reset command sent for channel " + index);
           writer.releaseLock();
         } else {
