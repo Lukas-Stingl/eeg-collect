@@ -319,22 +319,22 @@ export class cyton {
     let resetCommands;
     if (this.mode === "daisy") {
       startCommands = [
-        "x1000100Xz101Z", // Start impedance check for channel 1
-        "x2000100Xz201Z", // Start impedance check for channel 2
-        "x3000100Xz301Z", // Start impedance check for channel 3
-        "x4000100Xz401Z", // Start impedance check for channel 4
-        "x5000100Xz501Z", // Start impedance check for channel 5
-        "x6000100Xz601Z", // Start impedance check for channel 6
-        "x7000100Xz701Z", // Start impedance check for channel 7
-        "x8000100Xz801Z", // Start impedance check for channel 8
-        "xQ000100XzQ01Z", // Start impedance check for channel 9
-        "xW000100XzW01Z", // Start impedance check for channel 10
-        "xE000100XzE01Z", // Start impedance check for channel 11
-        "xR000100XzR01Z", // Start impedance check for channel 12
-        "xT000100XzT01Z", // Start impedance check for channel 13
-        "xY000100XzY01Z", // Start impedance check for channel 14
-        "xU000100XzU01Z", // Start impedance check for channel 15
-        "xI000100XzI01Z", // Start impedance check for channel 16
+        "x1000010Xz101Z", // Start impedance check for channel 1
+        "x2000010Xz201Z", // Start impedance check for channel 2
+        "x3000010Xz301Z", // Start impedance check for channel 3
+        "x4000010Xz401Z", // Start impedance check for channel 4
+        "x5000010Xz501Z", // Start impedance check for channel 5
+        "x6000010Xz601Z", // Start impedance check for channel 6
+        "x7000010Xz701Z", // Start impedance check for channel 7
+        "x8000010Xz801Z", // Start impedance check for channel 8
+        "xQ000010XzQ01Z", // Start impedance check for channel 9
+        "xW000010XzW01Z", // Start impedance check for channel 10
+        "xE000010XzE01Z", // Start impedance check for channel 11
+        "xR000010XzR01Z", // Start impedance check for channel 12
+        "xT000010XzT01Z", // Start impedance check for channel 13
+        "xY000010XzY01Z", // Start impedance check for channel 14
+        "xU000010XzU01Z", // Start impedance check for channel 15
+        "xI000010XzI01Z", // Start impedance check for channel 16
       ];
       resetCommands = [
         "x1060110Xz100Z", // Reset impedance check for channel 1
