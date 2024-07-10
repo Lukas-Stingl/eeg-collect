@@ -356,14 +356,14 @@ export class cyton {
       ];
     } else {
       startCommands = [
-        "x1060110Xz101Z", // Start impedance check for channel 1
-        "x2060110Xz201Z", // Start impedance check for channel 2
-        "x3060110Xz301Z", // Start impedance check for channel 3
-        "x4060110Xz401Z", // Start impedance check for channel 4
-        "x5060110Xz501Z", // Start impedance check for channel 5
-        "x6060110Xz601Z", // Start impedance check for channel 6
-        "x7060110Xz701Z", // Start impedance check for channel 7
-        "x8060110Xz801Z", // Start impedance check for channel 8
+        "x1000010Xz101Z", // Start impedance check for channel 1
+        "x2000010Xz201Z", // Start impedance check for channel 2
+        "x3000010Xz301Z", // Start impedance check for channel 3
+        "x4000010Xz401Z", // Start impedance check for channel 4
+        "x5000010Xz501Z", // Start impedance check for channel 5
+        "x6000010Xz601Z", // Start impedance check for channel 6
+        "x7000010Xz701Z", // Start impedance check for channel 7
+        "x8000010Xz801Z", // Start impedance check for channel 8
       ];
       resetCommands = [
         "x1060110Xz100Z", // Reset impedance check for channel 1
@@ -527,7 +527,7 @@ export class cyton {
     for (let i = 2; i <= 24; i += 3) {
       const channelData =
         this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) *
-        0.0223517445;
+        0.5364418669;
       const channelName = `A${Math.ceil((i - 1) / 3)}`;
       this.data[channelName].push(channelData);
       eegData.push(channelData);
@@ -548,7 +548,7 @@ export class cyton {
     this.ws.send(chunk);
   }
   async decodeChunk(chunk) {
-    //just send chunk to ws for performance reasons
+    //just send chunk to ws for performance 
     this.ws.send(chunk);
   }
   async decodeDaisyImpedance(chunk) {
