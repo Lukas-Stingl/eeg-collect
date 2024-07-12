@@ -48,6 +48,7 @@ export class cyton {
     this.reader = "";
     this.startRecording = "";
     this.endRecording = "";
+    this.streaming = false;
     this.connected = false;
     this.subscribed = false;
     this.buffer = [];
@@ -436,6 +437,7 @@ export class cyton {
 
   async startReading(mode) {
     this.startingMode = mode;
+    this.reading = true;
     this.startRecording = this.getReadableTimestamp();
     try {
       // Check if the port is writable before writing data
@@ -458,13 +460,29 @@ export class cyton {
     try {
       let buffer = []; // Buffer to accumulate bytes until a complete chunk is formed
       let headerFound = false;
+      let lastDataTimestamp = Date.now();
+      let timeoutId;
 
+      const resetTimeout = () => {
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          if (Date.now() - lastDataTimestamp >= 10000 && this.reading) {
+            console.log("no new data received since 10 seconds, restarting stream");
+            this.startReading();
+          }
+        }, 10000);
+      };
+  
+      // Start the initial timeout check
+      resetTimeout();
       while (this.connected === true) {
         const { value, done } = await this.reader.read();
         if (done) {
           this.reader.releaseLock();
           break;
         }
+        lastDataTimestamp = Date.now(); // Update timestamp on new data
+        resetTimeout();
         for (let i = 0; i < value.length; i++) {
           // Check if the header is found
           if (!headerFound && value[i] === 160) {
@@ -603,6 +621,7 @@ export class cyton {
     return this.data;
   }
   async stopReading() {
+    this.reading = false;
     this.endRecording = this.getReadableTimestamp();
 
     try {
@@ -680,6 +699,7 @@ export class cyton {
 
   async stopImpedance(channel) {
     try {
+      this.reading = false;
       // Check if the port is writable before writing data
       if (this.port && this.port.writable) {
         const writer = this.port.writable.getWriter();
