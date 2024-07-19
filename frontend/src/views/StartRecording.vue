@@ -127,7 +127,7 @@ checks, and starting/stopping the recording. * */
       ></v-icon>
     </div>
    <div v-show="showContinueButton && participantNumberSet" style="display:flex;justify-content:center;">
-     Please ensure that &nbsp;<b style="color: #73AD21"> all electrodes are green </b> &nbsp;before continuing.
+     Please ensure that &nbsp;<b style="color: #73AD21"> all electrodes are green </b> &nbsp;before continuing or proceed to a recording after 3 impedance checks. 
 </div>
 
     <div
