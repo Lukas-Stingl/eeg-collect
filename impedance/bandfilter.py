@@ -21,12 +21,12 @@ class GenericButterBand:
 
 
 def filter_multiple_bands(data, fs, lowcut, highcut):
-    filtered_data = np.zeros_like(data)
+    # Ensure the filtered_data array has dtype float64
+    filtered_data = np.zeros_like(data, dtype=np.float64)
     for low, high in zip(lowcut, highcut):
         band_filter = GenericButterBand(low, high, fs)
         filtered_data += band_filter(data)
     return filtered_data
-
 
 
 def filter_impedance(data_raw, fs):
@@ -64,6 +64,9 @@ def calculate_impedance(fs):
     if not data_raw:
         return jsonify({'error': 'No data provided'}), 400
 
+    # Convert data_raw to numpy array with float64 dtype
+    data_raw = np.array(data_raw, dtype=np.float64)
+    
     processed_packets = process_data_packets(data_raw, fs)
     
     if len(processed_packets) > 0:
