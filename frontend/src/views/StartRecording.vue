@@ -595,8 +595,8 @@ export default {
             this.badImpedance = true;
             this.checkFinished = true;
           } else {
-            this.showContinueButton = false;
-            this.checkFinished;
+            this.showContinueButton = true;
+            this.checkFinished = true;
           }
         },
         (error) => {
