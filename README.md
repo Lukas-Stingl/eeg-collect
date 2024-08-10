@@ -1,6 +1,7 @@
 # EEG Collect
 
-Application for simplified EEG data collection. If you would like to use this project, please cite this paper: 
+Application for simplified EEG data collection. If you would like to use this project, please cite this paper: <br>
+<br>
 Stingl, L., & Knierim, M. T. (2024). OpenBCI meets the web: A scalable, customizable platform for open-source EEG data collection. In Companion of the 2024 ACM International Joint Conference on Pervasive and Ubiquitous Computing (UbiComp Companion ’24) (pp. 1-5). ACM. https://doi.org/10.1145/3675094.3678482
 
 ## Overview
