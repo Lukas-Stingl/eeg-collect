@@ -189,9 +189,6 @@ checks, and starting/stopping the recording. * */
         {{ text }}
 
         <template v-slot:actions>
-          <v-btn color="blue" variant="text" @click="snackbar = false">
-            Close
-          </v-btn>
         </template>
       </v-snackbar>
 
