@@ -529,7 +529,16 @@ export class cyton {
       }
     } catch (error) {
       console.error("Error reading data:", error);
+      this.logErrorDetails(error);
     }
+  }
+  logErrorDetails(error) {
+    console.log("Error occurred:", error.message);
+    console.log("Stack trace:", error.stack);
+    console.log("Connection status:", this.connected);
+    console.log("Last buffer contents:", this.buffer); // Add your buffer or relevant data
+    console.log("Timestamp of error:", new Date());
+    // Optionally log to external service or file for better error analysis
   }
 
   decodeChunkImpedance(chunk) {
