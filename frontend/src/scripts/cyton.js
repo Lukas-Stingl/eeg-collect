@@ -478,8 +478,16 @@ export class cyton {
       while (this.connected === true) {
         const { value, done } = await this.reader.read();
         if (done) {
+          console.log("Stream disconnected, checking status");
+          if(this.connected){
+            console.log("Stream disconnected, attempting to reconnect");
+            continue;
+          }
+          else{
+          console.log("Stream disconnected, stopping read");
           this.reader.releaseLock();
           break;
+          }
         }
         lastDataTimestamp = Date.now(); // Update timestamp on new data
         resetTimeout();
