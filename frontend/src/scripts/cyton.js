@@ -477,6 +477,10 @@ export class cyton {
       resetTimeout();
       while (this.connected === true) {
         const { value, done } = await this.reader.read();
+        if (value == null) { // Handles both null and undefined
+          console.warn("Warning: Received null or undefined value from reader.");
+          continue; // Skip this iteration and wait for the next data chunk
+        }
         if (done) {
           console.log("Stream disconnected, checking status");
           if(this.connected){
@@ -491,6 +495,7 @@ export class cyton {
         }
         lastDataTimestamp = Date.now(); // Update timestamp on new data
         resetTimeout();
+        if (value.length > 0) {
         for (let i = 0; i < value.length; i++) {
           // Check if the header is found
           if (!headerFound && value[i] === 160) {
@@ -534,6 +539,10 @@ export class cyton {
             }
           }
         }
+      }
+      else {
+        console.warn("Warning: Received empty value array from reader.");
+      }
       }
     } catch (error) {
       console.error("Error reading data:", error);
