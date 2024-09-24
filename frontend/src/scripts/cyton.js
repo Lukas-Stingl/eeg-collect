@@ -474,7 +474,7 @@ export class cyton {
     // Start the initial timeout check
     resetTimeout();
     while (this.connected === true) {
-      try {
+      
         const { value, done } = await this.reader.read();
         
         console.log("New pair for value, done received.");
@@ -553,10 +553,6 @@ export class cyton {
         }
       }
     }
-  catch (error) {
-    console.error("Error following reader.read():", error);
-    this.logErrorDetails(error, buffer);
-  }
   }
 }
     logErrorDetails(error, buffer) {
