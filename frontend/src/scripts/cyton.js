@@ -604,12 +604,27 @@ export class cyton {
     }
   }
   async decodeDaisy(chunk) {
-    //just send chunk to ws for performance reasons
-    this.ws.send(chunk);
+    if (this.ws.readyState === WebSocket.OPEN) {
+      try {
+        this.ws.send(chunk);
+      } catch (err) {
+        console.error("Error sending Daisy chunk to WebSocket:", err);
+      }
+    } else {
+      console.warn("WebSocket not open, Daisy chunk not sent.");
+    }
   }
+  
   async decodeChunk(chunk) {
-    //just send chunk to ws for performance
-    this.ws.send(chunk);
+    if (this.ws.readyState === WebSocket.OPEN) {
+      try {
+        this.ws.send(chunk);
+      } catch (err) {
+        console.error("Error sending chunk to WebSocket:", err);
+      }
+    } else {
+      console.warn("WebSocket not open, chunk not sent.");
+    }
   }
   async decodeDaisyImpedance(chunk) {
     //calculate impedance for daisy in browser for latency reasons
