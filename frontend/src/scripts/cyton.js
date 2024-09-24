@@ -456,35 +456,29 @@ export class cyton {
     }
   }
   async readData() {
-    try {
-      let buffer = []; // Buffer to accumulate bytes until a complete chunk is formed
-      let headerFound = false;
-      let lastDataTimestamp = Date.now();
-      let timeoutId;
+    let buffer = []; // Buffer to accumulate bytes until a complete chunk is formed
+    let headerFound = false;
+    let lastDataTimestamp = Date.now();
+    let timeoutId;
 
-      const resetTimeout = () => {
-        if (timeoutId) clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-          if (Date.now() - lastDataTimestamp >= 10000 && this.reading) {
-            console.log("no new data received since 10 seconds, restarting stream");
-            this.startReading();
-          }
-        }, 10000);
-      };
+    const resetTimeout = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        if (Date.now() - lastDataTimestamp >= 10000 && this.reading) {
+          console.log("no new data received since 10 seconds, restarting stream");
+          this.startReading();
+        }
+      }, 10000);
+    };
 
-      // Start the initial timeout check
-      resetTimeout();
-    } catch (error) {
-      console.error("Error in the beginning of the method:", error);
-      this.logErrorDetails(error, buffer);
-    }
-    
+    // Start the initial timeout check
+    resetTimeout();
     while (this.connected === true) {
       try {
         const { value, done } = await this.reader.read();
         
-        // console.log("New pair for value, done received.");
-        // console.log(value);
+        console.log("New pair for value, done received.");
+        console.log(value);
 
         if (value == null) { // Handles both null and undefined
           console.log("Warning: Received null or undefined value from reader.");
@@ -505,11 +499,8 @@ export class cyton {
 
         lastDataTimestamp = Date.now(); // Update timestamp on new data
         resetTimeout();
-      } catch (error) {
-        console.error("Error following reader.read():", error);
-        this.logErrorDetails(error, buffer);
-      }
       
+
       // Process received chunk
       for (let i = 0; i < value.length; i++) {
         try {
@@ -552,20 +543,29 @@ export class cyton {
             // Reset buffer for the next chunk
             buffer = [];
           }
+          else {
+            // TODO: I assume this case is not caught: What happens if the above is not executed and the buffer not reset?
+            //console.log("Unsure what to do with rest of chunk?")
+          }
         } catch (error) {
           console.error("Error in second part of for loop:", error);
           this.logErrorDetails(error, buffer);
         }
       }
-    } 
+    }
+  catch (error) {
+    console.error("Error following reader.read():", error);
+    this.logErrorDetails(error, buffer);
+  }
+  }
 }
-logErrorDetails(error, buffer) {
-  console.log("Error occurred:", error.message);
-  console.log("Stack trace:", error.stack);
-  console.log("Connection status:", this.connected);
-  console.log("Last buffer contents:", buffer); // Add your buffer or relevant data
-  console.log("Timestamp of error:", new Date());
-}
+    logErrorDetails(error, buffer) {
+      console.log("Error occurred:", error.message);
+      console.log("Stack trace:", error.stack);
+      console.log("Connection status:", this.connected);
+      console.log("Last buffer contents:", buffer); // Add your buffer or relevant data
+      console.log("Timestamp of error:", new Date());
+    }
   
   decodeChunkImpedance(chunk) {
     // Skip first byte (header) and last byte (stop byte)
