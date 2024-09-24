@@ -554,7 +554,7 @@ export class cyton {
       }
     }
   }
-}
+
     logErrorDetails(error, buffer) {
       console.log("Error occurred:", error.message);
       console.log("Stack trace:", error.stack);
