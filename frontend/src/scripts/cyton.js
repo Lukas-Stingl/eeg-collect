@@ -26,7 +26,7 @@ export class cyton {
       console.log("WebSocket connection established");
       this.heartbeatInterval = setInterval(() => {
         if (this.ws.readyState === WebSocket.OPEN) {
-          this.ws.send('heartbeat');
+          this.ws.send("heartbeat");
           console.log("Heartbeat sent");
         }
       }, 60000);
@@ -35,7 +35,6 @@ export class cyton {
     this.ws.onclose = () => {
       console.log("WebSocket connection closed");
       clearInterval(this.heartbeatInterval);
-
     };
 
     this.ws.onerror = (error) => {
@@ -346,7 +345,7 @@ export class cyton {
         "x6060110Xz600Z", // Reset impedance check for channel 6
         "x7060110Xz700Z", // Reset impedance check for channel 7
         "x8060110Xz800Z", // Reset impedance check for channel 8
-        "xQ060110XzQ00Z", // Reset impedance check for channel 9  
+        "xQ060110XzQ00Z", // Reset impedance check for channel 9
         "xW060110XzW00Z", // Reset impedance check for channel 10
         "xE060110XzE00Z", // Reset impedance check for channel 11
         "xR060110XzR00Z", // Reset impedance check for channel 12
@@ -466,7 +465,9 @@ export class cyton {
       if (timeoutId) clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
         if (Date.now() - lastDataTimestamp >= 10000 && this.reading) {
-          console.log("no new data received since 10 seconds, restarting stream");
+          console.log(
+            "no new data received since 10 seconds, restarting stream"
+          );
           this.startReading();
         }
       }, 10000);
@@ -477,21 +478,21 @@ export class cyton {
     while (this.connected === true) {
       try {
         const { value, done } = await this.reader.read();
-        
+
         console.log("New pair for value, done received.");
         console.log(value);
 
-        if (value == null) { // Handles both null and undefined
+        if (value == null) {
+          // Handles both null and undefined
           console.log("Warning: Received null or undefined value from reader.");
           continue; // Skip this iteration and wait for the next data chunk
         }
         if (done) {
           console.log("Stream disconnected, checking status");
-          if(this.connected){
+          if (this.connected) {
             console.log("Stream disconnected, attempting to reconnect");
             continue;
-          }
-          else{
+          } else {
             console.log("Stream disconnected, stopping read");
             this.reader.releaseLock();
             break;
@@ -500,72 +501,71 @@ export class cyton {
 
         lastDataTimestamp = Date.now(); // Update timestamp on new data
         resetTimeout();
+
+        // Process received chunk
+        for (let i = 0; i < this.value.length; i++) {
+          try {
+            // Check if the header is found
+            if (!headerFound && value[i] === 160) {
+              headerFound = true;
+            } else if (!headerFound && headerFound === false) {
+              const text = new TextDecoder().decode(value);
+              console.log(text);
+            }
+
+            if (headerFound) {
+              buffer.push(value[i]);
+            }
+          } catch (error) {
+            console.error("Error in first part of for loop:", error);
+            logErrorDetails(error, buffer);
+          }
+
+          try {
+            // Check if a complete chunk is formed
+            // Decode the chunk
+            // Stop receiving data if the stop byte is found
+
+            if (value[i] >= 192 && value[i] <= 198 && buffer.length > 30) {
+              headerFound = false;
+              if (this.startingMode === "record") {
+                if (this.mode === "daisy") {
+                  this.decodeDaisy(buffer);
+                } else {
+                  this.decodeChunk(buffer);
+                }
+              } else if (this.startingMode === "impedance") {
+                if (this.mode === "daisy") {
+                  this.decodeDaisyImpedance(buffer);
+                } else {
+                  this.decodeChunkImpedance(buffer);
+                }
+              }
+              // Reset buffer for the next chunk
+              buffer = [];
+            } else {
+              // TODO: I assume this case is not caught: What happens if the above is not executed and the buffer not reset?
+              console.log("Unsure what to do with rest of chunk?");
+            }
+          } catch (error) {
+            console.error("Error in second part of for loop:", error);
+            this.logErrorDetails(error, this.buffer);
+          }
+        }
       } catch (error) {
         console.error("Error following reader.read():", error);
-        logErrorDetails(error, buffer);
-      }
-
-      // Process received chunk
-      for (let i = 0; i < value.length; i++) {
-        try {
-          // Check if the header is found
-          if (!headerFound && value[i] === 160) {
-            headerFound = true;
-          } else if (!headerFound && headerFound === false) {
-            const text = new TextDecoder().decode(value);
-            console.log(text);
-          }
-
-          if (headerFound) {
-            buffer.push(value[i]);
-          }
-        } catch (error) {
-          console.error("Error in first part of for loop:", error);
-          logErrorDetails(error, buffer);
-        }
-
-        try {
-          // Check if a complete chunk is formed
-          // Decode the chunk
-          // Stop receiving data if the stop byte is found
-          
-          if (value[i] >= 192 && value[i] <= 198 && buffer.length > 30) {
-            headerFound = false;
-            if (this.startingMode === "record") {
-              if (this.mode === "daisy") {
-                this.decodeDaisy(buffer);
-              } else {
-                this.decodeChunk(buffer);
-              }
-            } else if (this.startingMode === "impedance") {
-              if (this.mode === "daisy") {
-                this.decodeDaisyImpedance(buffer); 
-              } else {
-                this.decodeChunkImpedance(buffer);
-              }
-            }
-            // Reset buffer for the next chunk
-            buffer = [];
-          }
-          else {
-            // TODO: I assume this case is not caught: What happens if the above is not executed and the buffer not reset?
-            console.log("Unsure what to do with rest of chunk?")
-          }
-        } catch (error) {
-          console.error("Error in second part of for loop:", error);
-          logErrorDetails(error, buffer);
-        }
+        this.logErrorDetails(error, buffer);
       }
     }
   }
-    logErrorDetails(error, buffer) {
-      console.log("Error occurred:", error.message);
-      console.log("Stack trace:", error.stack);
-      console.log("Connection status:", this.connected);
-      console.log("Last buffer contents:", buffer); // Add your buffer or relevant data
-      console.log("Timestamp of error:", new Date());
-    }
-  
+
+  logErrorDetails(error, buffer) {
+    console.log("Error occurred:", error.message);
+    console.log("Stack trace:", error.stack);
+    console.log("Connection status:", this.connected);
+    console.log("Last buffer contents:", buffer); // Add your buffer or relevant data
+    console.log("Timestamp of error:", new Date());
+  }
 
   decodeChunkImpedance(chunk) {
     // Skip first byte (header) and last byte (stop byte)
@@ -601,7 +601,7 @@ export class cyton {
     this.ws.send(chunk);
   }
   async decodeChunk(chunk) {
-    //just send chunk to ws for performance 
+    //just send chunk to ws for performance
     this.ws.send(chunk);
   }
   async decodeDaisyImpedance(chunk) {
@@ -611,12 +611,12 @@ export class cyton {
     // Skip first byte (header) and last byte (stop byte)
     const byteArray = chunk.slice(1, -1);
     const sampleNumber = chunk[1];
-    if(chunk[1] === 0){
+    if (chunk[1] === 0) {
       return;
     }
-    if(chunk[1] % 2 === 0){
-    this.data["sampleNumber"].push(sampleNumber);
-    this.data["timestamp"].push(new Date().getTime());
+    if (chunk[1] % 2 === 0) {
+      this.data["sampleNumber"].push(sampleNumber);
+      this.data["timestamp"].push(new Date().getTime());
     }
     let Acc0 = this.interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
     let Acc1 = this.interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
@@ -629,12 +629,12 @@ export class cyton {
     } catch (e) {
       console.log(e);
     }
-  
 
     for (let i = 2; i <= 24; i += 3) {
       const channelData =
-      //
-        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2))*0.5364418669;
+        //
+        this.interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) *
+        0.5364418669;
       if (odd) {
         channelName = `A${Math.ceil((i - 1) / 3)}`;
       } else {
@@ -745,8 +745,8 @@ export class cyton {
         writer.releaseLock();
         console.log("finished rec: " + this.data[channel]);
         this.data.count = this.data[channel].length;
-        console.log("Channel: " + channel)
-        console.log("Data: " + this.data[channel])
+        console.log("Channel: " + channel);
+        console.log("Data: " + this.data[channel]);
         // Prepare data to send
         let raw_data = this.data[channel].map((value) => parseFloat(value)); // Convert values to floats if necessary
         if (this.mode === "daisy") {
@@ -754,14 +754,14 @@ export class cyton {
         } else {
           this.sps = 250;
         }
-        console.log(this.data)
+        console.log(this.data);
         // Send data to http://localhost:5001/calculate_impedance
         const response = await fetch("/data/calculate_impedance/" + this.sps, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ data_raw: raw_data, channel: channel}),
+          body: JSON.stringify({ data_raw: raw_data, channel: channel }),
         });
         console.log("Data sent to calculate impedance:", raw_data);
         const impedanceValue = await response.json(); // Get impedance value from the response
@@ -911,7 +911,7 @@ export class cyton {
       this.readData();
     } catch (error) {
       console.error("Error connecting to serial port:", error);
-      return false
+      return false;
     }
   }
 }
