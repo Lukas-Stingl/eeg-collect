@@ -556,6 +556,7 @@ export class cyton {
         }
       }
     }
+  }
     logErrorDetails(error, buffer) {
       console.log("Error occurred:", error.message);
       console.log("Stack trace:", error.stack);
@@ -563,7 +564,7 @@ export class cyton {
       console.log("Last buffer contents:", buffer); // Add your buffer or relevant data
       console.log("Timestamp of error:", new Date());
     }
-  }
+  
   decodeChunkImpedance(chunk) {
     // Skip first byte (header) and last byte (stop byte)
     const byteArray = chunk.slice(1, -1);
