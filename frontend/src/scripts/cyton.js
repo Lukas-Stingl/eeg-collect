@@ -493,7 +493,7 @@ export class cyton {
 
         if (value === null) { // Handles both null and undefined
           console.log("Warning: Received null or undefined value from reader.");
-          continue; // Skip this iteration and wait for the next data chunk
+          //continue; // Skip this iteration and wait for the next data chunk
         }
         if (done) {
           console.log("Stream disconnected, checking status");
