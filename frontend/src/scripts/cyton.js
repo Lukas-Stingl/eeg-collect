@@ -500,7 +500,7 @@ export class cyton {
 
         lastDataTimestamp = Date.now(); // Update timestamp on new data
         resetTimeout();
-      } catch (error,) {
+      } catch (error) {
         console.error("Error following reader.read():", error);
         logErrorDetails(error, buffer);
       }
@@ -564,7 +564,7 @@ export class cyton {
       console.log("Last buffer contents:", buffer); // Add your buffer or relevant data
       console.log("Timestamp of error:", new Date());
     }
-  }
+  
 
   decodeChunkImpedance(chunk) {
     // Skip first byte (header) and last byte (stop byte)
