@@ -545,7 +545,7 @@ export class cyton {
           }
           else {
             // TODO: I assume this case is not caught: What happens if the above is not executed and the buffer not reset?
-            console.log("Unsure what to do with rest of chunk?")
+            //console.log("Unsure what to do with rest of chunk?")
           }
         } catch (error) {
           console.error("Error in second part of for loop:", error);
