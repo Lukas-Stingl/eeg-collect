@@ -499,10 +499,7 @@ export class cyton {
 
         lastDataTimestamp = Date.now(); // Update timestamp on new data
         resetTimeout();
-      } catch (error) {
-        console.error("Error following reader.read():", error);
-        logErrorDetails(error, buffer);
-      }
+      
 
       // Process received chunk
       for (let i = 0; i < value.length; i++) {
@@ -552,11 +549,16 @@ export class cyton {
           }
         } catch (error) {
           console.error("Error in second part of for loop:", error);
-          logErrorDetails(error, buffer);
+          this.logErrorDetails(error, buffer);
         }
       }
     }
+  catch (error) {
+    console.error("Error following reader.read():", error);
+    this.logErrorDetails(error, buffer);
   }
+  }
+}
     logErrorDetails(error, buffer) {
       console.log("Error occurred:", error.message);
       console.log("Stack trace:", error.stack);
