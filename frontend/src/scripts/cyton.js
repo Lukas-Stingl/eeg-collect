@@ -455,6 +455,17 @@ export class cyton {
       console.error("Error starting recording:", error);
     }
   }
+
+  async readFromStream(reader) {
+    try {
+      const { value, done } = await reader.read();
+      return { value, done };
+    } catch (err) {
+      console.error("Error while reading from stream:", err);
+      return { value: null, done: true }; // Return done as true to stop the loop if there's an error
+    }
+  }
+
   async readData() {
     let buffer = []; // Buffer to accumulate bytes until a complete chunk is formed
     let headerFound = false;
@@ -475,7 +486,7 @@ export class cyton {
     resetTimeout();
     while (this.connected === true) {
       
-        const { value, done } = await this.reader.read();
+        const { value, done } = await this.readFromStream(this.reader);
         
         console.log("New pair for value, done received.");
         console.log(value);
