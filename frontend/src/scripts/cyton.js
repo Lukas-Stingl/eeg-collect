@@ -517,7 +517,7 @@ export class cyton {
           }
         } catch (error) {
           console.error("Error in first part of for loop:", error);
-          logErrorDetails(error, buffer);
+          this.logErrorDetails(error, buffer);
         }
 
         try {
