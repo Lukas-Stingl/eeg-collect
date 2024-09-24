@@ -480,7 +480,7 @@ export class cyton {
         console.log("New pair for value, done received.");
         console.log(value);
 
-        if (value == null) { // Handles both null and undefined
+        if (value === null) { // Handles both null and undefined
           console.log("Warning: Received null or undefined value from reader.");
           continue; // Skip this iteration and wait for the next data chunk
         }
