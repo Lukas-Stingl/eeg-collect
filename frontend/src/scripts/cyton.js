@@ -476,7 +476,9 @@ export class cyton {
       if (timeoutId) clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
         if (Date.now() - lastDataTimestamp >= 10000 && this.reading) {
-          console.log("no new data received since 10 seconds, restarting stream");
+          console.log(
+            "no new data received since 10 seconds, restarting stream"
+          );
           this.startReading();
         }
       }, 10000);
@@ -485,95 +487,91 @@ export class cyton {
     // Start the initial timeout check
     resetTimeout();
     while (this.connected === true) {
-      
-        const { value, done } = await this.readFromStream(this.reader);
-        
-        console.log("New pair for value, done received.");
-        console.log(value);
+      const { value, done } = await this.readFromStream(this.reader);
 
-        if (value === null) { // Handles both null and undefined
-          console.log("Warning: Received null or undefined value from reader.");
-          //continue; // Skip this iteration and wait for the next data chunk
-        }
-        if (done) {
-          console.log("Stream disconnected, checking status");
-          if(this.connected){
-            console.log("Stream disconnected, attempting to reconnect");
-            continue;
-          }
-          else{
-            console.log("Stream disconnected, stopping read");
-            this.reader.releaseLock();
-            break;
-          }
-        }
+      console.log("New pair for value, done received.");
+      console.log(value);
 
-        lastDataTimestamp = Date.now(); // Update timestamp on new data
-        resetTimeout();
-      
+      if (done) {
+        console.log("Stream disconnected, checking status");
+        if (this.connected) {
+          console.log("Stream disconnected, attempting to reconnect");
+          continue;
+        } else {
+          console.log("Stream disconnected, stopping read");
+          this.reader.releaseLock();
+          break;
+        }
+      }
+
+      lastDataTimestamp = Date.now(); // Update timestamp on new data
+      resetTimeout();
 
       // Process received chunk
-      for (let i = 0; i < value.length; i++) {
-        try {
-          // Check if the header is found
-          if (!headerFound && value[i] === 160) {
-            headerFound = true;
-          } else if (!headerFound && headerFound === false) {
-            const text = new TextDecoder().decode(value);
-            console.log(text);
-          }
-
-          if (headerFound) {
-            buffer.push(value[i]);
-          }
-        } catch (error) {
-          console.error("Error in first part of for loop:", error);
-          this.logErrorDetails(error, buffer);
-        }
-
-        try {
-          // Check if a complete chunk is formed
-          // Decode the chunk
-          // Stop receiving data if the stop byte is found
-          
-          if (value[i] >= 192 && value[i] <= 198 && buffer.length > 30) {
-            headerFound = false;
-            if (this.startingMode === "record") {
-              if (this.mode === "daisy") {
-                this.decodeDaisy(buffer);
-              } else {
-                this.decodeChunk(buffer);
-              }
-            } else if (this.startingMode === "impedance") {
-              if (this.mode === "daisy") {
-                this.decodeDaisyImpedance(buffer); 
-              } else {
-                this.decodeChunkImpedance(buffer);
-              }
+      if (value !== null) {
+        for (let i = 0; i < value.length; i++) {
+          try {
+            // Check if the header is found
+            if (!headerFound && value[i] === 160) {
+              headerFound = true;
+            } else if (!headerFound && headerFound === false) {
+              const text = new TextDecoder().decode(value);
+              console.log(text);
             }
-            // Reset buffer for the next chunk
-            buffer = [];
+
+            if (headerFound) {
+              buffer.push(value[i]);
+            }
+          } catch (error) {
+            console.error("Error in first part of for loop:", error);
+            this.logErrorDetails(error, buffer);
           }
-          else {
-            // TODO: I assume this case is not caught: What happens if the above is not executed and the buffer not reset?
-            //console.log("Unsure what to do with rest of chunk?")
+
+          try {
+            // Check if a complete chunk is formed
+            // Decode the chunk
+            // Stop receiving data if the stop byte is found
+
+            if (value[i] >= 192 && value[i] <= 198 && buffer.length > 30) {
+              headerFound = false;
+              if (this.startingMode === "record") {
+                if (this.mode === "daisy") {
+                  this.decodeDaisy(buffer);
+                } else {
+                  this.decodeChunk(buffer);
+                }
+              } else if (this.startingMode === "impedance") {
+                if (this.mode === "daisy") {
+                  this.decodeDaisyImpedance(buffer);
+                } else {
+                  this.decodeChunkImpedance(buffer);
+                }
+              }
+              // Reset buffer for the next chunk
+              buffer = [];
+            } else {
+              // TODO: I assume this case is not caught: What happens if the above is not executed and the buffer not reset?
+              //console.log("Unsure what to do with rest of chunk?")
+            }
+          } catch (error) {
+            console.error("Error in second part of for loop:", error);
+            this.logErrorDetails(error, buffer);
           }
-        } catch (error) {
-          console.error("Error in second part of for loop:", error);
-          this.logErrorDetails(error, buffer);
         }
+      } else {
+        console.log("Warning: Received null or undefined value from reader.");
       }
     }
   }
 
-    logErrorDetails(error, buffer) {
-      console.log("Error occurred:", error.message);
-      console.log("Stack trace:", error.stack);
-      console.log("Connection status:", this.connected);
-      console.log("Last buffer contents:", buffer); // Add your buffer or relevant data
-      console.log("Timestamp of error:", new Date());
-    }
-  
+  logErrorDetails(error, buffer) {
+    console.log("Error occurred:", error.message);
+    console.log("Stack trace:", error.stack);
+    console.log("Connection status:", this.connected);
+    console.log("Last buffer contents:", buffer); // Add your buffer or relevant data
+    console.log("Timestamp of error:", new Date());
+  }
+
   decodeChunkImpedance(chunk) {
     // Skip first byte (header) and last byte (stop byte)
     const byteArray = chunk.slice(1, -1);
@@ -614,7 +612,7 @@ export class cyton {
       console.warn("WebSocket not open, Daisy chunk not sent.");
     }
   }
-  
+
   async decodeChunk(chunk) {
     if (this.ws.readyState === WebSocket.OPEN) {
       try {
@@ -927,7 +925,7 @@ export class cyton {
   async setupSerialAsync() {
     try {
       this.port = await navigator.serial.requestPort();
-      await this.port.open({ baudRate: 115200 }); // Set baud rate to 115200
+      await this.port.open({ baudRate: 115200, bufferSize: 500 }); // Set baud rate to 115200
       this.reader = this.port.readable.getReader();
       this.connected = true;
       this.readData();
