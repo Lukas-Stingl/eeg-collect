@@ -462,10 +462,20 @@ export class cyton {
       return { value, done };
     } catch (err) {
       console.error("Error while reading from stream:", err);
+      console.log(this.reader);
+      logReaderStatus(this.reader);
       return { value: null, done: false }; // Return done as true to stop the loop if there's an error
     }
   }
-
+  logReaderStatus(reader) {
+    if (reader.closed) {
+        console.log('Reader is closed.');
+    } else if (reader.locked) {
+        console.log('Reader is locked.');
+    } else {
+        console.log('Reader is in an unknown state.');
+    }
+}
   async readData() {
     let buffer = []; // Buffer to accumulate bytes until a complete chunk is formed
     let headerFound = false;
@@ -925,7 +935,7 @@ export class cyton {
   async setupSerialAsync() {
     try {
       this.port = await navigator.serial.requestPort();
-      await this.port.open({ baudRate: 115200, bufferSize: 500 }); // Set baud rate to 115200
+      await this.port.open({ baudRate: 115200, bufferSize: 2000 }); // Set baud rate to 115200
       this.reader = this.port.readable.getReader();
       this.connected = true;
       this.readData();
