@@ -935,7 +935,7 @@ export class cyton {
   async setupSerialAsync() {
     try {
       this.port = await navigator.serial.requestPort();
-      await this.port.open({ baudRate: 115200, bufferSize: 2000 }); // Set baud rate to 115200
+      await this.port.open({ baudRate: 115200, bufferSize: 16000 }); // Set baud rate to 115200
       this.reader = this.port.readable.getReader();
       this.connected = true;
       this.readData();
