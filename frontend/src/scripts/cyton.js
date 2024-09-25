@@ -463,7 +463,7 @@ export class cyton {
     } catch (err) {
       console.error("Error while reading from stream:", err);
       console.log(this.reader);
-      logReaderStatus(this.reader);
+      this.logReaderStatus(this.reader);
       return { value: null, done: false }; // Return done as true to stop the loop if there's an error
     }
   }
