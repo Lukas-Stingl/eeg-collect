@@ -1,6 +1,9 @@
-/** * Vue component for starting and recording EEG data. * This component
-includes functionality for connecting to the EEG device, * performing device
-checks, and starting/stopping the recording. * */
+<!--
+ * Vue component for starting and recording EEG data.
+ * This component includes functionality for connecting to the EEG device,
+ * performing device checks, and starting/stopping the recording.
+-->
+
 <template>
   <div>
     <!-- Circular progress component -->
