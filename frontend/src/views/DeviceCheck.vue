@@ -13,62 +13,109 @@
             max-width="648"
           />
 
-
-<v-icon v-if="showIcon1" class="v-icon-1" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon2" class="v-icon-2" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon3" class="v-icon-3" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon4" class="v-icon-4" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon5" class="v-icon-5" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon6" class="v-icon-6" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon7" class="v-icon-7" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon8" class="v-icon-8" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon9" class="v-icon-9" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon10" class="v-icon-10" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon11" class="v-icon-11" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon12" class="v-icon-12" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon13" class="v-icon-13" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon14" class="v-icon-14" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon15" class="v-icon-15" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon16" class="v-icon-16" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon17" class="v-icon-17" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon18" class="v-icon-18" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon19" class="v-icon-19" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon20" class="v-icon-20" color="red" size="15">mdi-alert-outline</v-icon>
-          <v-icon v-if="showIcon21" class="v-icon-21" color="red" size="15">mdi-alert-outline</v-icon>
+          <v-icon v-if="showIcon1" class="v-icon-1" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon2" class="v-icon-2" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon3" class="v-icon-3" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon4" class="v-icon-4" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon5" class="v-icon-5" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon6" class="v-icon-6" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon7" class="v-icon-7" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon8" class="v-icon-8" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon9" class="v-icon-9" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon10" class="v-icon-10" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon11" class="v-icon-11" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon12" class="v-icon-12" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon13" class="v-icon-13" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon14" class="v-icon-14" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon15" class="v-icon-15" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon16" class="v-icon-16" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon17" class="v-icon-17" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon18" class="v-icon-18" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon19" class="v-icon-19" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon20" class="v-icon-20" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
+          <v-icon v-if="showIcon21" class="v-icon-21" color="red" size="15"
+            >mdi-alert-outline</v-icon
+          >
         </v-col>
-        
       </v-row>
     </v-container>
   </div>
 
-<div class="help-class">
-              <v-icon class="help" color="info" icon="mdi-help-circle-outline" size="x-small" @click="toggleHelp" style="z-index: 9999999;"></v-icon>
+  <div class="help-class">
+    <v-icon
+      class="help"
+      color="info"
+      icon="mdi-help-circle-outline"
+      size="x-small"
+      @click="toggleHelp"
+      style="z-index: 9999999"
+    ></v-icon>
+  </div>
+  <div class="continue">
+    <v-btn @click="redirectToStartRecording">Weiter</v-btn>
+  </div>
 
-</div>
-<div class="continue">
-<v-btn @click="redirectToStartRecording">Weiter</v-btn>
-</div>
-
-              <v-dialog v-model="isHelpOpen" max-width="500px">
-            <v-card>
-              <v-card-title>Hilfe</v-card-title>
-              <v-card-text>
-                Falls einzelne Kanäle ein Fehlersymbol anzeigen, schalten Sie das Gerät bitte aus und wieder ein und achten Sie darauf, dass die Elektrotroden korrekt angebracht sind.
-              </v-card-text>
-              <v-card-actions>
-                <v-btn @click="toggleHelp">Close</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-
+  <v-dialog v-model="isHelpOpen" max-width="500px">
+    <v-card>
+      <v-card-title>Hilfe</v-card-title>
+      <v-card-text>
+        Falls einzelne Kanäle ein Fehlersymbol anzeigen, schalten Sie das Gerät
+        bitte aus und wieder ein und achten Sie darauf, dass die Elektrotroden
+        korrekt angebracht sind.
+      </v-card-text>
+      <v-card-actions>
+        <v-btn @click="toggleHelp">Close</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
 export default {
-  name: 'DeviceCheck',
+  name: "DeviceCheck",
   data() {
     return {
-        isHelpOpen: false,
+      isHelpOpen: false,
       // Randomly decide whether to show each icon
       showIcon1: Math.random() < 0.5,
       showIcon2: Math.random() < 0.5,
@@ -99,10 +146,10 @@ export default {
     },
     redirectToStartRecording() {
       // Redirect to the /check route
-      this.$router.push('/recording');
+      this.$router.push("/recording");
       this.toggleHelp();
     },
-  }
+  },
 };
 </script>
 
@@ -229,7 +276,6 @@ h2 {
   transform: translate(-50%, -50%);
 }
 
-
 .v-icon-17 {
   position: absolute;
   top: 38.2%;
@@ -267,18 +313,16 @@ h2 {
 .help {
   top: 10px;
   right: 10px;
-  
 }
 .continue {
   display: flex;
   justify-content: center;
   margin-top: 10px;
 }
-.help-class{
-    display: flex;
-    justify-content: flex-end;
+.help-class {
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* Continue this pattern for the rest of the icons */
-
 </style>
