@@ -13,9 +13,11 @@
       <v-card>
         <v-card-title>Eingabe der Teilnehmernummer</v-card-title>
         <v-card-text>
-          Bitte geben Sie nachfolgend die Ihnen übermittelte Teilnehmernummer ein.
+          Bitte geben Sie nachfolgend die Ihnen übermittelte Teilnehmernummer
+          ein.
         </v-card-text>
-        <v-card-actions class="text-right"> <!-- Here, we add text-right class -->
+        <v-card-actions class="text-right">
+          <!-- Here, we add text-right class -->
           <v-btn @click="redirectToRecording">Weiter</v-btn>
         </v-card-actions>
       </v-card>
@@ -25,14 +27,14 @@
 
 <script>
 export default {
-  name: 'StartScreen',
+  name: "StartScreen",
   data() {
     return {
       message:
-        "Bitte ziehen Sie die Kopfhörer auf und achten Sie darauf, dass die Kopfhörer möglichst gut auf der Haut liegen. "+ 
-       "Schauen Sie bitte, dass sich nach Möglichkeit keine Haare zwischen den Kopfhörern und der Haut befinden. Achten Sie bitte auch darauf, dass die Ausrichtung der Kopfhörer stimmt. Der linke Kopfhörer ist mit einem L, der rechte mit einem R gekennzeichnet. Klicken Sie bitte anschließend auf Weiter.",
+        "Bitte ziehen Sie die Kopfhörer auf und achten Sie darauf, dass die Kopfhörer möglichst gut auf der Haut liegen. " +
+        "Schauen Sie bitte, dass sich nach Möglichkeit keine Haare zwischen den Kopfhörern und der Haut befinden. Achten Sie bitte auch darauf, dass die Ausrichtung der Kopfhörer stimmt. Der linke Kopfhörer ist mit einem L, der rechte mit einem R gekennzeichnet. Klicken Sie bitte anschließend auf Weiter.",
       buttonText: "Weiter",
-      showSecondBox: false
+      showSecondBox: false,
     };
   },
   methods: {
@@ -40,13 +42,13 @@ export default {
       this.showSecondBox = true;
     },
     redirectToRecording() {
-      // Redirect to /recording
-      this.$router.push('/recording');
-    }
+      const queryParams = this.$route.query;
+      this.$router.push({ path: "/recording", query: queryParams });
+    },
   },
   mounted() {
     // Any mounted logic you might need
-  }
+  },
 };
 </script>
 

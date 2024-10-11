@@ -108,7 +108,6 @@ checks, and starting/stopping the recording. * */
 
       <svg ref="baseModel" width="1000" height="500"></svg>
       <div class="tooltip"></div>
-     
     </div>
 
     <div
@@ -126,16 +125,21 @@ checks, and starting/stopping the recording. * */
         @click="connectHelp"
       ></v-icon>
     </div>
-   <div v-show="showContinueButton && participantNumberSet" style="display:flex;justify-content:center;">
-     Please ensure that &nbsp;<b style="color: #73AD21"> all electrodes are green </b> &nbsp;before continuing or proceed to a recording after 3 impedance checks. 
-</div>
+    <div
+      v-show="showContinueButton && participantNumberSet"
+      style="display: flex; justify-content: center"
+    >
+      Please ensure that &nbsp;<b style="color: #73ad21">
+        all electrodes are green
+      </b>
+      &nbsp;before continuing or proceed to a recording after 3 impedance
+      checks.
+    </div>
 
     <div
       v-show="showContinueButton && participantNumberSet && participantNrInUrl"
       class="button-container"
     >
-  
-
       <v-btn @click="deviceCheck">Start Setup</v-btn>
       <div style="margin-right: 10px"></div>
       <v-btn v-if="checkFinished" @click="toStartRecording"
@@ -188,8 +192,7 @@ checks, and starting/stopping the recording. * */
       <v-snackbar v-model="snackbar" :timeout="timeout">
         {{ text }}
 
-        <template v-slot:actions>
-        </template>
+        <template v-slot:actions> </template>
       </v-snackbar>
 
       <h4 v-if="!finished">
@@ -208,8 +211,12 @@ checks, and starting/stopping the recording. * */
         <v-label style="margin-top: 20px; margin-right: 20px; font-size: 20px"
           >Recording in progress</v-label
         >
-        <img v-if="recordingStarted" :src="require('@/assets/dot.gif')" :alt="'Recording'"  style="height: 70px;justify-content: flex-end;display: flex;"/>
-
+        <img
+          v-if="recordingStarted"
+          :src="require('@/assets/dot.gif')"
+          :alt="'Recording'"
+          style="height: 70px; justify-content: flex-end; display: flex"
+        />
       </div>
 
       <div v-if="!finished" style="display: flex; justify-content: center">
@@ -344,7 +351,7 @@ export default {
   },
 
   mounted() {
-    window.addEventListener('beforeunload', this.handleBeforeUnload);
+    window.addEventListener("beforeunload", this.handleBeforeUnload);
     if (Object.keys(this.channelAssignment).length > 8) {
       this.mode = "daisy";
     } else {
@@ -356,8 +363,6 @@ export default {
     // Set interval to call updateDataFromCyton method every 5 seconds (adjust as needed)
     setInterval(this.updateDataFromCyton, 500);
     this.initializeD3();
-   
-
   },
   computed: {
     colWidth() {
@@ -366,7 +371,8 @@ export default {
   },
   methods: {
     handleBeforeUnload(event) {
-      const confirmationMessage = 'Are you sure you want to leave? Changes you made may not be saved.';
+      const confirmationMessage =
+        "Are you sure you want to leave? Changes you made may not be saved.";
       event.returnValue = confirmationMessage; // Standard for most browsers
       return confirmationMessage; // For some browsers
     },
@@ -375,7 +381,6 @@ export default {
      * This allows the component to easily call the 'setParticipantNumber' mutation
      * and update the participant number in the Vuex store.
      */
-
 
     initializeD3() {
       if (!this.$refs.baseModel) {
@@ -440,17 +445,17 @@ export default {
               .attr("class", (d) => `node ${this.stateToClass(d.state)}`)
               .attr(
                 "cx",
-                (d) => this.nodes.find((n) => n.id === d.node_id)?.x || 0
+                (d) => this.nodes.find((n) => n.id === d.node_id)?.x || 0,
               )
               .attr(
                 "cy",
-                (d) => this.nodes.find((n) => n.id === d.node_id)?.y || 0
+                (d) => this.nodes.find((n) => n.id === d.node_id)?.y || 0,
               )
               .attr("r", 12)
               .on("mouseover", this.handleMouseOver)
               .on("mouseout", this.handleMouseOut),
           (update) =>
-            update.attr("class", (d) => `node ${this.stateToClass(d.state)}`)
+            update.attr("class", (d) => `node ${this.stateToClass(d.state)}`),
         );
       this.svg2
         .selectAll("circle")
@@ -462,17 +467,17 @@ export default {
               .attr("class", (d) => `node ${this.stateToClass(d.state)}`)
               .attr(
                 "cx",
-                (d) => this.nodes.find((n) => n.id === d.node_id)?.x || 0
+                (d) => this.nodes.find((n) => n.id === d.node_id)?.x || 0,
               )
               .attr(
                 "cy",
-                (d) => this.nodes.find((n) => n.id === d.node_id)?.y || 0
+                (d) => this.nodes.find((n) => n.id === d.node_id)?.y || 0,
               )
               .attr("r", 12)
               .on("mouseover", this.handleMouseOver)
               .on("mouseout", this.handleMouseOut),
           (update) =>
-            update.attr("class", (d) => `node ${this.stateToClass(d.state)}`)
+            update.attr("class", (d) => `node ${this.stateToClass(d.state)}`),
         );
     },
     stateToClass(state) {
@@ -484,8 +489,8 @@ export default {
         .style("opacity", 1)
         .html(
           `Node ID: ${d.node_id}<br/>State: ${this.stateToClass(
-            d.state
-          )}<br/>Impedance: ${d.impedance}Ω`
+            d.state,
+          )}<br/>Impedance: ${d.impedance}Ω`,
         )
         .style("left", `${event.layerX + 5}px`)
         .style("top", `${event.layerY + 10}px`);
@@ -493,8 +498,8 @@ export default {
         .style("opacity", 1)
         .html(
           `Node ID: ${d.node_id}<br/>State: ${this.stateToClass(
-            d.state
-          )}<br/>Impedance: ${d.impedance}Ω`
+            d.state,
+          )}<br/>Impedance: ${d.impedance}Ω`,
         )
         .style("left", `${event.layerX + 5}px`)
         .style("top", `${event.layerY + 10}px`);
@@ -556,7 +561,7 @@ export default {
           this.loading = false;
           this.status = "Device check failed";
           console.error("Device check failed", error);
-        }
+        },
       ); // Trigger impedance check for the current channel
     },
     async toStartRecording() {
@@ -568,40 +573,40 @@ export default {
     },
     async deviceCheck() {
       if (this.checkFinished === false) {
-        var connected =  await this.cytonBoard.setupSerialAsync();
+        var connected = await this.cytonBoard.setupSerialAsync();
         await this.cytonBoard.defaultChannelSettings();
       }
-      if(connected !== false) {
-      this.participantNumberSet = true;
-      await this.startImpedanceCheck().then(
-        () => {
-          this.status = "Device check completed";
-          let impedance = this.cytonBoard.getImpedance(this.channelConfig);
-          this.nodeData = impedance;
-          this.updateCircles();
-          this.showContinueButton = true;
-          this.participantNumberSet = true;
-          this.cytonBoard.exportImpedanceCSV(this.participantNumber);
-          console.log("IMPORTANT: " + JSON.stringify(this.nodeData));
-          console.log(channelAssignment);
-          if (
-            this.nodeData.some((obj) => obj.state === 1) ||
-            this.nodeData.filter((obj) => obj.state === 2).length >= 3
-          ) {
-            console.log("Impedance not sufficient");
-            this.badImpedance = true;
-            this.checkFinished = true;
-          } else {
+      if (connected !== false) {
+        this.participantNumberSet = true;
+        await this.startImpedanceCheck().then(
+          () => {
+            this.status = "Device check completed";
+            let impedance = this.cytonBoard.getImpedance(this.channelConfig);
+            this.nodeData = impedance;
+            this.updateCircles();
             this.showContinueButton = true;
-            this.checkFinished = true;
-          }
-        },
-        (error) => {
-          this.loading = false;
-          this.status = "Device check failed";
-          console.error("Device check failed", error);
-        }
-      ); // Trigger impedance check for the current channel
+            this.participantNumberSet = true;
+            this.cytonBoard.exportImpedanceCSV(this.participantNumber);
+            console.log("IMPORTANT: " + JSON.stringify(this.nodeData));
+            console.log(channelAssignment);
+            if (
+              this.nodeData.some((obj) => obj.state === 1) ||
+              this.nodeData.filter((obj) => obj.state === 2).length >= 3
+            ) {
+              console.log("Impedance not sufficient");
+              this.badImpedance = true;
+              this.checkFinished = true;
+            } else {
+              this.showContinueButton = true;
+              this.checkFinished = true;
+            }
+          },
+          (error) => {
+            this.loading = false;
+            this.status = "Device check failed";
+            console.error("Device check failed", error);
+          },
+        ); // Trigger impedance check for the current channel
       }
     },
     async startImpedanceCheck() {
@@ -611,7 +616,7 @@ export default {
       this.updateCircles();
       console.log(
         "Channel Assignment: ",
-        Object.keys(this.channelAssignment).length
+        Object.keys(this.channelAssignment).length,
       );
       let channelNumber = Object.keys(this.channelAssignment).length;
       for (let i = 1; i <= channelNumber; i++) {
@@ -661,7 +666,7 @@ export default {
           this.loading = false;
           this.status = "Device check failed";
           console.error("Device check failed", error);
-        }
+        },
       );
     },
     decodedCallback(data) {
@@ -763,7 +768,7 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("resize", this.handleResize);
-    window.removeEventListener('beforeunload', this.handleBeforeUnload);
+    window.removeEventListener("beforeunload", this.handleBeforeUnload);
     clearInterval(this.interval);
   },
 };
