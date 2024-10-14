@@ -9,7 +9,7 @@ export class cyton {
     mode,
     onDecodedCallback = this.onDecodedCallback,
     onConnectedCallback = this.onConnectedCallback,
-    onDisconnectedCallback = this.onDisconnectedCallback
+    onDisconnectedCallback = this.onDisconnectedCallback,
   ) {
     this.participantNumber = participantNumber;
     this.mode = mode;
@@ -18,7 +18,7 @@ export class cyton {
       "wss://exg.iism.kit.edu/websocket/" +
         this.mode +
         "/" +
-        this.participantNumber
+        this.participantNumber,
     );
 
     // Handle WebSocket events
@@ -104,7 +104,7 @@ export class cyton {
     //navigator.serial utils
     if (!navigator.serial) {
       console.error(
-        "`navigator.serial not found! Enable #enable-experimental-web-platform-features in chrome://flags (search 'experimental')"
+        "`navigator.serial not found! Enable #enable-experimental-web-platform-features in chrome://flags (search 'experimental')",
       );
     }
     this.port = null;
@@ -387,7 +387,7 @@ export class cyton {
         if (this.port && this.port.writable) {
           var writer = this.port.writable.getWriter();
           const impedanceCommandBytes = new TextEncoder().encode(
-            impedanceCommand
+            impedanceCommand,
           );
           await writer.write(impedanceCommandBytes);
           console.log(impedanceCommand);
@@ -469,13 +469,13 @@ export class cyton {
   }
   logReaderStatus(reader) {
     if (reader.closed) {
-        console.log('Reader is closed.');
+      console.log("Reader is closed.");
     } else if (reader.locked) {
-        console.log('Reader is locked.');
+      console.log("Reader is locked.");
     } else {
-        console.log('Reader is in an unknown state.');
+      console.log("Reader is in an unknown state.");
     }
-}
+  }
   async readData() {
     let buffer = []; // Buffer to accumulate bytes until a complete chunk is formed
     let headerFound = false;
@@ -487,7 +487,7 @@ export class cyton {
       timeoutId = setTimeout(() => {
         if (Date.now() - lastDataTimestamp >= 10000 && this.reading) {
           console.log(
-            "no new data received since 10 seconds, restarting stream"
+            "no new data received since 10 seconds, restarting stream",
           );
           this.startReading();
         }
@@ -798,7 +798,7 @@ export class cyton {
         this.impedance[channel] = impedanceValue.impedance; // Store impedance value in the global variable
         console.log(
           "Impedance value for channel " + channel + ":",
-          impedanceValue.impedance
+          impedanceValue.impedance,
         );
       } else {
         console.error("Serial port is not writable");

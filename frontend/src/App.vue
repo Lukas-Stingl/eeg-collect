@@ -7,7 +7,11 @@
     </header>
 
     <!-- Content Area with left margin -->
-    <div v-if="isPassphraseValid" class="content" :style="{ marginLeft: isMenuOpen ? '200px' : '0' }">
+    <div
+      v-if="isPassphraseValid"
+      class="content"
+      :style="{ marginLeft: isMenuOpen ? '200px' : '0' }"
+    >
       <router-view></router-view>
     </div>
     <div v-else class="forbidden">403 Forbidden</div>
@@ -19,7 +23,7 @@ export default {
   data() {
     return {
       isMenuOpen: false,
-      isPassphraseValid: false
+      isPassphraseValid: false,
     };
   },
   methods: {
@@ -28,16 +32,16 @@ export default {
     },
     checkPassphrase() {
       const urlParams = new URLSearchParams(window.location.search);
-      const passphraseParam = urlParams.get('aHCWFRZvlU');
+      const passphraseParam = urlParams.get("aHCWFRZvlU");
       if (passphraseParam) {
         const decodedPassphrase = atob(passphraseParam);
-        this.isPassphraseValid = decodedPassphrase === 'iism4ever';
+        this.isPassphraseValid = decodedPassphrase === "iism4ever";
       }
-    }
+    },
   },
   mounted() {
     this.checkPassphrase();
-  }
+  },
 };
 </script>
 
@@ -51,13 +55,13 @@ export default {
   color: red;
 }
 #app {
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
   overflow-x: hidden; /* Hide horizontal scrollbar when content overflows */
 }
 
 /* Application Header Styles */
 header {
-  background-color: #00876C;
+  background-color: #00876c;
   color: #fff;
   display: flex;
   align-items: center;

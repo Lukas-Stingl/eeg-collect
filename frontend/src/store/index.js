@@ -1,4 +1,4 @@
-import { createStore } from 'vuex';
+import { createStore } from "vuex";
 
 const store = createStore({
   state() {
@@ -14,14 +14,14 @@ const store = createStore({
     },
     setBaseModel(state, model) {
       state.baseModel = model;
+    },
+    actions: {
+      // actions to perform async operations...
+    },
+    getters: {
+      // getters to retrieve state data...
+    },
   },
-  actions: {
-    // actions to perform async operations...
-  },
-  getters: {
-    // getters to retrieve state data...
-  }
-}
 });
 
 export default store;
