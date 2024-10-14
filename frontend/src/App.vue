@@ -55,7 +55,7 @@ export default {
   color: red;
 }
 #app {
-  font-family: "Arial", sans-serif;
+  font-family: "Noto Sans", "Arial", sans-serif;
   overflow-x: hidden; /* Hide horizontal scrollbar when content overflows */
 }
 
@@ -122,5 +122,9 @@ header {
   margin-top: 57px; /* Same as the top value of the menu */
   padding: 20px; /* Add some padding for better readability */
   transition: margin-left 0.3s ease; /* Smooth transition for the margin change */
+}
+
+.v-btn {
+  text-transform: none !important; /* Disable uppercase transformation */
 }
 </style>

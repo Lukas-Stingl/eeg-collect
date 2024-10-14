@@ -6,6 +6,38 @@
 
 <template>
   <div>
+    <!-- Error Modal -->
+    <v-dialog v-model="isHeadsetNotFoundErrorModalOpen" max-width="500px">
+      <v-card style="padding: 16px; border-radius: 12px">
+        <div style="display: flex; flex-direction: row; align-items: center">
+          <PhWarningCircle :size="28" color="red" />
+
+          <v-card-title style="text-align: left">
+            Headset not found
+          </v-card-title>
+        </div>
+
+        <v-card-text style="text-align: left">
+          Please make sure that your headset is turned on and that the correct
+          port in the browser pop up menu is chosen ("FT231X..." or "COM3").
+        </v-card-text>
+        <v-card-actions style="justify-content: end">
+          <v-btn
+            @click="isHeadsetNotFoundErrorModalOpen = false"
+            rounded="lg"
+            variant="outline"
+            >Close</v-btn
+          >
+          <VBtn
+            @click="handleRetryHeadsetConnection"
+            rounded="lg"
+            variant="tonal"
+            >Retry</VBtn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Circular progress component -->
     <v-overlay v-model="loading">
       <div class="overlay_content">
@@ -236,8 +268,10 @@ import { ref, onMounted } from "vue";
 import { cyton } from "../scripts/cyton.js";
 import * as d3 from "d3";
 import channelAssignment from "../config/channelAssignment.json";
+import { PhWarningCircle } from "@phosphor-icons/vue";
 
 export default {
+  components: { PhWarningCircle },
   data() {
     return {
       snackbar: false,
@@ -253,6 +287,7 @@ export default {
       channelConfig: this.channelConfig || "1",
       channelAssignment: channelAssignment[this.channelConfig],
       isParticipantHelpOpen: false,
+      isHeadsetNotFoundErrorModalOpen: false,
       isConnectHelpOpen: false,
       cytonBoard: null,
       showContinueButton: true,
@@ -574,11 +609,27 @@ export default {
       this.startRecording();
       this.recordingStarted = true;
     },
+
+    handleRetryHeadsetConnection() {
+      this.isHeadsetNotFoundErrorModalOpen = false;
+      this.deviceCheck();
+    },
+
     async deviceCheck() {
       if (this.checkFinished === false) {
         var connected = await this.cytonBoard.setupSerialAsync();
+
+        if (!connected) {
+          this.isHeadsetNotFoundErrorModalOpen = true;
+
+          return;
+        }
+
+        console.log("B2 - connected:");
+        console.log(connected);
         await this.cytonBoard.defaultChannelSettings();
       }
+      console.log("D");
       if (connected !== false) {
         this.participantNumberSet = true;
         await this.startImpedanceCheck().then(
