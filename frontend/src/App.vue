@@ -123,8 +123,4 @@ header {
   padding: 20px; /* Add some padding for better readability */
   transition: margin-left 0.3s ease; /* Smooth transition for the margin change */
 }
-
-.v-btn {
-  text-transform: none !important; /* Disable uppercase transformation */
-}
 </style>

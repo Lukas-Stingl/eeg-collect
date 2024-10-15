@@ -12,19 +12,25 @@ export default createVuetify({
     VBtnTertiary: VBtn,
   },
   defaults: {
+    global: {
+      ripple: false,
+    },
     VBtn: {
       rounded: "lg",
-      color: "#00695C",
+      color: "#00594C",
       variant: "tonal",
+      style: [{ textTransform: "none", minWidth: "100px" }],
     },
     VBtnSecondary: {
       rounded: "lg",
       color: "secondary",
       variant: "flat",
+      style: [{ textTransform: "none" }],
     },
     VBtnTertiary: {
       rounded: true,
       variant: "plain",
+      style: [{ textTransform: "none" }],
     },
   },
 });
