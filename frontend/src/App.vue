@@ -55,7 +55,7 @@ export default {
   color: red;
 }
 #app {
-  font-family: "Arial", sans-serif;
+  font-family: "Noto Sans", "Arial", sans-serif;
   overflow-x: hidden; /* Hide horizontal scrollbar when content overflows */
 }
 
