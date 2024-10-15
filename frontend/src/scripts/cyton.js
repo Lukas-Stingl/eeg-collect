@@ -970,13 +970,11 @@ export class cyton {
   async checkConnectedDevice() {
     this.startReading("record");
     let buffer = ""; // stores decoded text messages.
-    let chunkBuffer = []; // Buffer to accumulate bytes until a complete chunk is formed
-    let isOneChunkFormedAndChecked = false;
-
-    // let lastDataTimestamp = Date.now();
+    let checkChunkBuffer = []; // Buffer to accumulate bytes until a complete chunk is formed
+    let isCheckChunkChecked = false;
 
     // Start the initial timeout check
-    while (this.connected === true && !isOneChunkFormedAndChecked) {
+    while (this.connected === true && !isCheckChunkChecked) {
       console.log("3333");
       const { value, done } = await Promise.race([
         this.readFromStream(this.reader),
@@ -994,7 +992,7 @@ export class cyton {
         console.log(decodedValue);
 
         for (let i = 0; i < value.length; i++) {
-          chunkBuffer.push(value[i]);
+          checkChunkBuffer.push(value[i]);
         }
 
         if (
@@ -1080,15 +1078,19 @@ export class cyton {
 
       for (let i = 0; i < value.length; i++) {
         // If chunk is full
-        if (value[i] >= 192 && value[i] <= 198 && chunkBuffer.length > 30) {
-          const data = decodeCytonData(chunkBuffer);
+        if (
+          value[i] >= 192 &&
+          value[i] <= 198 &&
+          checkChunkBuffer.length > 30
+        ) {
+          const data = decodeCytonData(checkChunkBuffer);
           if (data) {
             console.log("data");
             console.log(data);
             // TODO Analyze if Data is believably from an eeg headset.
           }
 
-          isOneChunkFormedAndChecked = true;
+          isCheckChunkChecked = true;
           return CHECK_CONNECTED_DEVICE_STATUS.SUCCESS;
         }
       }
