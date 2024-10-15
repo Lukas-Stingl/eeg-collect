@@ -13,13 +13,12 @@
           <PhWarningCircle :size="28" color="red" />
 
           <v-card-title style="text-align: left">
-            Headset not found
+            {{ errorModalTitle }}
           </v-card-title>
         </div>
 
         <v-card-text style="text-align: left">
-          Please make sure that your headset is turned on and that the correct
-          port in the browser pop up menu is chosen ("FT231X..." or "COM3").
+          {{ errorModalMessage }}
         </v-card-text>
         <v-card-actions style="justify-content: end">
           <v-btn
@@ -282,6 +281,8 @@ export default {
       status: "Not connected",
       port: "",
       isHeadSetConnected: false || CHECK_CONNECTED_DEVICE_STATUS,
+      errorModalTitle: "",
+      errorModalMessage: "",
       data: {},
       reader: "",
       checkFinished: false,
@@ -622,7 +623,18 @@ export default {
         console.log("B1 - connected:");
         console.log(this.isHeadSetConnected);
         if (this.isHeadSetConnected !== "success") {
-          // TODO SPECIFIC ERROR MESSAGES FOR DIFFERENT CASES
+          switch (this.isHeadSetConnected) {
+            case CHECK_CONNECTED_DEVICE_STATUS.NO_DATA_STREAMED:
+              this.errorModalTitle = "Wrong Port Selected";
+              this.errorModalMessage =
+                'No datastream detected. Please make sure to sleect the correct serial port in the browser pop up menu ("FT231X..." or "COM3").';
+              break;
+            case CHECK_CONNECTED_DEVICE_STATUS.DONGLE_CONNECTED_BUT_HEADSET_NOT_FOUND:
+              this.errorModalTitle = "Headset not found";
+              this.errorModalMessage =
+                "Please make sure that the headset battery is charged and the headset is turned on.";
+              break;
+          }
           this.isHeadsetNotFoundErrorModalOpen = true;
 
           return;
