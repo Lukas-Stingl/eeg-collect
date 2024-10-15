@@ -265,7 +265,7 @@
 
 <script>
 import { ref, onMounted } from "vue";
-import { cyton } from "../scripts/cyton.js";
+import { CHECK_CONNECTED_DEVICE_STATUS, cyton } from "../scripts/cyton.js";
 import * as d3 from "d3";
 import channelAssignment from "../config/channelAssignment.json";
 import { PhWarningCircle } from "@phosphor-icons/vue";
@@ -281,6 +281,7 @@ export default {
       participantNumberSet: this.participantNumberSet || false,
       status: "Not connected",
       port: "",
+      isHeadSetConnected: false || CHECK_CONNECTED_DEVICE_STATUS,
       data: {},
       reader: "",
       checkFinished: false,
@@ -617,20 +618,22 @@ export default {
 
     async deviceCheck() {
       if (this.checkFinished === false) {
-        var connected = await this.cytonBoard.setupSerialAsync();
-
-        if (!connected) {
+        this.isHeadSetConnected = await this.cytonBoard.setupSerialAsync();
+        console.log("B1 - connected:");
+        console.log(this.isHeadSetConnected);
+        if (this.isHeadSetConnected !== "success") {
+          // TODO SPECIFIC ERROR MESSAGES FOR DIFFERENT CASES
           this.isHeadsetNotFoundErrorModalOpen = true;
 
           return;
         }
 
         console.log("B2 - connected:");
-        console.log(connected);
+        console.log(this.isHeadSetConnected);
         await this.cytonBoard.defaultChannelSettings();
       }
       console.log("D");
-      if (connected !== false) {
+      if (this.isHeadSetConnected === "success") {
         this.participantNumberSet = true;
         await this.startImpedanceCheck().then(
           () => {
