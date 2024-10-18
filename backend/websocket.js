@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const url = require("url");
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 const RECORDINGS_DIR = path.join(__dirname, "recordings");
 
 // Ensure the recordings directory exists
@@ -33,11 +33,15 @@ server.on("connection", (ws, req) => {
   const filePath = path.join(RECORDINGS_DIR, fileName);
   const writeStream = fs.createWriteStream(filePath);
   if (mode === "daisy") {
-  // Write the CSV header
-  writeStream.write('Index;Datetime;sampleNumber;timestamp;A1;A2;A3;A4;A5;A6;A7;A8;A9;A10;A11;A12;A13;A14;A15;A16;Accel0;Accel1;Accel2\n');
+    // Write the CSV header
+    writeStream.write(
+      "Index;Datetime;sampleNumber;timestamp;A1;A2;A3;A4;A5;A6;A7;A8;A9;A10;A11;A12;A13;A14;A15;A16;Accel0;Accel1;Accel2\n",
+    );
   } else if (mode === "cyton") {
     // Write the CSV header
-    writeStream.write('Index;Datetime;sampleNumber;timestamp;A1;A2;A3;A4;A5;A6;A7;A8;Accel0;Accel1;Accel2\n');
+    writeStream.write(
+      "Index;Datetime;sampleNumber;timestamp;A1;A2;A3;A4;A5;A6;A7;A8;Accel0;Accel1;Accel2\n",
+    );
   }
   let index = 0;
   let previousData = null;
@@ -52,13 +56,18 @@ server.on("connection", (ws, req) => {
         if (data) {
           if (data.sampleNumber % 2 === 0) {
             // Combine with previous odd sample
-            if (previousData && previousData.sampleNumber === data.sampleNumber - 1) {
+            if (
+              previousData &&
+              previousData.sampleNumber === data.sampleNumber - 1
+            ) {
               const combinedData = {
                 ...previousData,
-                ...data
+                ...data,
               };
               index += 1;
-              const datetime = new Date(combinedData.timestamp).toLocaleString();
+              const datetime = new Date(
+                combinedData.timestamp,
+              ).toLocaleString();
               const csvRow = `${index};${datetime};${combinedData.sampleNumber};${combinedData.timestamp};${combinedData.A1};${combinedData.A2};${combinedData.A3};${combinedData.A4};${combinedData.A5};${combinedData.A6};${combinedData.A7};${combinedData.A8};${combinedData.A9};${combinedData.A10};${combinedData.A11};${combinedData.A12};${combinedData.A13};${combinedData.A14};${combinedData.A15};${combinedData.A16};${combinedData.Accel0};${combinedData.Accel1};${combinedData.Accel2}\n`;
               writeStream.write(csvRow);
               previousData = null; // Reset for next pair
@@ -71,21 +80,16 @@ server.on("connection", (ws, req) => {
       } else if (mode === "cyton") {
         data = decodeCytonData(message);
         if (data) {
-
-              index += 1;
-              const datetime = new Date(data.timestamp).toLocaleString();
-              const csvRow = `${index};${datetime};${data.sampleNumber};${data.timestamp};${data.A1};${data.A2};${data.A3};${data.A4};${data.A5};${data.A6};${data.A7};${data.A8};${data.Accel0};${data.Accel1};${data.Accel2}\n`;
-              writeStream.write(csvRow);
-
-            }
-          } else {
-            // Store odd sample data
-            previousData = data;
-          }
-
+          index += 1;
+          const datetime = new Date(data.timestamp).toLocaleString();
+          const csvRow = `${index};${datetime};${data.sampleNumber};${data.timestamp};${data.A1};${data.A2};${data.A3};${data.A4};${data.A5};${data.A6};${data.A7};${data.A8};${data.Accel0};${data.Accel1};${data.Accel2}\n`;
+          writeStream.write(csvRow);
+        }
+      } else {
+        // Store odd sample data
+        previousData = data;
       }
-      
-    
+    }
   });
 
   ws.on("close", () => {

@@ -932,17 +932,189 @@ export class cyton {
     return csvContent;
   }
 
-  async setupSerialAsync() {
+  async setupSerialAsync(setIsLoadingModalShown) {
     try {
       this.port = await navigator.serial.requestPort();
-      await this.port.open({ baudRate: 115200, bufferSize: 16000 }); // Set baud rate to 115200
+      if (setIsLoadingModalShown !== undefined) {
+        setIsLoadingModalShown(true);
+      }
+      await this.port.open({ baudRate: 115200, bufferSize: 16000 });
       this.reader = this.port.readable.getReader();
       this.connected = true;
-      this.readData();
+
+      const isCorrectDeviceConnected = await this.checkConnectedDevice();
+
+      if (isCorrectDeviceConnected === CHECK_CONNECTED_DEVICE_STATUS.SUCCESS) {
+        console.log("Correct device connected");
+        this.readData();
+        return CHECK_CONNECTED_DEVICE_STATUS.SUCCESS;
+      } else if (
+        isCorrectDeviceConnected ===
+        CHECK_CONNECTED_DEVICE_STATUS.DONGLE_CONNECTED_BUT_HEADSET_NOT_FOUND
+      ) {
+        console.log("Dongle connected but Headset not found");
+        return CHECK_CONNECTED_DEVICE_STATUS.DONGLE_CONNECTED_BUT_HEADSET_NOT_FOUND;
+      } else {
+        console.log("No Data Streamed");
+        return CHECK_CONNECTED_DEVICE_STATUS.NO_DATA_STREAMED;
+      }
     } catch (error) {
       console.error("Error connecting to serial port:", error);
-      return false;
+      if (this.port && this.reader) {
+        this.reader.releaseLock();
+        await this.port.close();
+        console.log("Serial port closed due to error");
+        return false;
+      }
+    } finally {
+      if (setIsLoadingModalShown !== undefined) {
+        setIsLoadingModalShown(false);
+      }
+    }
+  }
+
+  async checkConnectedDevice() {
+    this.startReading("record");
+    let buffer = ""; // stores decoded text messages.
+    let checkChunkBuffer = []; // Buffer to accumulate bytes until a complete chunk is formed
+    let isCheckChunkChecked = false;
+
+    // Start the initial timeout check
+    while (this.connected === true && !isCheckChunkChecked) {
+      console.log("3333");
+      const { value, done } = await Promise.race([
+        this.readFromStream(this.reader),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), 5000),
+        ),
+      ]).catch(() => ({ value: null, done: true }));
+
+      console.log("New pair for value, done received.");
+      console.log(value);
+
+      if (value) {
+        const decodedValue = new TextDecoder().decode(value);
+        buffer += decodedValue;
+        console.log(decodedValue);
+
+        for (let i = 0; i < value.length; i++) {
+          checkChunkBuffer.push(value[i]);
+        }
+
+        if (
+          buffer.includes(
+            "Failure: Communications timeout - Device failed to poll Host$$$",
+          )
+        ) {
+          console.log(
+            "Correct Port Selected but Headset was not detected. Please turn your headset on.",
+          );
+          this.connected = false;
+          this.reader.releaseLock();
+          return CHECK_CONNECTED_DEVICE_STATUS.DONGLE_CONNECTED_BUT_HEADSET_NOT_FOUND;
+        }
+      }
+
+      // ---- START HELPER FUNCTIONS
+
+      const decodeCytonData = (message) => {
+        const str = message.toString();
+        const numbers = str.split(",").map(Number);
+
+        const chunk = new Uint8Array(numbers);
+        const byteArray = chunk.slice(1, -1);
+        const sampleNumber = chunk[1];
+        const data = {
+          sampleNumber,
+          timestamp: new Date().getTime(),
+          Accel0: interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125,
+          Accel1: interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125,
+          Accel2: interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125,
+        };
+
+        for (let i = 2; i <= 24; i += 3) {
+          const channelData =
+            interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.0223517445;
+          const channelName = `A${Math.ceil((i - 1) / 3)}`;
+          data[channelName] = channelData;
+        }
+
+        return data;
+      };
+
+      const interpret24bitAsInt32 = (byteArray) => {
+        if (byteArray.length !== 3) {
+          throw new Error("Byte array must have exactly 3 elements");
+        }
+
+        let newInt =
+          ((0xff & byteArray[0]) << 16) |
+          ((0xff & byteArray[1]) << 8) |
+          (0xff & byteArray[2]);
+
+        if ((newInt & 0x00800000) > 0) {
+          newInt |= 0xff000000;
+        } else {
+          newInt &= 0x00ffffff;
+        }
+
+        return newInt;
+      };
+
+      const interpret16bitAsInt32 = (byteArray) => {
+        let newInt = ((0xff & byteArray[0]) << 8) | (0xff & byteArray[1]);
+
+        if ((newInt & 0x00008000) > 0) {
+          newInt |= 0xffff0000;
+        } else {
+          newInt &= 0x0000ffff;
+        }
+
+        return newInt;
+      };
+
+      // ---- END HELPER FUNCTIONS
+
+      if (!value) {
+        console.log("No value streamed. Possibly wrong port selected.");
+        this.connected = false;
+        this.reader.releaseLock();
+        return CHECK_CONNECTED_DEVICE_STATUS.NO_DATA_STREAMED;
+      }
+
+      for (let i = 0; i < value.length; i++) {
+        // If chunk is full
+        if (
+          value[i] >= 192 &&
+          value[i] <= 198 &&
+          checkChunkBuffer.length > 30
+        ) {
+          const data = decodeCytonData(checkChunkBuffer);
+          if (data) {
+            console.log("data");
+            console.log(data);
+            // TODO Analyze if Data is believably from an eeg headset.
+          }
+
+          isCheckChunkChecked = true;
+          return CHECK_CONNECTED_DEVICE_STATUS.SUCCESS;
+        }
+      }
+
+      if (done) {
+        console.log("Stream disconnected, stopping read");
+        this.reader.releaseLock();
+        break;
+      }
     }
   }
 }
-// At the end of cyton.js
+
+// TYPES
+
+export const CHECK_CONNECTED_DEVICE_STATUS = Object.freeze({
+  DONGLE_CONNECTED_BUT_HEADSET_NOT_FOUND:
+    "dongle_connected_but_headset_not_found",
+  SUCCESS: "success",
+  NO_DATA_STREAMED: "no_data_streamed",
+});
