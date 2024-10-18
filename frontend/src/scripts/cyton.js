@@ -932,13 +932,15 @@ export class cyton {
     return csvContent;
   }
 
-  async setupSerialAsync() {
+  async setupSerialAsync(setIsLoadingModalShown) {
     try {
       this.port = await navigator.serial.requestPort();
+      if (setIsLoadingModalShown !== undefined) {
+        setIsLoadingModalShown(true);
+      }
       await this.port.open({ baudRate: 115200, bufferSize: 16000 });
       this.reader = this.port.readable.getReader();
       this.connected = true;
-      console.log("Serial port opened successfully");
 
       const isCorrectDeviceConnected = await this.checkConnectedDevice();
 
@@ -963,6 +965,10 @@ export class cyton {
         await this.port.close();
         console.log("Serial port closed due to error");
         return false;
+      }
+    } finally {
+      if (setIsLoadingModalShown !== undefined) {
+        setIsLoadingModalShown(false);
       }
     }
   }

@@ -6,6 +6,26 @@
 
 <template>
   <div>
+    <v-dialog
+      v-model="isCytonConnectionLoadingIndicatorShown"
+      max-width="500px"
+      persistent
+    >
+      <v-card style="padding: 40px; border-radius: 12px; align-items: center">
+        <v-progress-circular
+          indeterminate
+          :size="41"
+          :width="5"
+          color="#00594C"
+          style="margin-bottom: 8px"
+        ></v-progress-circular>
+
+        <v-card-text style="padding-bottom: 0">
+          Connecting Headset...
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
     <!-- Error Modal -->
     <v-dialog v-model="isHeadsetNotFoundErrorModalOpen" max-width="500px">
       <v-card style="padding: 16px; border-radius: 12px">
@@ -124,10 +144,16 @@
     <h2 v-if="finished">The recording has ended.</h2>
     <h4 v-if="finished">You can now close the tab.</h4>
     <div v-if="badImpedance" max-width="500px">
-      <v-card class="mx-auto" elevation="16" max-width="800" color="red">
-        <v-card-title
-          >WARNING: Headphone is not positioned correctly.</v-card-title
-        >
+      <v-card
+        class="mx-auto"
+        max-width="800"
+        color="#E53935"
+        elevation="4"
+        padding="16px"
+        variant="flat"
+        rounded="lg"
+      >
+        <v-card-title>Headphone is not positioned correctly.</v-card-title>
         <v-card-text>
           The electrodes of the headset do not have a reliable skin connection.
           Please ensure that there are no hairs between the skin and the
@@ -161,13 +187,19 @@
     </div>
     <div
       v-show="showContinueButton && participantNumberSet"
-      style="display: flex; justify-content: center"
+      style="
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        text-align: center;
+      "
     >
-      Please ensure that &nbsp;<b style="color: #73ad21">
-        all electrodes are green
-      </b>
-      &nbsp;before continuing or proceed to a recording after 3 impedance
-      checks.
+      <span>Please ensure that&nbsp;</span>
+      <b style="color: #73ad21">all electrodes are green</b>
+      <span
+        >&nbsp;before continuing or proceed to a recording after 3 impedance
+        checks.</span
+      >
     </div>
 
     <div
@@ -180,10 +212,10 @@
         >Go to Recording</v-btn
       >
       <v-icon
-        color="info"
+        color="#0277BD"
         class="help"
         icon="mdi-help-circle-outline"
-        size="x-small"
+        size="default"
         @click="connectHelp"
       ></v-icon>
     </div>
@@ -283,6 +315,7 @@ export default {
       isHeadSetConnected: false || CHECK_CONNECTED_DEVICE_STATUS,
       errorModalTitle: "",
       errorModalMessage: "",
+      isCytonConnectionLoadingIndicatorShown: false,
       data: {},
       reader: "",
       checkFinished: false,
@@ -619,7 +652,11 @@ export default {
 
     async deviceCheck() {
       if (this.checkFinished === false) {
-        this.isHeadSetConnected = await this.cytonBoard.setupSerialAsync();
+        this.isHeadSetConnected = await this.cytonBoard.setupSerialAsync(
+          (status) => {
+            this.isCytonConnectionLoadingIndicatorShown = status;
+          },
+        );
         console.log("B1 - connected:");
         console.log(this.isHeadSetConnected);
         if (this.isHeadSetConnected !== "success") {
@@ -866,8 +903,6 @@ h4 {
 }
 .help {
   z-index: 9999999;
-  left: 25px;
-  top: 10px;
   position: relative;
 }
 .continue {
@@ -883,6 +918,7 @@ h4 {
   position: relative;
   display: flex;
   justify-content: center;
+  align-items: center;
   margin-top: 35px;
   left: 50%;
   transform: translate(-50%, -50%);
