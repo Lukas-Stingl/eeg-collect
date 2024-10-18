@@ -55,7 +55,7 @@ export default {
   color: red;
 }
 #app {
-  font-family: "Noto Sans", "Arial", sans-serif;
+  font-family: "Open Sans", "Arial", sans-serif;
   overflow-x: hidden; /* Hide horizontal scrollbar when content overflows */
 }
 
@@ -65,17 +65,20 @@ header {
   color: #fff;
   display: flex;
   align-items: center;
-  padding: 10px;
+  padding: 10px 30px;
   width: 100%;
   position: fixed;
   top: 0;
   left: 0;
   z-index: 1; /* Ensure the header is above the menu */
+  height: 70px;
 }
 
 .app-title {
   flex-grow: 1;
   margin: 0;
+  font-size: 24px;
+  font-weight: 600;
 }
 
 .menu-button {

@@ -11,7 +11,7 @@ export async function loadFonts() {
 
   webFontLoader.load({
     google: {
-      families: ["Noto Sans:100,300,400,500,600,700,900"],
+      families: ["Open Sans:100,300,400,500,600,700,900"],
     },
   });
 }
