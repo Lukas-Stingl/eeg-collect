@@ -15,7 +15,7 @@ export class cyton {
     this.mode = mode;
     // Initialize WebSocket connection
     this.ws = new WebSocket(
-      "wss://exg.iism.kit.edu/websocket/" +
+      "ws://localhost:3001/websocket/" +
         this.mode +
         "/" +
         this.participantNumber,
@@ -123,7 +123,7 @@ export class cyton {
   }
   getImpedance(config) {
     const impedanceArray = [];
-    let assignment = channelAssignment[config];
+    const assignment = channelAssignment[config];
     console.log(assignment.length);
     if (Object.keys(assignment).length > 8) {
       this.mode = "daisy";
@@ -186,12 +186,12 @@ export class cyton {
   resetImpedance(config) {
     const impedanceArray = [];
     this.impedance = [];
-    let assignment = channelAssignment[config];
+    const assignment = channelAssignment[config];
 
     for (const channel in assignment) {
       const node_id = assignment[channel];
-      let impedanceValue = 0;
-      let state = 0;
+      const impedanceValue = 0;
+      const state = 0;
 
       impedanceArray.push({
         node_id: node_id,
@@ -289,7 +289,9 @@ export class cyton {
   exportImpedanceCSV(participantNumber) {
     const objectKeys = Object.keys(this.impedance);
     const csvContent = this.parseAndExportImpedance(this.impedance, objectKeys);
-    let startTime = Math.floor(new Date(this.startRecording).getTime() / 1000);
+    const startTime = Math.floor(
+      new Date(this.startRecording).getTime() / 1000,
+    );
     const fileName = `${participantNumber}-${startTime}-Impedance.csv`;
 
     const formData = new FormData();
@@ -385,7 +387,7 @@ export class cyton {
       try {
         // Check if the port is writable before writing data
         if (this.port && this.port.writable) {
-          var writer = this.port.writable.getWriter();
+          let writer = this.port.writable.getWriter();
           const impedanceCommandBytes = new TextEncoder().encode(
             impedanceCommand,
           );
@@ -420,8 +422,8 @@ export class cyton {
     try {
       if (this.port && this.port.writable) {
         const writer = this.port.writable.getWriter();
-        var command = "C~~"; // Command to start recording
-        var commandBytes = new TextEncoder().encode(command);
+        const command = "C~~"; // Command to start recording
+        const commandBytes = new TextEncoder().encode(command);
         await writer.write(commandBytes);
         console.log("Default channel settings applied");
 
@@ -600,9 +602,9 @@ export class cyton {
       this.data[channelName].push(channelData);
       eegData.push(channelData);
     }
-    let Acc0 = this.interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
-    let Acc1 = this.interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
-    let Acc2 = this.interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
+    const Acc0 = this.interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
+    const Acc1 = this.interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
+    const Acc2 = this.interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
     try {
       this.data["Accel0"].push(Acc0);
       this.data["Accel1"].push(Acc1);
@@ -636,7 +638,7 @@ export class cyton {
   }
   async decodeDaisyImpedance(chunk) {
     //calculate impedance for daisy in browser for latency reasons
-    let odd = chunk[1] % 2 !== 0;
+    const odd = chunk[1] % 2 !== 0;
     let channelName;
     // Skip first byte (header) and last byte (stop byte)
     const byteArray = chunk.slice(1, -1);
@@ -648,9 +650,9 @@ export class cyton {
       this.data["sampleNumber"].push(sampleNumber);
       this.data["timestamp"].push(new Date().getTime());
     }
-    let Acc0 = this.interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
-    let Acc1 = this.interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
-    let Acc2 = this.interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
+    const Acc0 = this.interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
+    const Acc1 = this.interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
+    const Acc2 = this.interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
 
     try {
       this.data["Accel0"].push(Acc0);
@@ -778,7 +780,7 @@ export class cyton {
         console.log("Channel: " + channel);
         console.log("Data: " + this.data[channel]);
         // Prepare data to send
-        let raw_data = this.data[channel].map((value) => parseFloat(value)); // Convert values to floats if necessary
+        const raw_data = this.data[channel].map((value) => parseFloat(value)); // Convert values to floats if necessary
         if (this.mode === "daisy") {
           this.sps = 125;
         } else {
@@ -976,7 +978,7 @@ export class cyton {
   async checkConnectedDevice() {
     this.startReading("record");
     let buffer = ""; // stores decoded text messages.
-    let checkChunkBuffer = []; // Buffer to accumulate bytes until a complete chunk is formed
+    const checkChunkBuffer = []; // Buffer to accumulate bytes until a complete chunk is formed
     let isCheckChunkChecked = false;
 
     // Start the initial timeout check

@@ -1,4 +1,9 @@
-import { createRouter, createWebHistory } from "vue-router";
+import {
+  createRouter,
+  createWebHistory,
+  NavigationGuardNext,
+  RouteLocationNormalized,
+} from "vue-router";
 import Recording from "@/views/StartRecording.vue";
 import Participant from "@/views/StartScreen.vue";
 import Check from "@/views/DeviceCheck.vue";
@@ -15,7 +20,11 @@ const routes = [
   {
     path: "/recording",
     component: Recording,
-    beforeRouteLeave(to, from, next) {
+    beforeRouteLeave(
+      to: RouteLocationNormalized,
+      from: RouteLocationNormalized,
+      next: NavigationGuardNext,
+    ) {
       // Logic to execute before leaving the recording route
       // For example, you can prompt the user before leaving
       const confirmLeave = window.confirm(
