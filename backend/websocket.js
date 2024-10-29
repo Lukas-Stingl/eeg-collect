@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const url = require("url");
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3000;
 const RECORDINGS_DIR = path.join(__dirname, "recordings");
 
 // Ensure the recordings directory exists

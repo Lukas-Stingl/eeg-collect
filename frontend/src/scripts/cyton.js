@@ -946,6 +946,9 @@ export class cyton {
 
       const isCorrectDeviceConnected = await this.checkConnectedDevice();
 
+      console.log("isCorrectDeviceConnected");
+      console.log(isCorrectDeviceConnected);
+
       if (isCorrectDeviceConnected === CHECK_CONNECTED_DEVICE_STATUS.SUCCESS) {
         console.log("Correct device connected");
         this.readData();
@@ -976,6 +979,7 @@ export class cyton {
   }
 
   async checkConnectedDevice() {
+    console.log("in checkConnectedDevice");
     this.startReading("record");
     let buffer = ""; // stores decoded text messages.
     const checkChunkBuffer = []; // Buffer to accumulate bytes until a complete chunk is formed
