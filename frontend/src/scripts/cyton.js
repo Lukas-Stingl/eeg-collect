@@ -15,7 +15,7 @@ export class cyton {
     this.mode = mode;
     // Initialize WebSocket connection
     this.ws = new WebSocket(
-      "ws://localhost:3001/websocket/" +
+      "wss://exg.iism.kit.edu/websocket/" +
         this.mode +
         "/" +
         this.participantNumber,
