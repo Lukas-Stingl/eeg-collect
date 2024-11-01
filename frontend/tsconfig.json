@@ -6,12 +6,12 @@
     "jsx": "preserve",
     "moduleResolution": "node",
     "allowJs": true,
+    "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "useDefineForClassFields": true,
     "sourceMap": true,
-    "resolveJsonModule": true,
     "baseUrl": ".",
     "types": [
       "webpack-env"
