@@ -11,3 +11,8 @@ declare module "*.svg" {
 
   export default filePath;
 }
+
+declare module "*.json" {
+  const value: Record<string, any>;
+  export default value;
+}

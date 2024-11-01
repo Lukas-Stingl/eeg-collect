@@ -32,7 +32,7 @@ const isChecklistCompleted = computed(
 </script>
 
 <template>
-  <BasePage heading="Setup Device">
+  <BasePage heading="Setup EEG Device">
     <p
       class="mb-8"
       style="
