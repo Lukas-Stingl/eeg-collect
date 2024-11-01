@@ -46,11 +46,8 @@ const participantNrInUrl = ref(false);
 const badImpedance = ref(false);
 const finished = ref(false);
 const svg = ref(null);
-const svg2 = ref(null);
 const tooltip = ref(null);
-const tooltip2 = ref(null);
 const circles = ref(null);
-const circles2 = ref(null);
 const message = ref("Channel 1 wird überprüft.");
 const recordingStarted = ref(false);
 const progressValue = ref(0);
@@ -61,8 +58,6 @@ const nodeData = ref(NODES_DEFAULT_VALUES);
 const isButtonDisabled = ref(true);
 
 const baseModel = ref(null);
-const baseModel2 = ref(null);
-
 // ---- MEMOIZE ----
 
 const channelAssignment = computed(
@@ -131,28 +126,10 @@ const initializeD3 = () => {
     .attr("xlink:href", require("@/assets/baseModel.png"))
     .attr("width", 1000)
     .attr("height", 500);
-  svg2.value = d3
-    .select(baseModel2.value)
-    .append("image")
-    .attr("xlink:href", require("@/assets/baseModel.png"))
-    .attr("width", 1000)
-    .attr("height", 500);
   tooltip.value = d3.select(".tooltip");
-  tooltip2.value = d3.select(".tooltip2");
 
   svg.value = d3.select(baseModel.value);
-  svg2.value = d3.select(baseModel2.value);
   circles.value = svg.value
-    .selectAll("circle")
-    .data(NODES)
-    .enter()
-    .append("circle")
-    .attr("id", (d) => `node-${d.id}`)
-    .attr("cx", (d) => d.x)
-    .attr("cy", (d) => d.y)
-    .attr("r", (d) => d.r)
-    .attr("class", "node");
-  circles2.value = svg2.value
     .selectAll("circle")
     .data(NODES)
     .enter()
@@ -177,24 +154,8 @@ const handleBeforeUnload = (event) => {
 
 const updateCircles = () => {
   svg.value = d3.select(baseModel.value);
-  svg2.value = d3.select(baseModel2.value);
 
   svg.value
-    .selectAll("circle")
-    .data(nodeData.value, (d) => d.node_id)
-    .join(
-      (enter) =>
-        enter
-          .append("circle")
-          .attr("class", (d) => `node ${stateToClass(d.state)}`)
-          .attr("cx", (d) => NODES.find((n) => n.id === d.node_id)?.x || 0)
-          .attr("cy", (d) => NODES.find((n) => n.id === d.node_id)?.y || 0)
-          .attr("r", 12)
-          .on("mouseover", handleMouseOver)
-          .on("mouseout", handleMouseOut),
-      (update) => update.attr("class", (d) => `node ${stateToClass(d.state)}`),
-    );
-  svg2.value
     .selectAll("circle")
     .data(nodeData.value, (d) => d.node_id)
     .join(
@@ -218,25 +179,14 @@ const stateToClass = (state) => {
 
 const handleMouseOut = (event) => {
   tooltip.value.style("opacity", 0);
-  tooltip2.value.style("opacity", 0);
   d3.select(event.target).attr("r", 12); // Reset radius
 
   // Remove desaturation from all circles
   svg.value.selectAll("circle").classed("desaturated", false);
-  svg2.value.selectAll("circle").classed("desaturated", false);
 };
 
 const handleMouseOver = (event, d) => {
   tooltip.value
-    .style("opacity", 1)
-    .html(
-      `Node ID: ${d.node_id}<br/>State: ${stateToClass(
-        d.state,
-      )}<br/>Impedance: ${d.impedance}Ω`,
-    )
-    .style("left", `${event.layerX + 5}px`)
-    .style("top", `${event.layerY + 10}px`);
-  tooltip2.value
     .style("opacity", 1)
     .html(
       `Node ID: ${d.node_id}<br/>State: ${stateToClass(
@@ -251,10 +201,6 @@ const handleMouseOver = (event, d) => {
 
   // Desaturate other circles
   svg.value
-    .selectAll("circle")
-    .filter((node) => node.node_id !== d.node_id)
-    .classed("desaturated", true);
-  svg2.value
     .selectAll("circle")
     .filter((node) => node.node_id !== d.node_id)
     .classed("desaturated", true);
@@ -853,18 +799,7 @@ div#card_connect {
   pointer-events: none; /* Don't block mouse events */
   opacity: 0; /* Hidden by default */
 }
-.tooltip2 {
-  position: absolute;
-  text-align: center;
-  width: auto;
-  padding: 4px;
-  font: 12px sans-serif;
-  background: lightsteelblue;
-  border: 0px;
-  border-radius: 8px;
-  pointer-events: none; /* Don't block mouse events */
-  opacity: 0; /* Hidden by default */
-}
+
 .desaturated {
   opacity: 0.2;
 }

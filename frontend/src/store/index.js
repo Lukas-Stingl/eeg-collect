@@ -5,7 +5,6 @@ const store = createStore({
     return {
       participantNumber: "", // Example state property
       baseModel: "",
-      // other state properties...
     };
   },
   mutations: {

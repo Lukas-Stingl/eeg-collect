@@ -7,6 +7,7 @@ import {
 import Recording from "@/views/StartRecording.vue";
 import Participant from "@/views/StartScreen.vue";
 import Check from "@/views/DeviceCheck.vue";
+import SetupDevicePage from "@/views/setupDevicePage/SetupDevicePage.vue";
 
 const routes = [
   {
@@ -18,6 +19,10 @@ const routes = [
     component: Participant,
   },
   {
+    path: "/setup-device",
+    component: SetupDevicePage,
+  },
+  {
     path: "/recording",
     component: Recording,
     beforeRouteLeave(
@@ -25,8 +30,6 @@ const routes = [
       from: RouteLocationNormalized,
       next: NavigationGuardNext,
     ) {
-      // Logic to execute before leaving the recording route
-      // For example, you can prompt the user before leaving
       const confirmLeave = window.confirm(
         "Are you sure you want to leave the recording page?",
       );
