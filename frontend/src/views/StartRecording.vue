@@ -437,9 +437,8 @@ const updateDataFromCyton = () => {
         </v-card-text>
         <v-card-actions style="justify-content: end">
           <v-btn
-            @click="isHeadsetNotFoundErrorModalOpen.value = false"
+            @click="() => (isHeadsetNotFoundErrorModalOpen = false)"
             rounded="lg"
-            variant="outline"
             >Close</v-btn
           >
           <VBtn
