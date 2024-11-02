@@ -1,3 +1,16 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+
+import LogoIcon from "@/assets/LogoIcon.vue";
+import { getIsPassphraseValid } from "@/utils/helpers";
+
+const isPassphraseValid = ref(false);
+
+onMounted(async () => {
+  isPassphraseValid.value = await getIsPassphraseValid();
+});
+</script>
+
 <template>
   <div id="app">
     <!-- Application Header with Menu Button -->
@@ -14,36 +27,6 @@
     <div v-else class="forbidden">403 Forbidden</div>
   </div>
 </template>
-
-<script>
-import LogoIcon from "@/assets/LogoIcon.vue";
-
-export default {
-  components: { LogoIcon },
-  data() {
-    return {
-      isMenuOpen: false,
-      isPassphraseValid: false,
-    };
-  },
-  methods: {
-    toggleMenu() {
-      this.isMenuOpen = !this.isMenuOpen;
-    },
-    checkPassphrase() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const passphraseParam = urlParams.get("aHCWFRZvlU");
-      if (passphraseParam) {
-        const decodedPassphrase = atob(passphraseParam);
-        this.isPassphraseValid = decodedPassphrase === "iism4ever";
-      }
-    },
-  },
-  mounted() {
-    this.checkPassphrase();
-  },
-};
-</script>
 
 <style>
 * {

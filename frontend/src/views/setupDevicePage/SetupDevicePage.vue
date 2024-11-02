@@ -3,8 +3,11 @@ import { computed, ref } from "vue";
 
 import BasePage from "@/components/BasePage.vue";
 import SetupDeviceChecklist from "@/views/setupDevicePage/components/setupDeviceChecklist.vue";
+import { useConfigureParticipantId } from "@/utils/hooks";
 
 // ---- STATE ----
+
+useConfigureParticipantId();
 
 const isChecklistTurnOnHeadphonesChecked = ref(false);
 const isChecklistConnectHeadphonesViaBluetoothChecked = ref(false);
@@ -22,6 +25,8 @@ const setIsChecklistConnectHeadphonesViaBluetoothChecked = (value: boolean) => {
 const setIsChecklistDonglePluggedInChecked = (value: boolean) => {
   isChecklistDonglePluggedInChecked.value = value;
 };
+
+// ---- COMPUTED ----
 
 const isChecklistCompleted = computed(
   () =>
