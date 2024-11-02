@@ -1,6 +1,4 @@
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "@/store";
-import router from "@/router/index";
 
 export const URL_PARAMS = {
   participantIdParam: "AbXHPCkszw",

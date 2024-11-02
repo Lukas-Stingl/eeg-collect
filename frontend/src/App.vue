@@ -3,8 +3,12 @@ import { onMounted, ref } from "vue";
 
 import LogoIcon from "@/assets/LogoIcon.vue";
 import { getIsPassphraseValid } from "@/utils/helpers";
+import ParticipantIdModal from "@/components/ParticipantIdModal.vue";
 
+// ---- STATE ----
 const isPassphraseValid = ref(false);
+
+// ---- LIFECYCLE HOOKS ----
 
 onMounted(async () => {
   isPassphraseValid.value = await getIsPassphraseValid();
@@ -25,6 +29,9 @@ onMounted(async () => {
       <router-view></router-view>
     </div>
     <div v-else class="forbidden">403 Forbidden</div>
+
+    <!-- ---- Global Modals ---- -->
+    <ParticipantIdModal />
   </div>
 </template>
 
@@ -38,7 +45,7 @@ onMounted(async () => {
 body {
   height: 100vh;
   width: 100vw;
-  max-width: 100%;
+  max-width: 100vw;
   display: flex;
 }
 
@@ -53,8 +60,8 @@ body {
 #app {
   font-family: "ui-sans-serif", "system-ui", "Open Sans", "Arial", sans-serif;
   overflow-x: hidden; /* Hide horizontal scrollbar when content overflows */
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   display: flex;
 }
 
@@ -74,8 +81,6 @@ header {
 }
 
 .app-title {
-  flex-grow: 1;
-  margin: 0;
   font-size: 24px;
   font-weight: 600;
 }
@@ -84,6 +89,6 @@ header {
 .content {
   margin-top: 70px;
   width: 100%;
-  flex-grow: 1;
+  height: calc(100% - 70px);
 }
 </style>
