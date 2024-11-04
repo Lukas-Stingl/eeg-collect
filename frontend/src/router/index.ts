@@ -4,10 +4,12 @@ import {
   NavigationGuardNext,
   RouteLocationNormalized,
 } from "vue-router";
-import Recording from "@/views/StartRecording.vue";
-import Participant from "@/views/StartScreen.vue";
-import Check from "@/views/DeviceCheck.vue";
-import SetupDevicePage from "@/views/setupDevicePage/SetupDevicePage.vue";
+
+import Recording from "@/pages/StartRecording.vue";
+import Participant from "@/pages/StartScreen.vue";
+import Check from "@/pages/DeviceCheck.vue";
+import SetupDevicePage from "@/pages/setupDevicePage/SetupDevicePage.vue";
+import OptimizeSignalAndImpedancePage from "@/pages/optimizeSignalAndImpedancePage/OptimizeSignalAndImpedancePage.vue";
 
 const routes = [
   {
@@ -21,6 +23,10 @@ const routes = [
   {
     path: "/setup-device",
     component: SetupDevicePage,
+  },
+  {
+    path: "/optimize-signal",
+    component: OptimizeSignalAndImpedancePage,
   },
   {
     path: "/recording",
