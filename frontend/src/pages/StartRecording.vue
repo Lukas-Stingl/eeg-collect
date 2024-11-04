@@ -12,7 +12,6 @@ import {
   onBeforeMount,
   onBeforeUnmount,
   getCurrentInstance,
-  watch,
 } from "vue";
 import * as d3 from "d3";
 import { PhWarningCircle } from "@phosphor-icons/vue";
@@ -20,10 +19,7 @@ import { PhWarningCircle } from "@phosphor-icons/vue";
 import { CHECK_CONNECTED_DEVICE_STATUS, cyton } from "../scripts/cyton.js";
 import CHANNEL_ASSIGNMENT from "../config/channelAssignment.json";
 import { NODES_DEFAULT_VALUES, NODES } from "@/utils/types";
-import {
-  useConfigureParticipantId,
-  useWebsocketConnection,
-} from "@/utils/hooks";
+import { useConfigureParticipantId } from "@/utils/hooks";
 
 // ---- STATE ----
 
