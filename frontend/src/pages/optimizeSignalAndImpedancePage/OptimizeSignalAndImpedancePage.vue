@@ -11,7 +11,7 @@ import {
 // ---- STATE ----
 useConfigureParticipantId();
 const ws = useWebsocketConnection();
-const { startSignalQualityCheck, stopRecording } = useOpenBCIUtils();
+const { startSignalQualityCheck, stopRecording, signalRMS } = useOpenBCIUtils();
 
 // ---- LIFECYCLE HOOKS ----
 
@@ -24,10 +24,13 @@ onMounted(() => {
   setTimeout(() => {
     console.log("JNON");
     stopRecording();
-  }, 5000);
+  }, 15000);
 });
 </script>
 
 <template>
-  <BasePage heading="Optimize Headphones Position">Hallo</BasePage>
+  <BasePage heading="Optimize Headphones Position">
+    <div>{{ signalRMS }}</div>
+    <div v-for="(rms, index) in signalRMS" :key="index">{{ rms }}</div>
+  </BasePage>
 </template>

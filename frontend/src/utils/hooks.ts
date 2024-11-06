@@ -1,12 +1,14 @@
 import { useStore } from "@/store";
 import { useRoute } from "vue-router";
-import { isEmpty } from "lodash";
+import { isEmpty, throttle } from "lodash";
 import { Store } from "vuex";
 
 import {
   decodeCytonData,
   getEncodedCytonCommand,
   getReadableTimestamp,
+  interpret16bitAsInt32,
+  interpret24bitAsInt32,
   logErrorDetails,
   URL_PARAMS,
   URLs,
@@ -19,8 +21,10 @@ import {
   AugmentedPartial,
   ConnectedDeviceStatus,
   CytonBoardCommands,
+  DEFAULT_OPEN_BCI_SERIAL_DATA,
   OpenBCISerialData,
   RecordingMode,
+  SerialDataRMS,
 } from "@/utils/openBCISerialTypes";
 
 export const useConfigureParticipantId = () => {
@@ -97,6 +101,45 @@ export const useOpenBCIUtils = () => {
   const recordingMode = ref<RecordingMode>(RecordingMode.RECORDING);
   const startRecordingTime = ref<string>("");
   const isRecording = ref<boolean>(false);
+
+  const rollingBuffer = ref<OpenBCISerialData[]>([]);
+
+  const getThrottledRMS = throttle(() => {
+    const nodeRMSs: SerialDataRMS = { ...DEFAULT_OPEN_BCI_SERIAL_DATA };
+
+    console.log("rollingBuffer.value XXXXXX");
+    console.log(rollingBuffer.value);
+
+    Object.keys(nodeRMSs).map((AKey) => {
+      let squaredSumOfChannelAxSignal = 0;
+      const numberOfChunks = rollingBuffer.value.length;
+      rollingBuffer.value.map((dataChunk) => {
+        squaredSumOfChannelAxSignal += Math.pow(
+          dataChunk[AKey as keyof OpenBCISerialData],
+          2,
+        );
+      });
+
+      nodeRMSs[AKey as keyof SerialDataRMS] = Math.sqrt(
+        squaredSumOfChannelAxSignal / numberOfChunks,
+      );
+    });
+
+    return nodeRMSs;
+  }, 500);
+
+  const signalRMS = computed(() => {
+    const a = rollingBuffer.value;
+    return getThrottledRMS();
+  });
+
+  watch(
+    () => signalRMS.value,
+    (newValue) => {
+      console.log("signalRMS changed to: " + newValue);
+      console.log(newValue);
+    },
+  );
 
   // ---- EXPORTED METHODS ----
 
@@ -198,7 +241,7 @@ export const useOpenBCIUtils = () => {
   const startSignalQualityCheck = async () => {
     isRecording.value = true;
 
-    let buffer: any[] = []; // Buffer to accumulate bytes until a complete chunk is formed
+    let chunkBuffer: any[] = []; // Buffer to accumulate bytes until a complete chunk is formed
     let headerFound = false;
     let lastDataTimestamp = Date.now();
     let timeoutId: number;
@@ -263,7 +306,7 @@ export const useOpenBCIUtils = () => {
             }
 
             if (headerFound) {
-              buffer.push(value[i]);
+              chunkBuffer.push(value[i]);
             }
           } catch (error) {
             // console.error("Error in first part of for loop:", error);
@@ -275,21 +318,33 @@ export const useOpenBCIUtils = () => {
             // Decode the chunk
             // Stop receiving data if the stop byte is found
 
-            if (value[i] >= 192 && value[i] <= 198 && buffer.length > 30) {
+            if (value[i] >= 192 && value[i] <= 198 && chunkBuffer.length > 30) {
               headerFound = false;
 
-              if (mode.value === ConnectionMode.DAISY) {
-                // decodeDaisy(buffer);
-                console.log("DAISY?");
-              } else {
-                decodeChunk(buffer);
+              switch (mode.value) {
+                case ConnectionMode.CYTON: {
+                  const data = decodeCytonData(chunkBuffer);
+
+                  if (data) {
+                    console.log("DATATATATA CHUNK COMPLETE");
+                    console.log(data);
+                    if (rollingBuffer.value.length > 500) {
+                      rollingBuffer.value.shift();
+                    }
+
+                    rollingBuffer.value = [...rollingBuffer.value, data];
+                  }
+                  break;
+                }
+                case ConnectionMode.DAISY:
+                  // decodeDaisy(buffer);
+                  break;
               }
 
-              // Reset buffer for the next chunk
-              buffer = [];
+              chunkBuffer = []; // Reset buffer for the next chunk
             } else {
               // TODO: I assume this case is not caught: What happens if the above is not executed and the buffer not reset?
-              //console.log("Unsure what to do with rest of chunk?")
+              console.log("Unsure what to do with rest of chunk?");
             }
           } catch (error) {
             // console.error("Error in second part of for loop:", error);
@@ -297,19 +352,51 @@ export const useOpenBCIUtils = () => {
           }
         }
       } else {
-        // console.log("Warning: Received null or undefined value from reader.");
-        // stop = true;
+        console.log("Warning: Received null or undefined value from reader.");
       }
     }
   };
 
   // ---- INTERNAL FUNCTIONS ----
 
+  const decodeCytonData = (message: any): OpenBCISerialData => {
+    const str = message.toString();
+    const numbers = str.split(",").map(Number);
+
+    const chunk = new Uint8Array(numbers);
+    const byteArray = chunk.slice(1, -1);
+    const sampleNumber = chunk[1];
+
+    const dataChunk: OpenBCISerialData = {
+      ...DEFAULT_OPEN_BCI_SERIAL_DATA,
+      sampleNumber: sampleNumber,
+      timestamp: new Date().getTime(),
+      Accel0: interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125,
+      Accel1: interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125,
+      Accel2: interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125,
+    };
+
+    for (let i = 2; i <= 24; i += 3) {
+      const channelData =
+        interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.0223517445;
+      const channelId = `A${Math.ceil((i - 1) / 3)}`;
+
+      dataChunk[channelId as keyof OpenBCISerialData] = channelData;
+    }
+
+    console.log("Data Chunk");
+    console.log(dataChunk);
+
+    return dataChunk;
+  };
+
   /**
+   * decodeChunk in cyton.js
+   *
    * Send a complete chunk to the WebSocket Server.
    * @param chunk - The chunk of received EEG data to be sent to the server.
    */
-  const decodeChunk = async (chunk: any[]) => {
+  const sendChunkToWebSocket = async (chunk: any[]) => {
     if (ws.value && ws.value.readyState === WebSocket.OPEN) {
       try {
         // @ts-expect-error
@@ -324,25 +411,26 @@ export const useOpenBCIUtils = () => {
 
   // startReading() in cyton.js
   const commandBoardStartStreamingData = async () => {
+    // Check if the port is writable before writing data
+    if (!port.value || !port.value.writable) {
+      console.error("Serial port is not writable");
+      return;
+    }
+
     startRecordingTime.value = getReadableTimestamp();
     try {
-      // Check if the port is writable before writing data
-      if (port.value && port.value.writable) {
-        const writer = port.value.writable.getWriter();
-        let command = "b"; // Command to start recording
-        let commandBytes = new TextEncoder().encode(command);
-        await writer.write(commandBytes);
+      const writer = port.value.writable.getWriter();
 
-        command = "C~~"; // Command to start recording
-        commandBytes = new TextEncoder().encode(command);
-        await writer.write(commandBytes);
-        console.log("Recording started");
-        isRecording.value = true;
+      await writer.write(
+        getEncodedCytonCommand(CytonBoardCommands.START_STREAMING),
+      );
+      await writer.write(
+        getEncodedCytonCommand(CytonBoardCommands.CONFIGURE_SAMPLING_RATE),
+      );
+      console.log("Recording started");
+      isRecording.value = true;
 
-        writer.releaseLock();
-      } else {
-        console.error("Serial port is not writable");
-      }
+      writer.releaseLock();
     } catch (error) {
       console.error("Error starting recording:", error);
     }
@@ -445,7 +533,7 @@ export const useOpenBCIUtils = () => {
         return { value: null, done: false };
       }
       const { value, done } = await reader.value.read();
-      console.log(value);
+      // console.log(value);
       return { value, done };
     } catch (err) {
       console.error("Error while reading from stream:", err);
@@ -464,5 +552,10 @@ export const useOpenBCIUtils = () => {
 
   // ---- RETURN ----
 
-  return { setupSerialConnection, startSignalQualityCheck, stopRecording };
+  return {
+    setupSerialConnection,
+    startSignalQualityCheck,
+    stopRecording,
+    signalRMS,
+  };
 };

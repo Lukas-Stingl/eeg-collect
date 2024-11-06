@@ -1,5 +1,14 @@
+export type AugmentedNullable<T, K extends keyof T> = Omit<T, K> & {
+  [P in K]: T[P] | null;
+};
+
+export type AugmentedPartial<T extends {}, K extends keyof T> = Partial<
+  Pick<T, K>
+> &
+  Omit<T, K>;
+
 export type OpenBCISerialData = {
-  count: "";
+  count: number;
   sampleNumber: number;
   timestamp: number;
   channelName: number;
@@ -24,14 +33,61 @@ export type OpenBCISerialData = {
   Accel2: number;
 };
 
-export type AugmentedNullable<T, K extends keyof T> = Omit<T, K> & {
-  [P in K]: T[P] | null;
+export type SerialDataRMS = Omit<
+  AugmentedPartial<OpenBCISerialData, keyof OpenBCISerialData>,
+  | "Accel0"
+  | "Accel1"
+  | "Accel2"
+  | "sampleNumber"
+  | "count"
+  | "channelName"
+  | "timestamp"
+>;
+
+export const DEFAULT_OPEN_BCI_SERIAL_DATA: OpenBCISerialData = {
+  count: 0,
+  sampleNumber: 0,
+  timestamp: Date.now(),
+  channelName: 0,
+  A1: 0,
+  A2: 0,
+  A3: 0,
+  A4: 0,
+  A5: 0,
+  A6: 0,
+  A7: 0,
+  A8: 0,
+  A9: 0,
+  A10: 0,
+  A11: 0,
+  A12: 0,
+  A13: 0,
+  A14: 0,
+  A15: 0,
+  A16: 0,
+  Accel0: 0,
+  Accel1: 0,
+  Accel2: 0,
 };
 
-export type AugmentedPartial<T extends {}, K extends keyof T> = Partial<
-  Pick<T, K>
-> &
-  Omit<T, K>;
+export const DEFAULT_OPEN_BCI_SERIAL_DATA_RMS: SerialDataRMS = {
+  A1: 0,
+  A2: 0,
+  A3: 0,
+  A4: 0,
+  A5: 0,
+  A6: 0,
+  A7: 0,
+  A8: 0,
+  A9: 0,
+  A10: 0,
+  A11: 0,
+  A12: 0,
+  A13: 0,
+  A14: 0,
+  A15: 0,
+  A16: 0,
+};
 
 export enum RecordingMode {
   RECORDING = "recording",
@@ -47,6 +103,7 @@ export enum ConnectedDeviceStatus {
 export enum CytonBoardCommands {
   START_STREAMING = "b",
   STOP_STREAMING = "s",
+  CONFIGURE_SAMPLING_RATE = "C~~",
   // RESET = "v",
   // DISCONNECT = "d",
   // IMPEDANCE = "z",
