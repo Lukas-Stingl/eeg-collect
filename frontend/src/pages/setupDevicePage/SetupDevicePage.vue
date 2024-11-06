@@ -10,12 +10,15 @@ import {
 } from "@/utils/hooks";
 import { ConnectedDeviceStatus } from "@/utils/openBCISerialTypes";
 import { PhWarningCircle } from "@phosphor-icons/vue";
+import { useRoute, useRouter } from "vue-router";
 
 // ---- STATE ----
 
 useConfigureParticipantId();
 useWebsocketConnection();
 const { setupSerialConnection } = useOpenBCIUtils();
+const router = useRouter();
+const route = useRoute();
 
 const isChecklistTurnOnHeadphonesChecked = ref(false);
 const isChecklistConnectHeadphonesViaBluetoothChecked = ref(false);
@@ -44,6 +47,8 @@ const handleConnectSerialPort = async () => {
         title: "",
         message: "",
       };
+
+      handleRedirectToRecording();
       break;
     case ConnectedDeviceStatus.NO_DATA_STREAMED:
       connectionErrorModal.value = {
@@ -86,6 +91,9 @@ const setIsChecklistConnectHeadphonesViaBluetoothChecked = (value: boolean) => {
 const setIsChecklistDonglePluggedInChecked = (value: boolean) => {
   isChecklistDonglePluggedInChecked.value = value;
 };
+
+const handleRedirectToRecording = () =>
+  router.push({ path: "/optimize-signal", query: route.query });
 
 // ---- COMPUTED ----
 

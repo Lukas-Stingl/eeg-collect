@@ -3,7 +3,14 @@ import { useRoute } from "vue-router";
 import { isEmpty } from "lodash";
 import { Store } from "vuex";
 
-import { getReadableTimestamp, URL_PARAMS, URLs } from "@/utils/helpers";
+import {
+  decodeCytonData,
+  getEncodedCytonCommand,
+  getReadableTimestamp,
+  logErrorDetails,
+  URL_PARAMS,
+  URLs,
+} from "@/utils/helpers";
 import { computed, ref, watch } from "vue";
 import CHANNEL_ASSIGNMENT from "@/config/channelAssignment.json";
 import { ConnectionMode, State } from "@/store/utils/storeTypes";
@@ -11,6 +18,7 @@ import { CHECK_CONNECTED_DEVICE_STATUS } from "@/scripts/cyton";
 import {
   AugmentedPartial,
   ConnectedDeviceStatus,
+  CytonBoardCommands,
   OpenBCISerialData,
   RecordingMode,
 } from "@/utils/openBCISerialTypes";
@@ -81,13 +89,16 @@ export const useOpenBCIUtils = () => {
   // ---- STATE ----
 
   const store = useStore();
+  const ws = computed(() => store.state.webSocket);
+
   const mode = computed(() => store.state.mode);
   const port = computed(() => store.state.webSerial.port);
   const reader = computed(() => store.state.webSerial.reader);
   const recordingMode = ref<RecordingMode>(RecordingMode.RECORDING);
   const startRecordingTime = ref<string>("");
+  const isRecording = ref<boolean>(false);
 
-  // ---- METHODS ----
+  // ---- EXPORTED METHODS ----
 
   const setupSerialConnection = async ({
     setIsLoadingModalShown,
@@ -109,7 +120,7 @@ export const useOpenBCIUtils = () => {
       await port.open({ baudRate: 115200, bufferSize: 16000 });
       const reader = port.readable.getReader();
 
-      store.commit("setWebSerailReader", { reader: reader });
+      store.commit("setWebSerialReader", { reader: reader });
 
       const isCorrectDeviceConnected = await checkConnectedDevice(store);
 
@@ -154,24 +165,179 @@ export const useOpenBCIUtils = () => {
         setIsLoadingModalShown(false);
       }
 
-      if (port.value && reader.value) {
-        console.log(reader.value);
-        reader.value.releaseLock();
-        console.log("Reader released");
+      // TODO Wenn die App Unmounted, Reader releasen. Aber nicht hier!!!
+    }
+  };
+
+  const stopRecording = async () => {
+    console.log("1010101010101010101010101010101010101010101010101010101010");
+    isRecording.value = false;
+
+    try {
+      // Check if the port is writable before writing data
+      if (port.value && port.value.writable) {
+        console.log("ABABABABABABABABABABABABABABABABABABAB");
+        const writer = port.value.writable.getWriter();
+
+        await writer.write(
+          getEncodedCytonCommand(CytonBoardCommands.STOP_STREAMING),
+        );
+        console.log("Cyton Streaming stopped");
+        writer.releaseLock();
+        // console.log(this.data);
+        // this.data.count = this.data.A1.length;
+      } else {
+        console.error("Serial port is not writable");
+      }
+    } catch (error) {
+      console.error("Error stopping recording:", error);
+    }
+  };
+
+  // Wie readData() in cyton.js
+  const startSignalQualityCheck = async () => {
+    isRecording.value = true;
+
+    let buffer: any[] = []; // Buffer to accumulate bytes until a complete chunk is formed
+    let headerFound = false;
+    let lastDataTimestamp = Date.now();
+    let timeoutId: number;
+
+    watch(isRecording, (newValue) => {
+      console.log(
+        "isRecording changed to false, stopping the loop: " + newValue,
+      );
+    });
+
+    const resetTimeout = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        if (Date.now() - lastDataTimestamp >= 10000 && isRecording.value) {
+          console.log(
+            "no new data received since 10 seconds, restarting stream",
+          );
+          commandBoardStartStreamingData();
+        }
+      }, 10000);
+    };
+
+    // Start the initial timeout check
+    resetTimeout();
+    // let stop = false;
+
+    // TODO Hier noch checken ob der reader nicht closed ist. Wenn ja, return, sonst gibts eine endlosschleife
+    while (isRecording.value) {
+      const { value, done } = await readFromStream();
+
+      //console.log("New pair for value, done received.");
+      // console.log(isRecording.value);
+      // console.log(value);
+
+      if (done) {
+        console.log("Stream disconnected, checking status");
+        if (isRecording.value) {
+          console.log("Stream disconnected, attempting to reconnect");
+          continue;
+        } else {
+          console.log("Stream disconnected, stopping read");
+          if (reader.value) {
+            reader.value.releaseLock();
+            break;
+          }
+        }
+      }
+
+      lastDataTimestamp = Date.now(); // Update timestamp on new data
+      resetTimeout();
+
+      // Process received chunk
+      if (value) {
+        for (let i = 0; i < value.length; i++) {
+          try {
+            // Check if the header is found
+            if (!headerFound && value[i] === 160) {
+              headerFound = true;
+            } else if (!headerFound && !headerFound) {
+              const text = new TextDecoder().decode(value);
+              // console.log(text);
+            }
+
+            if (headerFound) {
+              buffer.push(value[i]);
+            }
+          } catch (error) {
+            // console.error("Error in first part of for loop:", error);
+            // logErrorDetails(error, buffer, isRecording.value);
+          }
+
+          try {
+            // Check if a complete chunk is formed
+            // Decode the chunk
+            // Stop receiving data if the stop byte is found
+
+            if (value[i] >= 192 && value[i] <= 198 && buffer.length > 30) {
+              headerFound = false;
+
+              if (mode.value === ConnectionMode.DAISY) {
+                // decodeDaisy(buffer);
+                console.log("DAISY?");
+              } else {
+                decodeChunk(buffer);
+              }
+
+              // Reset buffer for the next chunk
+              buffer = [];
+            } else {
+              // TODO: I assume this case is not caught: What happens if the above is not executed and the buffer not reset?
+              //console.log("Unsure what to do with rest of chunk?")
+            }
+          } catch (error) {
+            // console.error("Error in second part of for loop:", error);
+            // logErrorDetails(error, buffer, isRecording.value);
+          }
+        }
+      } else {
+        // console.log("Warning: Received null or undefined value from reader.");
+        // stop = true;
       }
     }
   };
 
-  const startReading = async () => {
+  // ---- INTERNAL FUNCTIONS ----
+
+  /**
+   * Send a complete chunk to the WebSocket Server.
+   * @param chunk - The chunk of received EEG data to be sent to the server.
+   */
+  const decodeChunk = async (chunk: any[]) => {
+    if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+      try {
+        // @ts-expect-error
+        ws.value.send(chunk as ArrayBuffer);
+      } catch (err) {
+        // console.error("Error sending chunk to WebSocket:", err);
+      }
+    } else {
+      // console.warn("WebSocket not open, chunk not sent.");
+    }
+  };
+
+  // startReading() in cyton.js
+  const commandBoardStartStreamingData = async () => {
     startRecordingTime.value = getReadableTimestamp();
     try {
       // Check if the port is writable before writing data
       if (port.value && port.value.writable) {
         const writer = port.value.writable.getWriter();
-        const command = "b"; // Command to start recording
-        const commandBytes = new TextEncoder().encode(command);
+        let command = "b"; // Command to start recording
+        let commandBytes = new TextEncoder().encode(command);
+        await writer.write(commandBytes);
+
+        command = "C~~"; // Command to start recording
+        commandBytes = new TextEncoder().encode(command);
         await writer.write(commandBytes);
         console.log("Recording started");
+        isRecording.value = true;
 
         writer.releaseLock();
       } else {
@@ -181,8 +347,6 @@ export const useOpenBCIUtils = () => {
       console.error("Error starting recording:", error);
     }
   };
-
-  // ---- HELPER FUNCTIONS ----
 
   const checkConnectedDevice = async (store: Store<State>) => {
     console.log(store);
@@ -195,7 +359,7 @@ export const useOpenBCIUtils = () => {
 
     console.log("in checkConnectedDevice");
     recordingMode.value = RecordingMode.RECORDING;
-    await startReading();
+    await commandBoardStartStreamingData();
     let buffer = ""; // stores decoded text messages.
     const checkChunkBuffer = []; // Buffer to accumulate bytes until a complete chunk is formed
     let isCheckChunkChecked = false;
@@ -239,72 +403,6 @@ export const useOpenBCIUtils = () => {
         }
       }
 
-      // ---- START HELPER FUNCTIONS
-
-      const decodeCytonData = (message: any[]) => {
-        const str = message.toString();
-        const numbers = str.split(",").map(Number);
-
-        const chunk = new Uint8Array(numbers);
-        const byteArray = chunk.slice(1, -1);
-        const sampleNumber = chunk[1];
-        let data: AugmentedPartial<
-          OpenBCISerialData,
-          keyof Omit<
-            OpenBCISerialData,
-            "sampleNumber" | "timestamp" | "Accel0" | "Accel1" | "Accel2"
-          >
-        > = {
-          sampleNumber: sampleNumber,
-          timestamp: new Date().getTime(),
-          Accel0: interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125,
-          Accel1: interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125,
-          Accel2: interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125,
-        };
-
-        for (let i = 2; i <= 24; i += 3) {
-          const channelData =
-            interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.0223517445;
-          const channelName = `A${Math.ceil((i - 1) / 3)}`;
-          data = { ...data, channelName: channelData };
-        }
-
-        return data;
-      };
-
-      const interpret24bitAsInt32 = (byteArray: Uint8Array) => {
-        if (byteArray.length !== 3) {
-          throw new Error("Byte array must have exactly 3 elements");
-        }
-
-        let newInt =
-          ((0xff & byteArray[0]) << 16) |
-          ((0xff & byteArray[1]) << 8) |
-          (0xff & byteArray[2]);
-
-        if ((newInt & 0x00800000) > 0) {
-          newInt |= 0xff000000;
-        } else {
-          newInt &= 0x00ffffff;
-        }
-
-        return newInt;
-      };
-
-      const interpret16bitAsInt32 = (byteArray: Uint8Array) => {
-        let newInt = ((0xff & byteArray[0]) << 8) | (0xff & byteArray[1]);
-
-        if ((newInt & 0x00008000) > 0) {
-          newInt |= 0xffff0000;
-        } else {
-          newInt &= 0x0000ffff;
-        }
-
-        return newInt;
-      };
-
-      // ---- END HELPER FUNCTIONS
-
       if (!value) {
         console.log("No value streamed. Possibly wrong port selected.");
         reader.releaseLock();
@@ -339,27 +437,32 @@ export const useOpenBCIUtils = () => {
   };
 
   const readFromStream = async () => {
+    console.log("readFromStream");
+    console.log(reader.value);
     try {
       if (!reader.value) {
         console.error("No reader found");
         return { value: null, done: false };
       }
       const { value, done } = await reader.value.read();
+      console.log(value);
       return { value, done };
     } catch (err) {
       console.error("Error while reading from stream:", err);
-      console.log(reader.value);
+      // console.log(reader.value);
       logReaderStatus();
       return { value: null, done: false }; // Return done as true to stop the loop if there's an error
     }
   };
   const logReaderStatus = () => {
     if (reader.value && reader.value.closed) {
-      console.log("Reader is closed.");
+      //console.log("Reader is closed.");
     } else {
-      console.log("Reader is in an unknown state.");
+      //console.log("Reader is in an unknown state.");
     }
   };
 
-  return { setupSerialConnection, startReading };
+  // ---- RETURN ----
+
+  return { setupSerialConnection, startSignalQualityCheck, stopRecording };
 };

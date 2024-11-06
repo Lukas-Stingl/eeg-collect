@@ -30,7 +30,7 @@ const store = createStore<State>({
     setWebSerialPort(state, payload: { port: SerialPort }) {
       state.webSerial.port = payload.port;
     },
-    setWebSerailReader(
+    setWebSerialReader(
       state,
       payload: { reader: ReadableStreamDefaultReader<any> },
     ) {

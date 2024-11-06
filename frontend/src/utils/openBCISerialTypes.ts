@@ -43,3 +43,11 @@ export enum ConnectedDeviceStatus {
   SUCCESS = "success",
   NO_DATA_STREAMED = "no_data_streamed",
 }
+
+export enum CytonBoardCommands {
+  START_STREAMING = "b",
+  STOP_STREAMING = "s",
+  // RESET = "v",
+  // DISCONNECT = "d",
+  // IMPEDANCE = "z",
+}
