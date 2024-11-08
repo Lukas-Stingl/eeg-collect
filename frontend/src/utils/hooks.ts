@@ -107,8 +107,8 @@ export const useOpenBCIUtils = () => {
   const getThrottledRMS = throttle(() => {
     const nodeRMSs: SerialDataRMS = { ...DEFAULT_OPEN_BCI_SERIAL_DATA };
 
-    console.log("rollingBuffer.value XXXXXX");
-    console.log(rollingBuffer.value);
+    //console.log("rollingBuffer.value XXXXXX");
+    //console.log(rollingBuffer.value);
 
     Object.keys(nodeRMSs).map((AKey) => {
       let squaredSumOfChannelAxSignal = 0;
@@ -133,13 +133,13 @@ export const useOpenBCIUtils = () => {
     return getThrottledRMS();
   });
 
-  watch(
-    () => signalRMS.value,
-    (newValue) => {
-      console.log("signalRMS changed to: " + newValue);
-      console.log(newValue);
-    },
-  );
+  // watch(
+  //   () => signalRMS.value,
+  //   (newValue) => {
+  //     console.log("signalRMS changed to: " + newValue);
+  //     console.log(newValue);
+  //   },
+  // );
 
   // ---- EXPORTED METHODS ----
 
@@ -160,9 +160,16 @@ export const useOpenBCIUtils = () => {
       if (setIsLoadingModalShown !== undefined) {
         setIsLoadingModalShown(true);
       }
-      await port.open({ baudRate: 115200, bufferSize: 16000 });
-      const reader = port.readable.getReader();
 
+      if (!port.readable || !port.writable) {
+        await port.open({ baudRate: 115200, bufferSize: 16000 });
+      }
+
+      const reader: ReadableStreamDefaultReader<Uint8Array> =
+        port.readable.getReader();
+
+      console.log("reader");
+      console.log(reader);
       store.commit("setWebSerialReader", { reader: reader });
 
       const isCorrectDeviceConnected = await checkConnectedDevice(store);
@@ -213,13 +220,11 @@ export const useOpenBCIUtils = () => {
   };
 
   const stopRecording = async () => {
-    console.log("1010101010101010101010101010101010101010101010101010101010");
     isRecording.value = false;
 
     try {
       // Check if the port is writable before writing data
       if (port.value && port.value.writable) {
-        console.log("ABABABABABABABABABABABABABABABABABABAB");
         const writer = port.value.writable.getWriter();
 
         await writer.write(
@@ -272,9 +277,7 @@ export const useOpenBCIUtils = () => {
     while (isRecording.value) {
       const { value, done } = await readFromStream();
 
-      //console.log("New pair for value, done received.");
-      // console.log(isRecording.value);
-      // console.log(value);
+      // console.log("received from stream: ", value);
 
       if (done) {
         console.log("Stream disconnected, checking status");
@@ -326,8 +329,8 @@ export const useOpenBCIUtils = () => {
                   const data = decodeCytonData(chunkBuffer);
 
                   if (data) {
-                    console.log("DATATATATA CHUNK COMPLETE");
-                    console.log(data);
+                    // console.log("DATATATATA CHUNK COMPLETE");
+                    // console.log(data);
                     if (rollingBuffer.value.length > 500) {
                       rollingBuffer.value.shift();
                     }
@@ -344,7 +347,7 @@ export const useOpenBCIUtils = () => {
               chunkBuffer = []; // Reset buffer for the next chunk
             } else {
               // TODO: I assume this case is not caught: What happens if the above is not executed and the buffer not reset?
-              console.log("Unsure what to do with rest of chunk?");
+              // console.log("Unsure what to do with rest of chunk?");
             }
           } catch (error) {
             // console.error("Error in second part of for loop:", error);
@@ -384,8 +387,8 @@ export const useOpenBCIUtils = () => {
       dataChunk[channelId as keyof OpenBCISerialData] = channelData;
     }
 
-    console.log("Data Chunk");
-    console.log(dataChunk);
+    // console.log("Data Chunk");
+    // console.log(dataChunk);
 
     return dataChunk;
   };
@@ -525,8 +528,8 @@ export const useOpenBCIUtils = () => {
   };
 
   const readFromStream = async () => {
-    console.log("readFromStream");
-    console.log(reader.value);
+    // console.log("readFromStream");
+    // console.log(reader.value);
     try {
       if (!reader.value) {
         console.error("No reader found");

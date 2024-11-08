@@ -29,6 +29,7 @@
   "devDependencies": {
     "@babel/core": "^7.12.16",
     "@babel/eslint-parser": "^7.12.16",
+    "@types/d3": "^7.4.3",
     "@types/dom-serial": "^1.0.6",
     "@types/lodash": "^4.17.13",
     "@types/webfontloader": "^1.6.38",
