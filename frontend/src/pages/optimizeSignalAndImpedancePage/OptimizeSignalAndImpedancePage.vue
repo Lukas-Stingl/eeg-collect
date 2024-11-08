@@ -288,5 +288,18 @@ const stateToClass = (state: number) => {
         <p>{{ index }}: {{ rms }}</p>
       </div>
     </VRow>
+
+    <p
+      style="
+        font-size: 13px;
+        color: #939393;
+        text-align: center;
+        max-width: 600px;
+      "
+    >
+      An impedance check of the electrodes will be performed. This may take a
+      minute. <br />Afterwards, the recording is started and you can start with
+      your task.
+    </p>
   </BasePage>
 </template>
