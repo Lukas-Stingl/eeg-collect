@@ -16,11 +16,14 @@ import {
   NODES_DEFAULT_VALUES,
 } from "@/pages/optimizeSignalAndImpedancePage/utils/optimizeSignalAndImpedanceTypes";
 import { getSignalState } from "@/pages/optimizeSignalAndImpedancePage/utils/helpers";
+import { useRoute, useRouter } from "vue-router";
 
 // ---- STATE ----
 useConfigureParticipantId();
 useWebsocketConnection();
 const { startSignalQualityCheck, stopRecording, signalRMS } = useOpenBCIUtils();
+const router = useRouter();
+const route = useRoute();
 
 const reactiveSignalRMS = ref(signalRMS.value);
 
@@ -255,6 +258,9 @@ const stateToClass = (state: number) => {
   const stateClasses = ["off", "bad", "moderate", "good"];
   return stateClasses[state] || "unknown";
 };
+
+const handleRedirectToRecording = () =>
+  router.push({ path: "/recording", query: route.query });
 </script>
 
 <template>
@@ -280,7 +286,7 @@ const stateToClass = (state: number) => {
 
     <VRow style="gap: 16px">
       <v-btn @click="stopRecording">Stop recording</v-btn>
-      <v-btn @click="stopRecording">Start Recording</v-btn>
+      <v-btn @click="handleRedirectToRecording">Start Recording</v-btn>
     </VRow>
 
     <VRow v-if="false">

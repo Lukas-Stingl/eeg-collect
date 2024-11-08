@@ -10,6 +10,7 @@ import Participant from "@/pages/StartScreen.vue";
 import Check from "@/pages/DeviceCheck.vue";
 import SetupDevicePage from "@/pages/setupDevicePage/SetupDevicePage.vue";
 import OptimizeSignalAndImpedancePage from "@/pages/optimizeSignalAndImpedancePage/OptimizeSignalAndImpedancePage.vue";
+import RecordingPage from "@/pages/recordingPage/RecordingPage.vue";
 
 const routes = [
   {
@@ -27,6 +28,25 @@ const routes = [
   {
     path: "/optimize-signal",
     component: OptimizeSignalAndImpedancePage,
+  },
+  {
+    path: "/recording",
+    component: RecordingPage,
+    beforeRouteLeave(
+      to: RouteLocationNormalized,
+      from: RouteLocationNormalized,
+      next: NavigationGuardNext,
+    ) {
+      const confirmLeave = window.confirm(
+        "Are you sure you want to leave the recording page?",
+      );
+      if (confirmLeave) {
+        next();
+      } else {
+        // If the user cancels, stay on the current route
+        next(false);
+      }
+    },
   },
   {
     path: "/recording",

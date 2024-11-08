@@ -48,7 +48,7 @@ const handleConnectSerialPort = async () => {
         message: "",
       };
 
-      handleRedirectToRecording();
+      handleRedirectToSignalCheck();
       break;
     case ConnectedDeviceStatus.NO_DATA_STREAMED:
       connectionErrorModal.value = {
@@ -92,7 +92,7 @@ const setIsChecklistDonglePluggedInChecked = (value: boolean) => {
   isChecklistDonglePluggedInChecked.value = value;
 };
 
-const handleRedirectToRecording = () =>
+const handleRedirectToSignalCheck = () =>
   router.push({ path: "/optimize-signal", query: route.query });
 
 // ---- COMPUTED ----
