@@ -68,6 +68,7 @@ onMounted(() => {
 <template>
   <BasePage heading="Recording">
     <p
+      class="mb-5"
       style="
         color: #737373;
         text-align: center;
