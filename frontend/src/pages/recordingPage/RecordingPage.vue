@@ -13,5 +13,16 @@ const { startSignalQualityCheck, stopRecording, signalRMS } = useOpenBCIUtils();
 </script>
 
 <template>
-  <BasePage heading="Recording">Recording</BasePage>
+  <BasePage heading="Recording">
+    <p
+      style="
+        color: #737373;
+        text-align: center;
+        font-weight: 500;
+        font-size: 18px;
+      "
+    >
+      Recording in progress. You can now return to the experiment Tab.<br />
+    </p>
+  </BasePage>
 </template>
