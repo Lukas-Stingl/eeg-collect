@@ -102,7 +102,17 @@ export const useOpenBCIUtils = () => {
   const startRecordingTime = ref<string>("");
   const isRecording = ref<boolean>(false);
 
+  // Buffer storing complete cyton chunks.
   const rollingBuffer = ref<OpenBCISerialData[]>([]);
+
+  const getThrottledBuffer = throttle(() => {
+    return rollingBuffer.value;
+  }, 66); // 20 times per second
+
+  const throttledBuffer = computed<OpenBCISerialData[]>(() => {
+    const b = rollingBuffer.value;
+    return getThrottledBuffer();
+  });
 
   const getThrottledRMS = throttle(() => {
     const nodeRMSs: SerialDataRMS = { ...DEFAULT_OPEN_BCI_SERIAL_DATA };
@@ -560,5 +570,6 @@ export const useOpenBCIUtils = () => {
     startSignalQualityCheck,
     stopRecording,
     signalRMS,
+    throttledBuffer,
   };
 };
