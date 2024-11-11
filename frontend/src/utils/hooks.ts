@@ -107,7 +107,7 @@ export const useOpenBCIUtils = () => {
 
   const getThrottledBuffer = throttle(() => {
     return rollingBuffer.value;
-  }, 66); // 20 times per second
+  }, 50);
 
   const throttledBuffer = computed<OpenBCISerialData[]>(() => {
     const b = rollingBuffer.value;

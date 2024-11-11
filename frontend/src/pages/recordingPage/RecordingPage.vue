@@ -35,6 +35,10 @@ const chartOptions: ComputedRef<Options> = computed(() => ({
   title: null,
   series: series.value,
   yAxis: yAxis.value,
+  xAxis: {
+    min: 0,
+    max: 500,
+  },
 }));
 
 watch(

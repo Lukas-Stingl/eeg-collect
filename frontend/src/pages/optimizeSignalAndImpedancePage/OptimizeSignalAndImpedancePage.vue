@@ -24,6 +24,7 @@ useWebsocketConnection();
 const { startSignalQualityCheck, stopRecording, signalRMS } = useOpenBCIUtils();
 const router = useRouter();
 const route = useRoute();
+const preventUnloadWarningDialog = ref(false);
 
 const reactiveSignalRMS = ref(signalRMS.value);
 
@@ -134,6 +135,8 @@ watch(
 // ---- LIFECYCLE HOOKS ----
 
 onMounted(() => {
+  window.addEventListener("beforeunload", handleBeforeUnload);
+
   initializeD3();
 
   // Start the signal quality check in the background
@@ -259,8 +262,24 @@ const stateToClass = (state: number) => {
   return stateClasses[state] || "unknown";
 };
 
-const handleRedirectToRecording = () =>
+const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+  const confirmationMessage =
+    "Are you sure you want to leave? Changes you made may not be saved.";
+
+  console.log(preventUnloadWarningDialog.value);
+  event.returnValue = confirmationMessage; // Standard for most browsers
+  if (!preventUnloadWarningDialog.value) {
+    event.returnValue = confirmationMessage; // Standard for most browsers
+  }
+  return confirmationMessage; // For some browsers
+};
+const handleRedirectToFinish = (event: BeforeUnloadEvent) => {
+  console.log("AAAAAAAA");
+  setTimeout(() => {}, 15000);
+  event.returnValue = "SSS";
+  preventUnloadWarningDialog.value = true;
   router.push({ path: "/recording", query: route.query });
+};
 </script>
 
 <template>
@@ -284,9 +303,9 @@ const handleRedirectToRecording = () =>
       <div class="tooltip"></div>
     </div>
 
-    <VRow style="gap: 16px">
+    <VRow style="gap: 16px; max-height: 60px">
       <v-btn @click="stopRecording">Stop recording</v-btn>
-      <v-btn @click="handleRedirectToRecording">Start Recording</v-btn>
+      <v-btn v-on:click="handleRedirectToFinish">Start Recording</v-btn>
     </VRow>
 
     <VRow v-if="false">
