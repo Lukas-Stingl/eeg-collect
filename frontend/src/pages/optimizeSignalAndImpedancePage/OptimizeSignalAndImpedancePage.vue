@@ -241,7 +241,7 @@ const handleMouseOver = (event: MouseEvent, d: Node) => {
     .html(
       `Node ID: ${d.node_id}<br/>State: ${stateToClass(
         d.state,
-      )}<br/>Impedance: ${d.impedance}Ω`,
+      )}<br/>Rail: ${d.impedance}`,
     )
     .style("left", `${event.offsetX + 5}px`)
     .style("top", `${event.offsetY + 10}px`);
@@ -296,10 +296,15 @@ const handleRedirectToFinish = (event: BeforeUnloadEvent) => {
       connection, as indicated by the color in the picture.
     </p>
 
-    <div class="headphones">
+    <div class="headphones" style="max-height: 430px; align-items: center">
       <!-- Device Check Content -->
 
-      <svg ref="baseModel" width="1000" height="500"></svg>
+      <svg
+        ref="baseModel"
+        width="1000"
+        height="500"
+        style="position: relative; right: -11px"
+      ></svg>
       <div class="tooltip"></div>
     </div>
 

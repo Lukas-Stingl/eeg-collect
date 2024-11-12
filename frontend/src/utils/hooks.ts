@@ -1,24 +1,21 @@
-import { useStore } from "@/store";
 import { useRoute } from "vue-router";
 import { isEmpty, throttle } from "lodash";
 import { Store } from "vuex";
 
+import { useStore } from "@/store";
 import {
-  decodeCytonData,
   getEncodedCytonCommand,
   getReadableTimestamp,
   interpret16bitAsInt32,
   interpret24bitAsInt32,
-  logErrorDetails,
   URL_PARAMS,
   URLs,
 } from "@/utils/helpers";
-import { computed, ref, watch } from "vue";
+import { computed, Ref, ref, watch } from "vue";
 import CHANNEL_ASSIGNMENT from "@/config/channelAssignment.json";
 import { ConnectionMode, State } from "@/store/utils/storeTypes";
 import { CHECK_CONNECTED_DEVICE_STATUS } from "@/scripts/cyton";
 import {
-  AugmentedPartial,
   ConnectedDeviceStatus,
   CytonBoardCommands,
   DEFAULT_OPEN_BCI_SERIAL_DATA,
@@ -26,6 +23,7 @@ import {
   RecordingMode,
   SerialDataRMS,
 } from "@/utils/openBCISerialTypes";
+import axios from "axios";
 
 export const useConfigureParticipantId = () => {
   const store = useStore();
@@ -89,6 +87,49 @@ export const useWebsocketConnection = (): WebSocket | null => {
   return ws;
 };
 
+export const useDataVisualization = ({
+  rollingBuffer,
+}: {
+  rollingBuffer: Ref<OpenBCISerialData[]>;
+}) => {
+  const buffer: Ref<OpenBCISerialData[]> = ref(rollingBuffer.value);
+  const bandFilteredBuffer = ref<number[]>([]); //ref<OpenBCISerialData[]>([]);
+
+  watch(
+    () => rollingBuffer.value,
+    async (newValue) => {
+      buffer.value = newValue;
+      bandFilteredBuffer.value = (await getBandFilteredData()) ?? [];
+    },
+  );
+
+  const getBandFilteredData = async () => {
+    const array: number[][] = [];
+
+    rollingBuffer.value.map((serialData, index) => {
+      for (let i = 0; i < 8; i++) {
+        if (!array[i]) {
+          array[i] = [];
+        }
+        array[i].push(serialData[`A${i + 1}` as keyof OpenBCISerialData]);
+      }
+    });
+    return await axios
+      .post("/api/raw-eeg-data", { data: array })
+      .then((response) => {
+        console.log(response);
+
+        const responseData: { filteredData: number[] } = response.data;
+        return responseData.filteredData;
+      })
+      .catch(function (error: any) {
+        console.error(error);
+      });
+  };
+
+  return bandFilteredBuffer;
+};
+
 export const useOpenBCIUtils = () => {
   // ---- STATE ----
 
@@ -130,8 +171,11 @@ export const useOpenBCIUtils = () => {
         );
       });
 
-      nodeRMSs[AKey as keyof SerialDataRMS] = Math.sqrt(
-        squaredSumOfChannelAxSignal / numberOfChunks,
+      const RMS_Normalized =
+        Math.sqrt(squaredSumOfChannelAxSignal / numberOfChunks) / 185000;
+
+      nodeRMSs[AKey as keyof SerialDataRMS] = parseFloat(
+        RMS_Normalized.toFixed(2),
       );
     });
 

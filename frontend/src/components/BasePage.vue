@@ -36,8 +36,8 @@ onMounted(() => {
 
 <template>
   <VCol
-    class="h-100 w-100 justify-center align-center pa-0"
-    style="background: #fafafc"
+    class="w-100 justify-center align-center pa-8"
+    style="background: #fafafc; overflow: auto; flex-grow: 10"
   >
     <VCol class="w-50 justify-center align-center pa-0">
       <div :class="path !== '/recording' ? 'lottie-container' : ''">

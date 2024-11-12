@@ -4,23 +4,27 @@ import { Chart } from "highcharts-vue";
 import BasePage from "@/components/BasePage.vue";
 import {
   useConfigureParticipantId,
+  useDataVisualization,
   useOpenBCIUtils,
   useWebsocketConnection,
 } from "@/utils/hooks";
 import { computed, ComputedRef, onMounted, ref, watch } from "vue";
 import { Options } from "highcharts";
-import { OpenBCISerialData } from "@/utils/openBCISerialTypes";
+// import { OpenBCISerialData } from "@/utils/openBCISerialTypes";
 
 // ---- STATE ----
 useConfigureParticipantId();
 useWebsocketConnection();
 const { startSignalQualityCheck, stopRecording, throttledBuffer } =
   useOpenBCIUtils();
+const bandFilteredBuffer = useDataVisualization({
+  rollingBuffer: throttledBuffer,
+});
 
 const series = ref<{ data: number; yAxis: number }[]>([]);
-const data = ref();
+// const data = ref();
 const seriesCount = ref(8);
-const pointsCount = computed(() => throttledBuffer.value.length);
+// const pointsCount = computed(() => throttledBuffer.value.length);
 const axisTop = ref(20);
 const totalHeight = 500;
 const yAxisHeight = computed(() => totalHeight / (seriesCount.value + 4));
@@ -41,19 +45,20 @@ const chartOptions: ComputedRef<Options> = computed(() => ({
   },
 }));
 
+// watch(
+//   () => bandFilteredBuffer.value,
+//   () => {
+//     console.log(bandFilteredBuffer.value);
+//   },
+// );
+
 watch(
   () => throttledBuffer.value,
   () => {
     for (let i = 0; i < seriesCount.value; i++) {
-      data.value = [];
-      for (let j = 0; j < pointsCount.value; j++) {
-        data.value.push(
-          throttledBuffer.value[j][`A${i + 1}` as keyof OpenBCISerialData],
-        );
-      }
       const stream = series.value.find((stream) => stream.yAxis === i);
       if (stream) {
-        stream.data = data.value;
+        stream.data = bandFilteredBuffer.value[i];
       }
     }
   },
@@ -61,14 +66,14 @@ watch(
 
 onMounted(() => {
   for (let i = 0; i < seriesCount.value; i++) {
-    data.value = [];
-    for (let j = 0; j < pointsCount.value; j++) {
-      data.value.push(
-        throttledBuffer.value[j][`A${i + 1}` as keyof OpenBCISerialData],
-      );
-    }
+    // data.value = [];
+    // for (let j = 0; j < pointsCount.value; j++) {
+    //   data.value.push(
+    //     throttledBuffer.value[j][`A${i + 1}` as keyof OpenBCISerialData],
+    //   );
+    // }
     series.value.push({
-      data: data.value,
+      data: bandFilteredBuffer.value[i],
       yAxis: i,
     });
     yAxis.value.push({

@@ -25,7 +25,7 @@ onMounted(async () => {
     </header>
 
     <!-- Content Area with left margin -->
-    <div v-if="isPassphraseValid" class="content">
+    <div v-if="isPassphraseValid" class="content" style="display: flex">
       <router-view></router-view>
     </div>
     <div v-else class="forbidden">403 Forbidden</div>
