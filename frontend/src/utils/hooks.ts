@@ -92,14 +92,21 @@ export const useDataVisualization = ({
 }: {
   rollingBuffer: Ref<OpenBCISerialData[]>;
 }) => {
-  const buffer: Ref<OpenBCISerialData[]> = ref(rollingBuffer.value);
-  const bandFilteredBuffer = ref<number[]>([]); //ref<OpenBCISerialData[]>([]);
+  const bandFilteredBuffer = ref<number[][]>([[], [], [], [], [], [], [], []]); //ref<OpenBCISerialData[]>([]);
 
   watch(
     () => rollingBuffer.value,
     async (newValue) => {
-      buffer.value = newValue;
-      bandFilteredBuffer.value = (await getBandFilteredData()) ?? [];
+      bandFilteredBuffer.value = (await getBandFilteredData()) ?? [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+      ];
     },
   );
 
@@ -117,9 +124,9 @@ export const useDataVisualization = ({
     return await axios
       .post("/api/raw-eeg-data", { data: array })
       .then((response) => {
-        console.log(response);
+        // console.log(response);
 
-        const responseData: { filteredData: number[] } = response.data;
+        const responseData: { filteredData: number[][] } = response.data;
         return responseData.filteredData;
       })
       .catch(function (error: any) {

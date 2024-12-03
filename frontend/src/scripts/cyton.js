@@ -255,6 +255,7 @@ export class cyton {
       });
   }
 
+  // Starts the Impedance check and writes the Impedance Data
   async configureBoard(command) {
     let startCommands;
     let resetCommands;

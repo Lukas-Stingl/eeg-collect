@@ -19,8 +19,10 @@ import { getSignalState } from "@/pages/optimizeSignalAndImpedancePage/utils/hel
 import { useRoute, useRouter } from "vue-router";
 
 // ---- STATE ----
+
 useConfigureParticipantId();
 useWebsocketConnection();
+
 const { startSignalQualityCheck, stopRecording, signalRMS } = useOpenBCIUtils();
 const router = useRouter();
 const route = useRoute();

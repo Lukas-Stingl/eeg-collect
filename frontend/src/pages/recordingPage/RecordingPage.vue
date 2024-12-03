@@ -21,7 +21,7 @@ const bandFilteredBuffer = useDataVisualization({
   rollingBuffer: throttledBuffer,
 });
 
-const series = ref<{ data: number; yAxis: number }[]>([]);
+const series = ref<{ data: number[]; yAxis: number }[]>([]);
 // const data = ref();
 const seriesCount = ref(8);
 // const pointsCount = computed(() => throttledBuffer.value.length);
@@ -34,6 +34,7 @@ const chartOptions: ComputedRef<Options> = computed(() => ({
   chart: {
     height: totalHeight,
     //spacing: [0, 0, 0, 0], // Remove padding
+    animation: false, // Turn off animations
   },
   legend: { enabled: false },
   title: null,
@@ -81,7 +82,7 @@ onMounted(() => {
         text: `A${i + 1}`,
       },
       labels: {
-        enabled: true, // Remove Y-axis labels
+        enabled: false, // Remove Y-axis labels
       },
       height: yAxisHeight.value,
       top: axisTop.value,
