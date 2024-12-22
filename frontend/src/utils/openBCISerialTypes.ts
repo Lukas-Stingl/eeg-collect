@@ -33,6 +33,56 @@ export type OpenBCISerialData = {
   Accel2: number;
 };
 
+export type OpenBCICytonData = {
+  count: string;
+  sampleNumber: number[];
+  timestamp: any[];
+  A1: number[];
+  A2: number[];
+  A3: number[];
+  A4: number[];
+  A5: number[];
+  A6: number[];
+  A7: number[];
+  A8: number[];
+  A9: number[];
+  A10: number[];
+  A11: number[];
+  A12: number[];
+  A13: number[];
+  A14: number[];
+  A15: number[];
+  A16: number[];
+  Accel0: number[];
+  Accel1: number[];
+  Accel2: number[];
+};
+
+export const OPEN_BCI_CYTON_DATA_DEFAULT_VALUE: OpenBCICytonData = {
+  count: "",
+  sampleNumber: [],
+  timestamp: [],
+  A1: [],
+  A2: [],
+  A3: [],
+  A4: [],
+  A5: [],
+  A6: [],
+  A7: [],
+  A8: [],
+  A9: [],
+  A10: [],
+  A11: [],
+  A12: [],
+  A13: [],
+  A14: [],
+  A15: [],
+  A16: [],
+  Accel0: [],
+  Accel1: [],
+  Accel2: [],
+};
+
 export type SerialDataRMS = Omit<
   AugmentedPartial<OpenBCISerialData, keyof OpenBCISerialData>,
   | "Accel0"

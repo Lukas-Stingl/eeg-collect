@@ -13,17 +13,22 @@ import {
 } from "@/utils/helpers";
 import { computed, Ref, ref, watch } from "vue";
 import CHANNEL_ASSIGNMENT from "@/config/channelAssignment.json";
+import channelAssignment from "@/config/channelAssignment.json";
 import { ConnectionMode, State } from "@/store/utils/storeTypes";
 import { CHECK_CONNECTED_DEVICE_STATUS } from "@/scripts/cyton";
 import {
   ConnectedDeviceStatus,
   CytonBoardCommands,
   DEFAULT_OPEN_BCI_SERIAL_DATA,
+  DEFAULT_OPEN_BCI_SERIAL_DATA_RMS,
+  OPEN_BCI_CYTON_DATA_DEFAULT_VALUE,
+  OpenBCICytonData,
   OpenBCISerialData,
   RecordingMode,
   SerialDataRMS,
 } from "@/utils/openBCISerialTypes";
 import axios from "axios";
+import { IIRFilter } from "@rkesters/dsp.ts";
 
 export const useConfigureParticipantId = () => {
   const store = useStore();
@@ -143,6 +148,8 @@ export const useOpenBCIUtils = () => {
   const store = useStore();
   const ws = computed(() => store.state.webSocket);
 
+  const participantId = computed(() => store.state.participantId);
+
   const mode = computed(() => store.state.mode);
   const port = computed(() => store.state.webSerial.port);
   const reader = computed(() => store.state.webSerial.reader);
@@ -150,47 +157,112 @@ export const useOpenBCIUtils = () => {
   const startRecordingTime = ref<string>("");
   const isRecording = ref<boolean>(false);
 
+  const impedanceRecordingStartTime = ref<string>("");
+  const data = ref<OpenBCICytonData>(OPEN_BCI_CYTON_DATA_DEFAULT_VALUE);
+
   // Buffer storing complete cyton chunks.
   const rollingBuffer = ref<OpenBCISerialData[]>([]);
 
+  const bandFilteredBufferCached = ref<number[][]>([
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+  ]);
+  function applyHighpassFilter(
+    eegData: number[],
+    cutoff: number,
+    sampleRate: number,
+  ) {
+    const output = new Array(eegData.length);
+    const RC = 1 / (2 * Math.PI * cutoff);
+    const dt = 1 / sampleRate;
+    const alpha = RC / (RC + dt);
+
+    // Initialisierung
+    output[0] = eegData[0]; // Startwert übernehmen
+
+    // Highpass-Filter anwenden
+    for (let i = 1; i < eegData.length; i++) {
+      output[i] = alpha * (output[i - 1] + eegData[i] - eegData[i - 1]);
+    }
+
+    return output;
+  }
+
+  const bandPassFilteredSignalsThrottled = computed<number[][]>(() => {
+    const getBandFilteredData = () => {
+      const array: number[][] = [];
+
+      throttledBuffer.value.map((serialData, index) => {
+        for (let i = 0; i < 8; i++) {
+          if (!array[i]) {
+            array[i] = [];
+          }
+          array[i].push(serialData[`A${i + 1}` as keyof OpenBCISerialData]);
+        }
+      });
+
+      const filteredData: number[][] = [];
+
+      array.map((subArray) =>
+        filteredData.push(applyHighpassFilter(subArray, 30, 250)),
+      );
+
+      return filteredData;
+    };
+
+    bandFilteredBufferCached.value =
+      getBandFilteredData() ?? bandFilteredBufferCached.value;
+
+    return bandFilteredBufferCached.value;
+  });
+
   const getThrottledBuffer = throttle(() => {
     return rollingBuffer.value;
-  }, 50);
+  }, 200);
 
   const throttledBuffer = computed<OpenBCISerialData[]>(() => {
     const b = rollingBuffer.value;
     return getThrottledBuffer();
   });
 
+  const nodeRMSsCached = ref<SerialDataRMS>({
+    ...DEFAULT_OPEN_BCI_SERIAL_DATA_RMS,
+  });
   const getThrottledRMS = throttle(() => {
-    const nodeRMSs: SerialDataRMS = { ...DEFAULT_OPEN_BCI_SERIAL_DATA };
-
     //console.log("rollingBuffer.value XXXXXX");
-    //console.log(rollingBuffer.value);
+    //console.log(bandPassFilteredSignalsThrottled.value);
 
-    Object.keys(nodeRMSs).map((AKey) => {
-      let squaredSumOfChannelAxSignal = 0;
-      const numberOfChunks = rollingBuffer.value.length;
-      rollingBuffer.value.map((dataChunk) => {
-        squaredSumOfChannelAxSignal += Math.pow(
-          dataChunk[AKey as keyof OpenBCISerialData],
-          2,
+    Object.keys(nodeRMSsCached.value).map((AKey) => {
+      bandFilteredBufferCached.value.map((subArray) => {
+        if (subArray.length === 0) {
+          return;
+        }
+
+        // Calculate RMS for each sub-array
+        const sumOfSquares = subArray.reduce(
+          (sum, value) => sum + value ** 2,
+          0,
         );
+        const RMS = Math.sqrt(sumOfSquares / subArray.length);
+
+        nodeRMSsCached.value[AKey as keyof SerialDataRMS] = RMS;
       });
-
-      const RMS_Normalized =
-        Math.sqrt(squaredSumOfChannelAxSignal / numberOfChunks) / 185000;
-
-      nodeRMSs[AKey as keyof SerialDataRMS] = parseFloat(
-        RMS_Normalized.toFixed(2),
-      );
     });
 
-    return nodeRMSs;
-  }, 500);
+    //console.log("nodeRMSs");
+    //console.log(nodeRMSsCached.value);
+
+    return nodeRMSsCached.value;
+  }, 200);
 
   const signalRMS = computed(() => {
-    const a = rollingBuffer.value;
+    const a = bandPassFilteredSignalsThrottled.value;
     return getThrottledRMS();
   });
 
@@ -325,7 +397,7 @@ export const useOpenBCIUtils = () => {
           console.log(
             "no new data received since 10 seconds, restarting stream",
           );
-          commandBoardStartStreamingData();
+          commandBoardStartStreamingData(RecordingMode.RECORDING);
         }
       }, 10000);
     };
@@ -392,7 +464,7 @@ export const useOpenBCIUtils = () => {
                   if (data) {
                     // console.log("DATATATATA CHUNK COMPLETE");
                     // console.log(data);
-                    if (rollingBuffer.value.length > 500) {
+                    if (rollingBuffer.value.length > 250) {
                       rollingBuffer.value.shift();
                     }
 
@@ -421,7 +493,182 @@ export const useOpenBCIUtils = () => {
     }
   };
 
+  // Wie configureBoard in cyton.js
+  const runImpedanceCheck = async (channel: number) => {
+    resetImpedance("H");
+
+    const startCommands = [
+      "x1000010Xz101Z", // Start impedance check for channel 1
+      "x2000010Xz201Z", // Start impedance check for channel 2
+      "x3000010Xz301Z", // Start impedance check for channel 3
+      "x4000010Xz401Z", // Start impedance check for channel 4
+      "x5000010Xz501Z", // Start impedance check for channel 5
+      "x6000010Xz601Z", // Start impedance check for channel 6
+      "x7000010Xz701Z", // Start impedance check for channel 7
+      "x8000010Xz801Z", // Start impedance check for channel 8
+    ];
+    const resetCommands = [
+      "x1060110Xz100Z", // Reset impedance check for channel 1
+      "x2060110Xz200Z", // Reset impedance check for channel 2
+      "x3060110Xz300Z", // Reset impedance check for channel 3
+      "x4060110Xz400Z", // Reset impedance check for channel 4
+      "x5060110Xz500Z", // Reset impedance check for channel 5
+      "x6060110Xz600Z", // Reset impedance check for channel 6
+      "x7060110Xz700Z", // Reset impedance check for channel 7
+      "x8060110Xz800Z", // Reset impedance check for channel 8
+    ];
+
+    const channelCheckStartCommand = startCommands[channel - 1];
+    const channelCheckResetCommand = resetCommands[channel - 1];
+
+    if (channelCheckStartCommand && channelCheckResetCommand) {
+      try {
+        // Check if the port is writable before writing data
+        if (port.value && port.value.writable) {
+          let writer = port.value.writable.getWriter();
+          const impedanceCommandBytes = new TextEncoder().encode(
+            channelCheckStartCommand,
+          );
+          await writer.write(impedanceCommandBytes);
+          console.log(channelCheckStartCommand);
+          console.log("Impedance check command sent for channel " + channel);
+          writer.releaseLock();
+          await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
+          await commandBoardStartStreamingData(RecordingMode.IMPEDANCE); // Start recording for 5 seconds
+          await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 seconds
+          console.log("Waiting for 5 sec"); // Deactivate impedance measurement after 5 seconds
+          console.log("Impedance check completed for channel " + channel);
+          await stopImpedanceRecording("A" + channel);
+          writer = port.value.writable.getWriter();
+          const resetCommandBytes = new TextEncoder().encode(
+            channelCheckResetCommand,
+          );
+          await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
+          await writer.write(resetCommandBytes);
+          await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
+          console.log("Reset command sent for channel " + channel);
+          writer.releaseLock();
+
+          exportImpedanceCSV();
+        } else {
+          console.error("Serial port is not writable");
+        }
+      } catch (error) {
+        console.error("Error sending commands:", error);
+      }
+    } else {
+      console.error("Invalid channel index:", channel);
+    }
+  };
+
+  const impedanceDataRaw = ref<any>({});
+
+  const stopImpedanceRecording = async (channel: string) => {
+    try {
+      isRecording.value = false;
+      // Check if the port is writable before writing data
+      if (port.value && port.value.writable) {
+        const writer = port.value.writable.getWriter();
+        const commandBytes = new TextEncoder().encode(
+          CytonBoardCommands.STOP_STREAMING,
+        );
+        await writer.write(commandBytes);
+        console.log("Recording stopped");
+        writer.releaseLock();
+        console.log(
+          "finished rec: " + data.value[channel as keyof OpenBCICytonData],
+        );
+        data.value.count = `${data.value[channel as keyof OpenBCICytonData].length}`;
+        console.log("Channel: " + channel);
+        console.log("Data: " + data.value[channel as keyof OpenBCICytonData]);
+        // Prepare data to send
+        // @ts-ignore-next-line
+        const raw_data = data.value[channel as keyof OpenBCICytonData].map(
+          // @ts-ignore-next-line
+          (value) => parseFloat(value),
+        ); // Convert values to floats if necessary
+
+        console.log(data.value);
+        // Send data to http://localhost:5001/calculate_impedance
+        const response = await fetch("/data/calculate_impedance/" + 250, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ data_raw: raw_data, channel: channel }),
+        });
+        console.log("Data sent to calculate impedance:", raw_data);
+        const impedanceValue = await response.json(); // Get impedance value from the response
+        impedanceDataRaw.value[channel] = impedanceValue.impedance; // Store impedance value in the global variable
+        console.log(
+          "Impedance value for channel " + channel + ":",
+          impedanceValue.impedance,
+        );
+      } else {
+        console.error("Serial port is not writable");
+      }
+    } catch (error) {
+      console.error("Error stopping recording:", error);
+    }
+
+    data.value = OPEN_BCI_CYTON_DATA_DEFAULT_VALUE;
+  };
+
+  // Same as getImpedance() ins cyton.js
+  const impedanceData = computed(() => {
+    const impedanceArray = [];
+    const assignment = channelAssignment["H"];
+
+    for (const channel in assignment) {
+      const node_id = assignment[channel];
+      let impedanceValue = impedanceDataRaw.value[channel];
+
+      let state = 0;
+      if (impedanceValue === undefined) {
+        state = 0; // Set state to 0 if channel not found
+        impedanceValue = 0; // Set impedance to 0 if channel not found
+      } else if (impedanceValue === 0) {
+        state = 1;
+        // 200kOhm
+      } else if (impedanceValue < 750) {
+        state = 3;
+        // 750kOhm
+      } else if (impedanceValue < 1000) {
+        state = 2;
+      } else {
+        state = 1;
+      }
+
+      impedanceArray.push({
+        node_id: node_id,
+        state: state,
+        impedance: impedanceValue,
+      });
+    }
+    return impedanceArray;
+  });
+
   // ---- INTERNAL FUNCTIONS ----
+
+  const resetImpedance = (config: string) => {
+    const impedanceArray = [];
+    impedanceDataRaw.value = [];
+    const assignment = channelAssignment[config];
+
+    for (const channel in assignment) {
+      const node_id = assignment[channel];
+      const impedanceValue = 0;
+      const state = 0;
+
+      impedanceArray.push({
+        node_id: node_id,
+        state: state,
+        impedance: impedanceValue,
+      });
+    }
+
+    return impedanceArray;
+  };
 
   const decodeCytonData = (message: any): OpenBCISerialData => {
     const str = message.toString();
@@ -474,7 +721,11 @@ export const useOpenBCIUtils = () => {
   };
 
   // startReading() in cyton.js
-  const commandBoardStartStreamingData = async () => {
+  const commandBoardStartStreamingData = async (mode: RecordingMode) => {
+    recordingMode.value = mode;
+    isRecording.value = true;
+    impedanceRecordingStartTime.value = getReadableTimestamp();
+
     // Check if the port is writable before writing data
     if (!port.value || !port.value.writable) {
       console.error("Serial port is not writable");
@@ -511,7 +762,7 @@ export const useOpenBCIUtils = () => {
 
     console.log("in checkConnectedDevice");
     recordingMode.value = RecordingMode.RECORDING;
-    await commandBoardStartStreamingData();
+    await commandBoardStartStreamingData(RecordingMode.RECORDING);
     let buffer = ""; // stores decoded text messages.
     const checkChunkBuffer = []; // Buffer to accumulate bytes until a complete chunk is formed
     let isCheckChunkChecked = false;
@@ -614,6 +865,82 @@ export const useOpenBCIUtils = () => {
     }
   };
 
+  const exportImpedanceCSV = () => {
+    const objectKeys = Object.keys(impedanceDataRaw);
+    const csvContent = parseAndExportImpedance(impedanceDataRaw, objectKeys);
+    const startTime = Math.floor(
+      new Date(impedanceRecordingStartTime.value).getTime() / 1000,
+    );
+    const fileName = `${participantId.value}-${startTime}-Impedance.csv`;
+
+    const formData = new FormData();
+    formData.append("fileName", fileName);
+    formData.append("csvContent", csvContent);
+
+    fetch("/api/save-csv", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("CSV file saved successfully:", data.filePath);
+      })
+      .catch((error) => {
+        console.error("Error saving CSV file:", error);
+      });
+  };
+
+  // @ts-ignore-next-line
+  const parseAndExportImpedance = (data, objectKeys) => {
+    const headers = `Index;Datetime;${objectKeys.join(";")}`;
+
+    // Transpose data
+    // @ts-ignore-next-line
+    const transposedData = objectKeys.map((key) => {
+      if (Array.isArray(data[key])) {
+        return data[key];
+      } else {
+        // If it's a string, create an array with a single element
+        return [data[key]];
+      }
+    });
+
+    // Find the maximum length among the arrays
+    // @ts-ignore-next-line
+    const maxLength = Math.max(...transposedData.map((arr) => arr.length));
+
+    // Fill shorter arrays with empty strings to match the maximum length
+    // @ts-ignore-next-line
+    const filledData = transposedData.map((arr) => {
+      const diff = maxLength - arr.length;
+      return arr.concat(Array(diff).fill(""));
+    });
+
+    // Add index and current timestamp
+    const timestamp = new Date().toISOString();
+    const firstRow = `1;${timestamp};${filledData
+      // @ts-ignore-next-line
+      .map((arr) => arr[0])
+      .join(";")}`;
+    const remainingRows = [];
+    for (let i = 1; i < maxLength; i++) {
+      // @ts-ignore-next-line
+      const rowData = filledData.map((arr) => arr[i]);
+      remainingRows.push(rowData.join(";"));
+    }
+
+    // Combine rows with newline characters
+    const csvContent =
+      headers + "\n" + firstRow + "\n" + remainingRows.join("\n");
+
+    return csvContent;
+  };
+
   // ---- RETURN ----
 
   return {
@@ -622,5 +949,7 @@ export const useOpenBCIUtils = () => {
     stopRecording,
     signalRMS,
     throttledBuffer,
+    runImpedanceCheck,
+    impedanceData,
   };
 };

@@ -17,18 +17,20 @@ import {
 } from "@/pages/optimizeSignalAndImpedancePage/utils/optimizeSignalAndImpedanceTypes";
 import { getSignalState } from "@/pages/optimizeSignalAndImpedancePage/utils/helpers";
 import { useRoute, useRouter } from "vue-router";
+import { SerialDataRMS } from "@/utils/openBCISerialTypes";
 
 // ---- STATE ----
 
 useConfigureParticipantId();
 useWebsocketConnection();
 
-const { startSignalQualityCheck, stopRecording, signalRMS } = useOpenBCIUtils();
+const { startSignalQualityCheck, stopRecording, signalRMS, runImpedanceCheck } =
+  useOpenBCIUtils();
 const router = useRouter();
 const route = useRoute();
 const preventUnloadWarningDialog = ref(false);
 
-const reactiveSignalRMS = ref(signalRMS.value);
+const reactiveSignalRMS = ref<SerialDataRMS>(signalRMS.value);
 
 const baseModel = ref(null);
 const svg: Ref<d3.Selection<
@@ -56,6 +58,10 @@ const nodeData: ComputedRef<Node[]> = computed(() => {
   // Wir betrachten von signalRMS nur A1 bis A8
 
   const nodes: Node[] = [];
+
+  // console.log(reactiveSignalRMS.value);
+  // console.log(reactiveSignalRMS.value["A1"]);
+  // console.log(JSON.stringify(reactiveSignalRMS.value));
 
   for (const key in reactiveSignalRMS.value) {
     switch (key) {
@@ -121,13 +127,11 @@ const nodeData: ComputedRef<Node[]> = computed(() => {
   return nodes;
 });
 
-watch(
-  () => signalRMS.value,
-  (newValue) => {
-    console.log("signalRMS changed to");
-    reactiveSignalRMS.value = newValue;
-  },
-);
+const isImpedanceCheckRunning = ref(false);
+const impedanceCheckChannel = ref(1);
+const progressValue = ref(0);
+const bufferValue = ref(20);
+const interval = ref(0);
 
 watch(
   () => nodeData.value,
@@ -275,12 +279,46 @@ const handleBeforeUnload = (event: BeforeUnloadEvent) => {
   }
   return confirmationMessage; // For some browsers
 };
-const handleRedirectToFinish = (event: BeforeUnloadEvent) => {
-  console.log("AAAAAAAA");
-  setTimeout(() => {}, 15000);
-  event.returnValue = "SSS";
-  preventUnloadWarningDialog.value = true;
+const handleRedirectToRecording = async () => {
+  for (let i = 1; i <= 8; i++) {
+    isImpedanceCheckRunning.value = true;
+    impedanceCheckChannel.value = i;
+    startBuffer();
+    await runImpedanceCheck(i).then(() => {
+      isImpedanceCheckRunning.value = false;
+    }); // Trigger impedance check for the current channel
+  }
+
   router.push({ path: "/recording", query: route.query });
+};
+
+const startBuffer = () => {
+  clearInterval(interval.value);
+
+  // Reset progress values
+  progressValue.value = 0;
+  bufferValue.value = 0;
+
+  // Calculate the total time and interval duration
+  const totalTime = 6000; // 5 seconds in milliseconds
+  const steps = 100; // Number of steps to complete progress
+  const intervalDuration = totalTime / steps;
+
+  // Start the interval to update progress
+  interval.value = setInterval(() => {
+    // Increment progress values
+    progressValue.value += 100 / steps;
+    bufferValue.value += 100 / steps;
+
+    // Check if progress has reached 100%
+    if (progressValue.value >= 100) {
+      // Ensure the progress bar is exactly at 100%
+      progressValue.value = 100;
+      bufferValue.value = 100;
+      // Stop the interval after the delay
+      clearInterval(interval.value);
+    }
+  }, intervalDuration);
 };
 </script>
 
@@ -312,7 +350,7 @@ const handleRedirectToFinish = (event: BeforeUnloadEvent) => {
 
     <VRow style="gap: 16px; max-height: 60px">
       <v-btn @click="stopRecording">Stop recording</v-btn>
-      <v-btn v-on:click="handleRedirectToFinish">Start Recording</v-btn>
+      <v-btn v-on:click="handleRedirectToRecording">Start Recording</v-btn>
     </VRow>
 
     <VRow v-if="false">
@@ -334,4 +372,32 @@ const handleRedirectToFinish = (event: BeforeUnloadEvent) => {
       your task.
     </p>
   </BasePage>
+
+  <!-- Circular progress component -->
+  <v-overlay v-model="isImpedanceCheckRunning">
+    <div class="overlay_content">
+      <v-card id="card_connect">
+        <!-- <v-card-title>Hinweis</v-card-title> -->
+        <v-card-title>Note</v-card-title>
+        <v-card-text>
+          {{
+            `Channel ${impedanceCheckChannel} is being checked. This may take a few seconds. Please wait and do not move your head.`
+          }}
+        </v-card-text>
+        <div style="margin: 10px">
+          <v-progress-linear
+            v-model="progressValue"
+            :buffer-value="bufferValue"
+          ></v-progress-linear>
+        </div>
+      </v-card>
+
+      <v-progress-circular
+        v-if="isImpedanceCheckRunning"
+        color="#00876C"
+        indeterminate
+        size="64"
+      ></v-progress-circular>
+    </div>
+  </v-overlay>
 </template>
