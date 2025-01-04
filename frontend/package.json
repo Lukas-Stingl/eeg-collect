@@ -17,6 +17,7 @@
     "child_process": "^1.0.2",
     "core-js": "^3.8.3",
     "d3": "^7.9.0",
+    "fili": "^2.0.3",
     "fs": "^0.0.1-security",
     "highcharts-vue": "^2.0.1",
     "lottie-web-vue": "^2.0.7",

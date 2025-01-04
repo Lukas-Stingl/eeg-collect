@@ -28,7 +28,7 @@ import {
   SerialDataRMS,
 } from "@/utils/openBCISerialTypes";
 import axios from "axios";
-import { IIRFilter } from "@rkesters/dsp.ts";
+import { filter_setup, filter_signal } from "@/utils/fir-filter";
 
 export const useConfigureParticipantId = () => {
   const store = useStore();
@@ -173,25 +173,14 @@ export const useOpenBCIUtils = () => {
     [],
     [],
   ]);
-  function applyHighpassFilter(
-    eegData: number[],
-    cutoff: number,
-    sampleRate: number,
-  ) {
-    const output = new Array(eegData.length);
-    const RC = 1 / (2 * Math.PI * cutoff);
-    const dt = 1 / sampleRate;
-    const alpha = RC / (RC + dt);
+  function applyHighpassFilter(eegData: number[]) {
+    const filter = filter_setup(250, 824);
 
-    // Initialisierung
-    output[0] = eegData[0]; // Startwert übernehmen
+    const filteredArray: number[] = filter_signal(eegData, 824, filter);
 
-    // Highpass-Filter anwenden
-    for (let i = 1; i < eegData.length; i++) {
-      output[i] = alpha * (output[i - 1] + eegData[i] - eegData[i - 1]);
-    }
+    console.log(filteredArray);
 
-    return output;
+    return filteredArray;
   }
 
   const bandPassFilteredSignalsThrottled = computed<number[][]>(() => {
@@ -209,9 +198,7 @@ export const useOpenBCIUtils = () => {
 
       const filteredData: number[][] = [];
 
-      array.map((subArray) =>
-        filteredData.push(applyHighpassFilter(subArray, 30, 250)),
-      );
+      array.map((subArray) => filteredData.push(applyHighpassFilter(subArray)));
 
       return filteredData;
     };
@@ -250,6 +237,8 @@ export const useOpenBCIUtils = () => {
           0,
         );
         const RMS = Math.sqrt(sumOfSquares / subArray.length);
+        console.log(AKey);
+        console.log(RMS);
 
         nodeRMSsCached.value[AKey as keyof SerialDataRMS] = RMS;
       });
