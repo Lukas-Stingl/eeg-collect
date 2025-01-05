@@ -174,9 +174,9 @@ export const useOpenBCIUtils = () => {
     [],
   ]);
   function applyHighpassFilter(eegData: number[]) {
-    const filter = filter_setup(250, 824);
+    const filter = filter_setup(250, 250);
 
-    const filteredArray: number[] = filter_signal(eegData, 824, filter);
+    const filteredArray: number[] = filter_signal(eegData, 250, filter);
 
     console.log(filteredArray);
 

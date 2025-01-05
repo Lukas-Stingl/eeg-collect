@@ -36,7 +36,7 @@ export function filter_setup(fs, filterOrder) {
     // can also be bandpass with F1 & F2
     order: filterOrder, // Filter order
     Fs: fs, // Sampling frequency
-    Fc: 1, // cutoff frequency
+    Fc: 30, // cutoff frequency
     // forbandpass and bandstop F1 and F2 must be provided instead of Fc
   });
 
@@ -46,13 +46,13 @@ export function filter_setup(fs, filterOrder) {
 
 export function filter_signal(signalArray, filterOrder, firFilter) {
   // Pad the signal on edges - similar to default setting in mne python's filter_data() method for FIR filters.
-  var paddedArray = reflectLimitedPadding(signalArray, 250);
+  var paddedArray = reflectLimitedPadding(signalArray, filterOrder);
 
   // Apply the FIR filter
   var filteredArray = firFilter.multiStep(paddedArray);
 
   // Remove padded edge values again
-  filteredArray = filteredArray.slice(250, -250);
+  filteredArray = filteredArray.slice(filterOrder, -filterOrder);
   // console.log(filteredArray);
 
   // Subtract baseline (to remove DC offset)
