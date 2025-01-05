@@ -225,8 +225,12 @@ export const useOpenBCIUtils = () => {
     //console.log("rollingBuffer.value XXXXXX");
     //console.log(bandPassFilteredSignalsThrottled.value);
 
-    Object.keys(nodeRMSsCached.value).map((AKey) => {
-      bandFilteredBufferCached.value.map((subArray) => {
+    Object.keys(nodeRMSsCached.value).map((AKey, nodeRMSCachedIndex) => {
+      bandFilteredBufferCached.value.map((subArray, index) => {
+        if (nodeRMSCachedIndex !== index) {
+          return;
+        }
+
         if (subArray.length === 0) {
           return;
         }
