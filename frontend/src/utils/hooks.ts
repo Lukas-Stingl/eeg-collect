@@ -182,7 +182,7 @@ export const useOpenBCIUtils = () => {
       filterObj.value,
     );
 
-    console.log(filteredArray);
+    // console.log(filteredArray);
 
     return filteredArray;
   }
@@ -215,7 +215,7 @@ export const useOpenBCIUtils = () => {
 
   const getThrottledBuffer = throttle(() => {
     return rollingBuffer.value;
-  }, 200);
+  }, 500);
 
   const throttledBuffer = computed<OpenBCISerialData[]>(() => {
     const b = rollingBuffer.value;
@@ -256,7 +256,7 @@ export const useOpenBCIUtils = () => {
     //console.log(nodeRMSsCached.value);
 
     return nodeRMSsCached.value;
-  }, 200);
+  }, 500);
 
   const signalRMS = computed(() => {
     const a = bandPassFilteredSignalsThrottled.value;
