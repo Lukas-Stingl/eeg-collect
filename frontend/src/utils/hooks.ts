@@ -163,6 +163,8 @@ export const useOpenBCIUtils = () => {
   // Buffer storing complete cyton chunks.
   const rollingBuffer = ref<OpenBCISerialData[]>([]);
 
+  const filterObj = ref<any>(filter_setup(250, 824));
+
   const bandFilteredBufferCached = ref<number[][]>([
     [],
     [],
@@ -174,9 +176,11 @@ export const useOpenBCIUtils = () => {
     [],
   ]);
   function applyHighpassFilter(eegData: number[]) {
-    const filter = filter_setup(250, 824);
-
-    const filteredArray: number[] = filter_signal(eegData, 824, filter);
+    const filteredArray: number[] = filter_signal(
+      eegData,
+      824,
+      filterObj.value,
+    );
 
     console.log(filteredArray);
 
