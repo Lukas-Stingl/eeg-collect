@@ -174,9 +174,9 @@ export const useOpenBCIUtils = () => {
     [],
   ]);
   function applyHighpassFilter(eegData: number[]) {
-    const filter = filter_setup(250, 250);
+    const filter = filter_setup(250, 824);
 
-    const filteredArray: number[] = filter_signal(eegData, 250, filter);
+    const filteredArray: number[] = filter_signal(eegData, 824, filter);
 
     console.log(filteredArray);
 
@@ -457,7 +457,7 @@ export const useOpenBCIUtils = () => {
                   if (data) {
                     // console.log("DATATATATA CHUNK COMPLETE");
                     // console.log(data);
-                    if (rollingBuffer.value.length > 250) {
+                    if (rollingBuffer.value.length > 1250) {
                       rollingBuffer.value.shift();
                     }
 

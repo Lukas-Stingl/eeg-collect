@@ -36,7 +36,7 @@ export function filter_setup(fs, filterOrder) {
     // can also be bandpass with F1 & F2
     order: filterOrder, // Filter order
     Fs: fs, // Sampling frequency
-    Fc: 30, // cutoff frequency
+    Fc: 1, // cutoff frequency
     // forbandpass and bandstop F1 and F2 must be provided instead of Fc
   });
 
