@@ -3,8 +3,6 @@ export const getSignalState = ({ signal }: { signal?: number }) => {
     return 1;
   }
 
-  // TODO I think thresholds and values are different for each node
-
   if (signal < 0.1) {
     return 1;
   } else if (signal > 100) {
