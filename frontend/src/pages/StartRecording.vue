@@ -783,10 +783,13 @@ div#card_connect {
   fill: red;
 }
 .moderate {
-  fill: orange;
+  fill: #f09837;
+}
+.better {
+  fill: #a1c720;
 }
 .good {
-  fill: green;
+  fill: #008f00;
 }
 
 .tooltip {

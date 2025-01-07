@@ -264,7 +264,7 @@ const handleMouseOver = (event: MouseEvent, d: Node) => {
 
 // TODO - Move to utils; Make Array Constant
 const stateToClass = (state: number) => {
-  const stateClasses = ["off", "bad", "moderate", "good"];
+  const stateClasses = ["off", "bad", "moderate", "better", "good"];
   return stateClasses[state] || "unknown";
 };
 
