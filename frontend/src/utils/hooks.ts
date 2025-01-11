@@ -454,6 +454,38 @@ export const useOpenBCIUtils = () => {
             if (value[i] >= 192 && value[i] <= 198 && chunkBuffer.length > 30) {
               headerFound = false;
 
+              if (recordingMode.value === RecordingMode.RECORDING) {
+                switch (mode.value) {
+                  case ConnectionMode.CYTON: {
+                    const data = decodeCytonData(chunkBuffer);
+
+                    if (data) {
+                      // console.log("DATATATATA CHUNK COMPLETE");
+                      // console.log(data);
+                      if (rollingBuffer.value.length > 1250) {
+                        rollingBuffer.value.shift();
+                      }
+
+                      rollingBuffer.value = [...rollingBuffer.value, data];
+                    }
+                    break;
+                  }
+                  case ConnectionMode.DAISY:
+                    // decodeDaisy(buffer);
+                    break;
+                }
+              } else {
+                switch (mode.value) {
+                  case ConnectionMode.CYTON: {
+                    decodeChunkImpedance(chunkBuffer);
+                    break;
+                  }
+                  case ConnectionMode.DAISY:
+                    // decodeDaisy(buffer);
+                    break;
+                }
+              }
+
               switch (mode.value) {
                 case ConnectionMode.CYTON: {
                   const data = decodeCytonData(chunkBuffer);
@@ -490,6 +522,41 @@ export const useOpenBCIUtils = () => {
     }
   };
 
+  const decodeChunkImpedance = (message: any[]) => {
+    const str = message.toString();
+    const numbers = str.split(",").map(Number);
+    const chunk = new Uint8Array(numbers);
+
+    // Skip first byte (header) and last byte (stop byte)
+    const byteArray = chunk.slice(1, -1);
+    const sampleNumber = chunk[1];
+    data.value["sampleNumber"].push(sampleNumber);
+    data.value["timestamp"].push(new Date().getTime());
+
+    // Parse EEG data for all channels
+    const eegData = [];
+
+    for (let i = 2; i <= 24; i += 3) {
+      const channelData =
+        interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.5364418669;
+      const channelName = `A${Math.ceil((i - 1) / 3)}`;
+
+      // @ts-ignore-next-line: Der meckert, weil der key count vom Typ string ist.
+      data.value[channelName as keyof OpenBCICytonData].push(channelData);
+      eegData.push(channelData);
+    }
+    const Acc0 = interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
+    const Acc1 = interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
+    const Acc2 = interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
+    try {
+      data.value["Accel0"].push(Acc0);
+      data.value["Accel1"].push(Acc1);
+      data.value["Accel2"].push(Acc2);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   // Wie configureBoard in cyton.js
   const runImpedanceCheck = async (channel: number) => {
     resetImpedance("H");
@@ -518,19 +585,19 @@ export const useOpenBCIUtils = () => {
     const channelCheckStartCommand = startCommands[channel - 1];
     const channelCheckResetCommand = resetCommands[channel - 1];
 
-    if (channelCheckStartCommand || channelCheckResetCommand) {
+    if (!channelCheckStartCommand || !channelCheckResetCommand) {
       console.error("Invalid channel index:", channel);
 
       return;
     }
 
     try {
+      // Check if the port is writable before writing data
       if (!port.value || !port.value.writable) {
         console.error("Serial port is not writable");
 
         return;
       }
-      // Check if the port is writable before writing data
 
       let writer = port.value.writable.getWriter();
       const impedanceCommandBytes = new TextEncoder().encode(
@@ -867,8 +934,11 @@ export const useOpenBCIUtils = () => {
   };
 
   const exportImpedanceCSV = () => {
-    const objectKeys = Object.keys(impedanceDataRaw);
-    const csvContent = parseAndExportImpedance(impedanceDataRaw, objectKeys);
+    const objectKeys = Object.keys(impedanceDataRaw.value);
+    const csvContent = parseAndExportImpedance(
+      impedanceDataRaw.value,
+      objectKeys,
+    );
     const startTime = Math.floor(
       new Date(impedanceRecordingStartTime.value).getTime() / 1000,
     );
@@ -898,6 +968,9 @@ export const useOpenBCIUtils = () => {
 
   // @ts-ignore-next-line
   const parseAndExportImpedance = (data, objectKeys) => {
+    console.log("DATA AND OBJKEYS");
+    console.log(data);
+    console.log(objectKeys);
     const headers = `Index;Datetime;${objectKeys.join(";")}`;
 
     // Transpose data
