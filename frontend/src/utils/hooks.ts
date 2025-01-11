@@ -518,43 +518,45 @@ export const useOpenBCIUtils = () => {
     const channelCheckStartCommand = startCommands[channel - 1];
     const channelCheckResetCommand = resetCommands[channel - 1];
 
-    if (channelCheckStartCommand && channelCheckResetCommand) {
-      try {
-        // Check if the port is writable before writing data
-        if (port.value && port.value.writable) {
-          let writer = port.value.writable.getWriter();
-          const impedanceCommandBytes = new TextEncoder().encode(
-            channelCheckStartCommand,
-          );
-          await writer.write(impedanceCommandBytes);
-          console.log(channelCheckStartCommand);
-          console.log("Impedance check command sent for channel " + channel);
-          writer.releaseLock();
-          await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
-          await commandBoardStartStreamingData(RecordingMode.IMPEDANCE); // Start recording for 5 seconds
-          await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 seconds
-          console.log("Waiting for 5 sec"); // Deactivate impedance measurement after 5 seconds
-          console.log("Impedance check completed for channel " + channel);
-          await stopImpedanceRecording("A" + channel);
-          writer = port.value.writable.getWriter();
-          const resetCommandBytes = new TextEncoder().encode(
-            channelCheckResetCommand,
-          );
-          await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
-          await writer.write(resetCommandBytes);
-          await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
-          console.log("Reset command sent for channel " + channel);
-          writer.releaseLock();
-
-          exportImpedanceCSV();
-        } else {
-          console.error("Serial port is not writable");
-        }
-      } catch (error) {
-        console.error("Error sending commands:", error);
-      }
-    } else {
+    if (channelCheckStartCommand || channelCheckResetCommand) {
       console.error("Invalid channel index:", channel);
+
+      return;
+    }
+
+    try {
+      // Check if the port is writable before writing data
+      if (port.value && port.value.writable) {
+        let writer = port.value.writable.getWriter();
+        const impedanceCommandBytes = new TextEncoder().encode(
+          channelCheckStartCommand,
+        );
+        await writer.write(impedanceCommandBytes);
+        console.log(channelCheckStartCommand);
+        console.log("Impedance check command sent for channel " + channel);
+        writer.releaseLock();
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
+        await commandBoardStartStreamingData(RecordingMode.IMPEDANCE); // Start recording for 5 seconds
+        await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 seconds
+        console.log("Waiting for 5 sec"); // Deactivate impedance measurement after 5 seconds
+        console.log("Impedance check completed for channel " + channel);
+        await stopImpedanceRecording("A" + channel);
+        writer = port.value.writable.getWriter();
+        const resetCommandBytes = new TextEncoder().encode(
+          channelCheckResetCommand,
+        );
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
+        await writer.write(resetCommandBytes);
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
+        console.log("Reset command sent for channel " + channel);
+        writer.releaseLock();
+
+        exportImpedanceCSV();
+      } else {
+        console.error("Serial port is not writable");
+      }
+    } catch (error) {
+      console.error("Error sending commands:", error);
     }
   };
 
