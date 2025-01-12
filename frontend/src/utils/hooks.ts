@@ -426,98 +426,85 @@ export const useOpenBCIUtils = () => {
       lastDataTimestamp = Date.now(); // Update timestamp on new data
       resetTimeout();
 
-      // Process received chunk
-      if (value) {
-        for (let i = 0; i < value.length; i++) {
-          try {
-            // Check if the header is found
-            if (!headerFound && value[i] === 160) {
-              headerFound = true;
-            } else if (!headerFound && !headerFound) {
-              const text = new TextDecoder().decode(value);
-              // console.log(text);
-            }
-
-            if (headerFound) {
-              chunkBuffer.push(value[i]);
-            }
-          } catch (error) {
-            // console.error("Error in first part of for loop:", error);
-            // logErrorDetails(error, buffer, isRecording.value);
-          }
-
-          try {
-            // Check if a complete chunk is formed
-            // Decode the chunk
-            // Stop receiving data if the stop byte is found
-
-            if (value[i] >= 192 && value[i] <= 198 && chunkBuffer.length > 30) {
-              headerFound = false;
-
-              if (recordingMode.value === RecordingMode.RECORDING) {
-                switch (mode.value) {
-                  case ConnectionMode.CYTON: {
-                    const data = decodeCytonData(chunkBuffer);
-
-                    if (data) {
-                      // console.log("DATATATATA CHUNK COMPLETE");
-                      // console.log(data);
-                      if (rollingBuffer.value.length > 1250) {
-                        rollingBuffer.value.shift();
-                      }
-
-                      rollingBuffer.value = [...rollingBuffer.value, data];
-                    }
-                    break;
-                  }
-                  case ConnectionMode.DAISY:
-                    // decodeDaisy(buffer);
-                    break;
-                }
-              } else {
-                switch (mode.value) {
-                  case ConnectionMode.CYTON: {
-                    decodeChunkImpedance(chunkBuffer);
-                    break;
-                  }
-                  case ConnectionMode.DAISY:
-                    // decodeDaisy(buffer);
-                    break;
-                }
-              }
-
-              switch (mode.value) {
-                case ConnectionMode.CYTON: {
-                  const data = decodeCytonData(chunkBuffer);
-
-                  if (data) {
-                    // console.log("DATATATATA CHUNK COMPLETE");
-                    // console.log(data);
-                    if (rollingBuffer.value.length > 1250) {
-                      rollingBuffer.value.shift();
-                    }
-
-                    rollingBuffer.value = [...rollingBuffer.value, data];
-                  }
-                  break;
-                }
-                case ConnectionMode.DAISY:
-                  // decodeDaisy(buffer);
-                  break;
-              }
-
-              chunkBuffer = []; // Reset buffer for the next chunk
-            } else {
-              // TODO: I assume this case is not caught: What happens if the above is not executed and the buffer not reset?
-              // console.log("Unsure what to do with rest of chunk?");
-            }
-          } catch (error) {
-            // console.error("Error in second part of for loop:", error);
-            // logErrorDetails(error, buffer, isRecording.value);
-          }
-        }
-      } else {
+      if (!value) {
         console.log("Warning: Received null or undefined value from reader.");
+
+        continue;
+      }
+
+      // Process received chunk
+      for (let i = 0; i < value.length; i++) {
+        try {
+          // Check if the header is found
+          if (!headerFound && value[i] === 160) {
+            headerFound = true;
+          } else if (!headerFound && !headerFound) {
+            const text = new TextDecoder().decode(value);
+            // console.log(text);
+          }
+
+          if (headerFound) {
+            chunkBuffer.push(value[i]);
+          }
+        } catch (error) {
+          // console.error("Error in first part of for loop:", error);
+          // logErrorDetails(error, buffer, isRecording.value);
+        }
+
+        try {
+          // Check if a complete chunk is formed
+          // Decode the chunk
+          // Stop receiving data if the stop byte is found
+          if (value[i] < 192 || value[i] > 198 || chunkBuffer.length <= 30) {
+            // TODO: I assume this case is not caught: What happens if the above is not executed and the buffer not reset?
+            // console.log("Unsure what to do with rest of chunk?");
+
+            continue;
+          }
+
+          headerFound = false;
+
+          if (recordingMode.value === RecordingMode.RECORDING) {
+            // ---- RECORDING MODE ----
+
+            switch (mode.value) {
+              case ConnectionMode.CYTON: {
+                const data = decodeCytonData(chunkBuffer);
+
+                if (data) {
+                  // console.log("DATATATATA CHUNK COMPLETE");
+                  // console.log(data);
+                  if (rollingBuffer.value.length > 1250) {
+                    rollingBuffer.value.shift();
+                  }
+
+                  rollingBuffer.value = [...rollingBuffer.value, data];
+                }
+                break;
+              }
+              case ConnectionMode.DAISY:
+                // decodeDaisy(buffer);
+                break;
+            }
+          } else {
+            // ---- IMPEDANCE MODE ----
+
+            switch (mode.value) {
+              case ConnectionMode.CYTON: {
+                decodeChunkImpedance(chunkBuffer);
+                break;
+              }
+              case ConnectionMode.DAISY:
+                // decodeDaisy(buffer);
+                break;
+            }
+          }
+
+          chunkBuffer = []; // Reset buffer for the next chunk
+        } catch (error) {
+          console.error("Error in second part of for loop:", error);
+          // logErrorDetails(error, buffer, isRecording.value);
+        }
       }
     }
   };
@@ -600,11 +587,8 @@ export const useOpenBCIUtils = () => {
       }
 
       let writer = port.value.writable.getWriter();
-      const impedanceCommandBytes = new TextEncoder().encode(
-        channelCheckStartCommand,
-      );
-      await writer.write(impedanceCommandBytes);
-      console.log(channelCheckStartCommand);
+
+      await writer.write(new TextEncoder().encode(channelCheckStartCommand)); // Start Impedance Command
       console.log("Impedance check command sent for channel " + channel);
       writer.releaseLock();
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
@@ -614,11 +598,8 @@ export const useOpenBCIUtils = () => {
       console.log("Impedance check completed for channel " + channel);
       await stopImpedanceRecording("A" + channel);
       writer = port.value.writable.getWriter();
-      const resetCommandBytes = new TextEncoder().encode(
-        channelCheckResetCommand,
-      );
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
-      await writer.write(resetCommandBytes);
+      await writer.write(new TextEncoder().encode(channelCheckResetCommand)); // Reset Command
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
       console.log("Reset command sent for channel " + channel);
       writer.releaseLock();
@@ -635,46 +616,47 @@ export const useOpenBCIUtils = () => {
     try {
       isRecording.value = false;
       // Check if the port is writable before writing data
-      if (port.value && port.value.writable) {
-        const writer = port.value.writable.getWriter();
-        const commandBytes = new TextEncoder().encode(
-          CytonBoardCommands.STOP_STREAMING,
-        );
-        await writer.write(commandBytes);
-        console.log("Recording stopped");
-        writer.releaseLock();
-        console.log(
-          "finished rec: " + data.value[channel as keyof OpenBCICytonData],
-        );
-        data.value.count = `${data.value[channel as keyof OpenBCICytonData].length}`;
-        console.log("Channel: " + channel);
-        console.log("Data: " + data.value[channel as keyof OpenBCICytonData]);
-        // Prepare data to send
-        // @ts-ignore-next-line
-        const raw_data = data.value[channel as keyof OpenBCICytonData].map(
-          // @ts-ignore-next-line
-          (value) => parseFloat(value),
-        ); // Convert values to floats if necessary
-
-        console.log(data.value);
-        // Send data to http://localhost:5001/calculate_impedance
-        const response = await fetch("/data/calculate_impedance/" + 250, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ data_raw: raw_data, channel: channel }),
-        });
-        console.log("Data sent to calculate impedance:", raw_data);
-        const impedanceValue = await response.json(); // Get impedance value from the response
-        impedanceDataRaw.value[channel] = impedanceValue.impedance; // Store impedance value in the global variable
-        console.log(
-          "Impedance value for channel " + channel + ":",
-          impedanceValue.impedance,
-        );
-      } else {
+      if (!port.value || !port.value.writable) {
         console.error("Serial port is not writable");
+
+        return;
       }
+
+      const writer = port.value.writable.getWriter();
+      await writer.write(
+        new TextEncoder().encode(CytonBoardCommands.STOP_STREAMING),
+      );
+      console.log("Recording stopped");
+      writer.releaseLock();
+      console.log(
+        "finished rec: " + data.value[channel as keyof OpenBCICytonData],
+      );
+      data.value.count = `${data.value[channel as keyof OpenBCICytonData].length}`;
+      console.log("Channel: " + channel);
+      console.log("Data: " + data.value[channel as keyof OpenBCICytonData]);
+      // Prepare data to send
+      // @ts-ignore-next-line
+      const raw_data = data.value[channel as keyof OpenBCICytonData].map(
+        // @ts-ignore-next-line
+        (value) => parseFloat(value),
+      ); // Convert values to floats if necessary
+
+      console.log(data.value);
+      // Send data to http://localhost:5001/calculate_impedance
+      const response = await fetch("/data/calculate_impedance/" + 250, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ data_raw: raw_data, channel: channel }),
+      });
+      console.log("Data sent to calculate impedance:", raw_data);
+      const impedanceValue = await response.json(); // Get impedance value from the response
+      impedanceDataRaw.value[channel] = impedanceValue.impedance; // Store impedance value in the global variable
+      console.log(
+        "Impedance value for channel " + channel + ":",
+        impedanceValue.impedance,
+      );
     } catch (error) {
       console.error("Error stopping recording:", error);
     }
