@@ -145,6 +145,24 @@ export const useDataVisualization = ({
 export const useOpenBCIUtils = () => {
   // ---- STATE ----
 
+  // ---- STATE: APIs ----
+
+  const signalRMS = computed(() => {
+    const a = bandPassFilteredSignalsThrottled.value;
+    return getThrottledRMS();
+  });
+
+  const throttledBuffer = computed<OpenBCISerialData[]>(() => {
+    const b = rollingBuffer.value;
+    return getThrottledBuffer();
+  });
+
+  const isImpedanceCheckRunning = ref<boolean>(false);
+  const impedanceCheckChannel = ref<number>(1);
+  const impedanceDataRaw = ref<any>({});
+
+  // ---- STATE: Internal ----
+
   const store = useStore();
   const ws = computed(() => store.state.webSocket);
 
@@ -217,11 +235,6 @@ export const useOpenBCIUtils = () => {
     return rollingBuffer.value;
   }, 500);
 
-  const throttledBuffer = computed<OpenBCISerialData[]>(() => {
-    const b = rollingBuffer.value;
-    return getThrottledBuffer();
-  });
-
   const nodeRMSsCached = ref<SerialDataRMS>({
     ...DEFAULT_OPEN_BCI_SERIAL_DATA_RMS,
   });
@@ -258,96 +271,9 @@ export const useOpenBCIUtils = () => {
     return nodeRMSsCached.value;
   }, 500);
 
-  const signalRMS = computed(() => {
-    const a = bandPassFilteredSignalsThrottled.value;
-    return getThrottledRMS();
-  });
+  // ---- METHODS ----
 
-  // watch(
-  //   () => signalRMS.value,
-  //   (newValue) => {
-  //     console.log("signalRMS changed to: " + newValue);
-  //     console.log(newValue);
-  //   },
-  // );
-
-  // ---- EXPORTED METHODS ----
-
-  const setupSerialConnection = async ({
-    setIsLoadingModalShown,
-  }: {
-    setIsLoadingModalShown: (arg: boolean) => void;
-  }): Promise<ConnectedDeviceStatus | boolean> => {
-    let returnStatus: ConnectedDeviceStatus | boolean = false;
-    try {
-      const port: SerialPort = await navigator.serial.requestPort();
-
-      console.log("port:::");
-      console.log(port);
-
-      store.commit("setWebSerialPort", { port: port });
-
-      if (setIsLoadingModalShown !== undefined) {
-        setIsLoadingModalShown(true);
-      }
-
-      if (!port.readable || !port.writable) {
-        await port.open({ baudRate: 115200, bufferSize: 16000 });
-      }
-
-      const reader: ReadableStreamDefaultReader<Uint8Array> =
-        port.readable.getReader();
-
-      console.log("reader");
-      console.log(reader);
-      store.commit("setWebSerialReader", { reader: reader });
-
-      const isCorrectDeviceConnected = await checkConnectedDevice(store);
-
-      console.log("isCorrectDeviceConnected");
-      console.log(isCorrectDeviceConnected);
-
-      if (isCorrectDeviceConnected === ConnectedDeviceStatus.SUCCESS) {
-        console.log("Correct device connected");
-        // this.readData();
-        returnStatus = ConnectedDeviceStatus.SUCCESS;
-      } else if (
-        isCorrectDeviceConnected ===
-        ConnectedDeviceStatus.DONGLE_CONNECTED_BUT_HEADSET_NOT_FOUND
-      ) {
-        console.log("Dongle connected but Headset not found");
-        returnStatus =
-          ConnectedDeviceStatus.DONGLE_CONNECTED_BUT_HEADSET_NOT_FOUND;
-      } else {
-        console.log("No Data Streamed");
-        returnStatus = ConnectedDeviceStatus.NO_DATA_STREAMED;
-      }
-
-      return returnStatus;
-    } catch (error) {
-      console.error("Error connecting to serial port:", error);
-
-      if (port.value && !isEmpty(port.value.getInfo())) {
-        console.log("Port Info");
-        console.log(port.value.getInfo());
-        await port.value.close();
-        console.log("Serial port closed due to error");
-      }
-
-      if (reader.value && !reader.value.closed) {
-        reader.value.releaseLock();
-        console.log("Reader released due to error");
-      }
-
-      return false;
-    } finally {
-      if (setIsLoadingModalShown !== undefined) {
-        setIsLoadingModalShown(false);
-      }
-
-      // TODO Wenn die App Unmounted, Reader releasen. Aber nicht hier!!!
-    }
-  };
+  // ---- METHODS: APIs ----
 
   const stopRecording = async () => {
     isRecording.value = false;
@@ -509,6 +435,98 @@ export const useOpenBCIUtils = () => {
     }
   };
 
+  const setupSerialConnection = async ({
+    setIsLoadingModalShown,
+  }: {
+    setIsLoadingModalShown: (arg: boolean) => void;
+  }): Promise<ConnectedDeviceStatus | boolean> => {
+    let returnStatus: ConnectedDeviceStatus | boolean = false;
+    try {
+      const port: SerialPort = await navigator.serial.requestPort();
+
+      console.log("port:::");
+      console.log(port);
+
+      store.commit("setWebSerialPort", { port: port });
+
+      if (setIsLoadingModalShown !== undefined) {
+        setIsLoadingModalShown(true);
+      }
+
+      if (!port.readable || !port.writable) {
+        await port.open({ baudRate: 115200, bufferSize: 16000 });
+      }
+
+      const reader: ReadableStreamDefaultReader<Uint8Array> =
+        port.readable.getReader();
+
+      console.log("reader");
+      console.log(reader);
+      store.commit("setWebSerialReader", { reader: reader });
+
+      const isCorrectDeviceConnected = await checkConnectedDevice(store);
+
+      console.log("isCorrectDeviceConnected");
+      console.log(isCorrectDeviceConnected);
+
+      if (isCorrectDeviceConnected === ConnectedDeviceStatus.SUCCESS) {
+        console.log("Correct device connected");
+        // this.readData();
+        returnStatus = ConnectedDeviceStatus.SUCCESS;
+      } else if (
+        isCorrectDeviceConnected ===
+        ConnectedDeviceStatus.DONGLE_CONNECTED_BUT_HEADSET_NOT_FOUND
+      ) {
+        console.log("Dongle connected but Headset not found");
+        returnStatus =
+          ConnectedDeviceStatus.DONGLE_CONNECTED_BUT_HEADSET_NOT_FOUND;
+      } else {
+        console.log("No Data Streamed");
+        returnStatus = ConnectedDeviceStatus.NO_DATA_STREAMED;
+      }
+
+      return returnStatus;
+    } catch (error) {
+      console.error("Error connecting to serial port:", error);
+
+      if (port.value && !isEmpty(port.value.getInfo())) {
+        console.log("Port Info");
+        console.log(port.value.getInfo());
+        await port.value.close();
+        console.log("Serial port closed due to error");
+      }
+
+      if (reader.value && !reader.value.closed) {
+        reader.value.releaseLock();
+        console.log("Reader released due to error");
+      }
+
+      return false;
+    } finally {
+      if (setIsLoadingModalShown !== undefined) {
+        setIsLoadingModalShown(false);
+      }
+
+      // TODO Wenn die App Unmounted, Reader releasen. Aber nicht hier!!!
+    }
+  };
+
+  const runImpedanceCheck = async () => {
+    resetImpedance("H");
+
+    for (let i = 1; i <= 8; i++) {
+      isImpedanceCheckRunning.value = true;
+      impedanceCheckChannel.value = i;
+      await runImpedanceCheckForChannel(i).then(() => {
+        isImpedanceCheckRunning.value = false;
+      });
+    }
+
+    exportImpedanceCSV();
+  };
+
+  // ---- METHODS: Internal ----
+
   const decodeChunkImpedance = (message: any[]) => {
     const str = message.toString();
     const numbers = str.split(",").map(Number);
@@ -545,9 +563,7 @@ export const useOpenBCIUtils = () => {
   };
 
   // Wie configureBoard in cyton.js
-  const runImpedanceCheck = async (channel: number) => {
-    resetImpedance("H");
-
+  const runImpedanceCheckForChannel = async (channel: number) => {
     const startCommands = [
       "x1000010Xz101Z", // Start impedance check for channel 1
       "x2000010Xz201Z", // Start impedance check for channel 2
@@ -596,23 +612,19 @@ export const useOpenBCIUtils = () => {
       await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 seconds
       console.log("Waiting for 5 sec"); // Deactivate impedance measurement after 5 seconds
       console.log("Impedance check completed for channel " + channel);
-      await stopImpedanceRecording("A" + channel);
+      await stopImpedanceRecordingForChannel("A" + channel);
       writer = port.value.writable.getWriter();
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
       await writer.write(new TextEncoder().encode(channelCheckResetCommand)); // Reset Command
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
       console.log("Reset command sent for channel " + channel);
       writer.releaseLock();
-
-      exportImpedanceCSV();
     } catch (error) {
       console.error("Error sending commands:", error);
     }
   };
 
-  const impedanceDataRaw = ref<any>({});
-
-  const stopImpedanceRecording = async (channel: string) => {
+  const stopImpedanceRecordingForChannel = async (channel: string) => {
     try {
       isRecording.value = false;
       // Check if the port is writable before writing data
@@ -663,42 +675,6 @@ export const useOpenBCIUtils = () => {
 
     data.value = OPEN_BCI_CYTON_DATA_DEFAULT_VALUE;
   };
-
-  // Same as getImpedance() ins cyton.js
-  const impedanceData = computed(() => {
-    const impedanceArray = [];
-    const assignment = channelAssignment["H"];
-
-    for (const channel in assignment) {
-      const node_id = assignment[channel];
-      let impedanceValue = impedanceDataRaw.value[channel];
-
-      let state = 0;
-      if (impedanceValue === undefined) {
-        state = 0; // Set state to 0 if channel not found
-        impedanceValue = 0; // Set impedance to 0 if channel not found
-      } else if (impedanceValue === 0) {
-        state = 1;
-        // 200kOhm
-      } else if (impedanceValue < 750) {
-        state = 3;
-        // 750kOhm
-      } else if (impedanceValue < 1000) {
-        state = 2;
-      } else {
-        state = 1;
-      }
-
-      impedanceArray.push({
-        node_id: node_id,
-        state: state,
-        impedance: impedanceValue,
-      });
-    }
-    return impedanceArray;
-  });
-
-  // ---- INTERNAL FUNCTIONS ----
 
   const resetImpedance = (config: string) => {
     const impedanceArray = [];
@@ -1006,6 +982,7 @@ export const useOpenBCIUtils = () => {
     signalRMS,
     throttledBuffer,
     runImpedanceCheck,
-    impedanceData,
+    isImpedanceCheckRunning,
+    impedanceCheckChannel,
   };
 };

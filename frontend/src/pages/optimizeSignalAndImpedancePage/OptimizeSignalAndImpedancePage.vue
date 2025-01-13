@@ -24,8 +24,14 @@ import { SerialDataRMS } from "@/utils/openBCISerialTypes";
 useConfigureParticipantId();
 useWebsocketConnection();
 
-const { startSignalQualityCheck, stopRecording, signalRMS, runImpedanceCheck } =
-  useOpenBCIUtils();
+const {
+  startSignalQualityCheck,
+  stopRecording,
+  signalRMS,
+  runImpedanceCheck,
+  isImpedanceCheckRunning,
+  impedanceCheckChannel,
+} = useOpenBCIUtils();
 const router = useRouter();
 const route = useRoute();
 const preventUnloadWarningDialog = ref(false);
@@ -127,8 +133,6 @@ const nodeData: ComputedRef<Node[]> = computed(() => {
   return nodes;
 });
 
-const isImpedanceCheckRunning = ref(false);
-const impedanceCheckChannel = ref(1);
 const progressValue = ref(0);
 const bufferValue = ref(20);
 const interval = ref(0);
@@ -280,17 +284,19 @@ const handleBeforeUnload = (event: BeforeUnloadEvent) => {
   return confirmationMessage; // For some browsers
 };
 const handleRedirectToRecording = async () => {
-  for (let i = 1; i <= 8; i++) {
-    isImpedanceCheckRunning.value = true;
-    impedanceCheckChannel.value = i;
-    startBuffer();
-    await runImpedanceCheck(i).then(() => {
-      isImpedanceCheckRunning.value = false;
-    }); // Trigger impedance check for the current channel
-  }
-
-  router.push({ path: "/recording", query: route.query });
+  await runImpedanceCheck().then(() =>
+    router.push({ path: "/recording", query: route.query }),
+  );
 };
+
+watch(
+  () => isImpedanceCheckRunning.value,
+  (newValue) => {
+    if (newValue) {
+      startBuffer();
+    }
+  },
+);
 
 const startBuffer = () => {
   clearInterval(interval.value);
