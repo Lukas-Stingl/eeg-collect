@@ -19,9 +19,16 @@ export default createVuetify({
     },
     VBtn: {
       rounded: "lg",
-      color: "#00594C",
-      variant: "tonal",
-      style: [{ textTransform: "none", minWidth: "100px" }],
+      variant: "flat",
+      style: [
+        {
+          textTransform: "none",
+          minWidth: "100px",
+          backgroundColor: "rgba(255,255,255,0.3)",
+          borderColor: "rgba(124,127,122,0.4) !important",
+        },
+      ],
+      class: "flex-grow-0 border-sm",
     },
     VBtnSecondary: {
       rounded: "lg",

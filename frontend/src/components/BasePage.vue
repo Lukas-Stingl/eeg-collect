@@ -40,7 +40,10 @@ onMounted(() => {
     style="background: #fafafc; overflow: auto; flex-grow: 10"
   >
     <VCol class="w-50 justify-center align-center pa-0">
-      <div :class="path !== '/recording' ? 'lottie-container' : ''">
+      <div
+        :class="path !== '/recording' ? 'lottie-container' : ''"
+        style="z-index: 10"
+      >
         <LottieAnimation
           style="
             width: 150px;
@@ -56,7 +59,9 @@ onMounted(() => {
           :speed="1"
         />
       </div>
-      <h1 class="mb-5" style="font-size: 38px">{{ props.heading }}</h1>
+      <h1 class="mb-5" style="font-size: 38px; z-index: 10">
+        {{ props.heading }}
+      </h1>
       <slot />
     </VCol>
   </VCol>
