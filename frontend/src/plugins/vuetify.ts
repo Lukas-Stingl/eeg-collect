@@ -42,13 +42,27 @@ export default createVuetify({
       style: [{ textTransform: "none" }],
     },
     VRow: { style: [{ display: "flex" }] },
-    VCol: { style: [{ display: "flex", flexDirection: "column" }] },
+    VCol: {
+      style: [{ display: "flex", flexDirection: "column" }],
+      class: "pa-0",
+    },
     VCheckbox: {
       class: "shrink mr-0 mt-0",
       density: "comfortable",
       style: [{ fontWeight: "500" }],
       falseIcon: CheckboxUncheckedIcon,
       trueIcon: CheckboxCheckedIcon,
+    },
+    VCard: {
+      rounded: "lg",
+      border: "sm",
+      elevation: 0,
+    },
+    VCardTitle: {
+      style: [{ fontSize: "1.3rem", fontWeight: "600", textAlign: "start" }],
+    },
+    VCardText: {
+      style: [{ textAlign: "start" }],
     },
   },
 });

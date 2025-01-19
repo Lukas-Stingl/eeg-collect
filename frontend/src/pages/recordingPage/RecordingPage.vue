@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import BasePage from "@/components/BasePage.vue";
@@ -12,10 +12,20 @@ import {
 // ---- STATE ----
 useConfigureParticipantId();
 useWebsocketConnection();
-const { startRecording, stopRecording, runImpedanceCheck } = useOpenBCIUtils();
+const {
+  startRecording,
+  stopRecording,
+  runImpedanceCheck,
+  isImpedanceCheckRunning,
+  impedanceCheckChannel,
+} = useOpenBCIUtils();
 
 const router = useRouter();
 const route = useRoute();
+
+const progressValue = ref(0);
+const bufferValue = ref(20);
+const interval = ref(0);
 
 // ---- CALLBACKS ----
 
@@ -27,11 +37,49 @@ const handleStopRecording = async () => {
   );
 };
 
+const startBuffer = () => {
+  clearInterval(interval.value);
+
+  // Reset progress values
+  progressValue.value = 0;
+  bufferValue.value = 0;
+
+  // Calculate the total time and interval duration
+  const totalTime = 6000; // 5 seconds in milliseconds
+  const steps = 100; // Number of steps to complete progress
+  const intervalDuration = totalTime / steps;
+
+  // Start the interval to update progress
+  interval.value = setInterval(() => {
+    // Increment progress values
+    progressValue.value += 100 / steps;
+    bufferValue.value += 100 / steps;
+
+    // Check if progress has reached 100%
+    if (progressValue.value >= 100) {
+      // Ensure the progress bar is exactly at 100%
+      progressValue.value = 100;
+      bufferValue.value = 100;
+      // Stop the interval after the delay
+      clearInterval(interval.value);
+    }
+  }, intervalDuration);
+};
+
 // ---- LIFECYCLE HOOKS ----
 
 onMounted(() => {
-  startRecording();
+  //startRecording();
 });
+
+watch(
+  () => isImpedanceCheckRunning.value,
+  (newValue) => {
+    if (newValue) {
+      startBuffer();
+    }
+  },
+);
 </script>
 
 <template>
@@ -131,6 +179,34 @@ onMounted(() => {
         >
       </VCol>
     </VCol>
+
+    <!-- Circular progress component -->
+    <v-overlay v-model="isImpedanceCheckRunning">
+      <div class="overlay_content" style="height: 100vh !important">
+        <v-card id="card_connect" class="w-75 px-4 py-2">
+          <!-- <v-card-title>Hinweis</v-card-title> -->
+          <v-card-title>Impedance Measurement Ongoing</v-card-title>
+          <v-card-text>
+            {{
+              `Channel ${impedanceCheckChannel} is being checked. This may take a few seconds. Please wait and do not move your head.`
+            }}
+          </v-card-text>
+          <div style="margin: 10px">
+            <v-progress-linear
+              v-model="progressValue"
+              :buffer-value="bufferValue"
+            ></v-progress-linear>
+          </div>
+        </v-card>
+
+        <v-progress-circular
+          v-if="isImpedanceCheckRunning"
+          color="#00876C"
+          indeterminate
+          size="64"
+        ></v-progress-circular>
+      </div>
+    </v-overlay>
   </BasePage>
 </template>
 

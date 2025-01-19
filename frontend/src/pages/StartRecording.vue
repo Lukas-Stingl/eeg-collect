@@ -756,8 +756,6 @@ h4 {
   align-items: center;
 }
 div#card_connect {
-  margin-top: 50px;
-  margin-bottom: 105px;
 }
 .chart-container {
   width: 50%; /* Ensure each chart takes up full width of its container */
