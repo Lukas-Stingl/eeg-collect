@@ -1,16 +1,33 @@
 <script setup lang="ts">
+import { onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+
 import BasePage from "@/components/BasePage.vue";
 import {
   useConfigureParticipantId,
   useOpenBCIUtils,
   useWebsocketConnection,
 } from "@/utils/hooks";
-import { computed, ComputedRef, onMounted, ref, watch } from "vue";
 
 // ---- STATE ----
 useConfigureParticipantId();
 useWebsocketConnection();
-const { startRecording, stopRecording } = useOpenBCIUtils();
+const { startRecording, stopRecording, runImpedanceCheck } = useOpenBCIUtils();
+
+const router = useRouter();
+const route = useRoute();
+
+// ---- CALLBACKS ----
+
+const handleStopRecording = async () => {
+  stopRecording();
+
+  await runImpedanceCheck().then(() =>
+    router.push({ path: "/finish", query: route.query }),
+  );
+};
+
+// ---- LIFECYCLE HOOKS ----
 
 onMounted(() => {
   startRecording();
@@ -23,10 +40,10 @@ onMounted(() => {
       <div
         style="
           position: absolute;
-          top: -50px;
+          top: -25px;
           left: 50%;
           transform: translateX(-50%);
-          width: 350px;
+          width: 300px;
           height: 150px;
         "
       >
@@ -56,7 +73,7 @@ onMounted(() => {
             transform-origin: bottom left;
             animation: 5000ms linear 0s infinite normal none running spin;
             animation-duration: 9000ms;
-            top: 0px;
+            top: -100px;
             filter: blur(100px);
           "
         />
@@ -109,7 +126,9 @@ onMounted(() => {
           Recording in progress. You can now return to the experiment Tab.<br />
         </p>
 
-        <v-btn @click="stopRecording" class="mx-auto">Stop Recording</v-btn>
+        <v-btn @click="handleStopRecording" class="mx-auto"
+          >Stop Recording</v-btn
+        >
       </VCol>
     </VCol>
   </BasePage>
