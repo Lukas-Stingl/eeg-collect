@@ -4,6 +4,7 @@ import { LottieAnimation } from "lottie-web-vue";
 
 import Dino from "@/assets/Dino.json";
 import BluetoothHeadphones from "@/assets/BluetoothHeadphones.json";
+import CloudUplpoad from "@/assets/CloudUpload.json";
 import { useRoute } from "vue-router";
 
 const props = defineProps({
@@ -24,6 +25,7 @@ watch(
 );
 
 // ---- LOTTIE ----
+
 let anim = ref();
 // eslint-disable-next-line no-undef
 onMounted(() => {
@@ -41,7 +43,9 @@ onMounted(() => {
   >
     <VCol class="w-50 justify-center align-center pa-0">
       <div
-        :class="path !== '/recording' ? 'lottie-container' : ''"
+        :class="
+          path !== '/recording' && path !== '/finish' ? 'lottie-container' : ''
+        "
         style="z-index: 10"
       >
         <LottieAnimation
@@ -53,7 +57,13 @@ onMounted(() => {
             margin-right: auto;
           "
           ref="anim"
-          :animation-data="path === '/recording' ? Dino : BluetoothHeadphones"
+          :animation-data="
+            path === '/recording'
+              ? Dino
+              : path === '/finish'
+                ? CloudUplpoad
+                : BluetoothHeadphones
+          "
           :loop="true"
           :auto-play="true"
           :speed="1"
