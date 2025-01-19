@@ -26,17 +26,17 @@ onMounted(() => {
           top: -50px;
           left: 50%;
           transform: translateX(-50%);
-          width: 400px;
-          height: 200px;
+          width: 350px;
+          height: 150px;
         "
       >
         <div
           style="
             position: absolute;
-            width: 400px;
+            width: 500px;
             height: 200px;
             border-radius: 50%;
-            background: #769f98;
+            background: #83b6dd;
             transform-origin: center;
             top: 0px;
             left: 50%;
@@ -52,12 +52,12 @@ onMounted(() => {
             width: 150px;
             height: 150px;
             border-radius: 50%;
-            background: #4aecc9;
+            background: #14bfb2;
             transform-origin: bottom left;
             animation: 5000ms linear 0s infinite normal none running spin;
             animation-duration: 9000ms;
             top: 0px;
-            filter: blur(110px);
+            filter: blur(100px);
           "
         />
 
@@ -74,8 +74,8 @@ onMounted(() => {
             animation-duration: 6000ms;
             animation-direction: reverse;
             right: 20px;
-            top: -100px;
-            filter: blur(110px);
+            top: 0px;
+            filter: blur(100px);
           "
         />
 
@@ -89,9 +89,9 @@ onMounted(() => {
             background: #a44acf;
             transform-origin: right;
             animation: 5000ms linear 0s infinite normal none running spin;
-            animation-duration: 10000ms;
+            animation-duration: 6000ms;
             right: -80px;
-            filter: blur(110px);
+            filter: blur(100px);
           "
         />
       </div>
@@ -125,12 +125,25 @@ onMounted(() => {
   }
 }
 
+.purplecircle::before {
+  content: "";
+  display: block;
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  transform-origin: center bottom;
+  background: rgb(109, 157, 239);
+  top: 70%;
+  left: auto;
+  right: 50%;
+}
 .purplecircle::after {
   content: "";
   display: block;
   position: absolute;
-  width: 200px;
-  height: 200px;
+  width: 130px;
+  height: 130px;
   border-radius: 50%;
   transform-origin: center bottom;
   background: rgb(68, 206, 227);
@@ -171,9 +184,9 @@ onMounted(() => {
   height: 120px;
   border-radius: 50%;
   transform-origin: center bottom;
-  background: rgb(203, 25, 209);
-  top: 50%;
-  left: 50%;
+  background: rgb(242, 80, 246);
+  top: -30%;
+  left: -50%;
 }
 
 .greencircle::after {
