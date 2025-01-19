@@ -11,6 +11,7 @@ import Check from "@/pages/DeviceCheck.vue";
 import SetupDevicePage from "@/pages/setupDevicePage/SetupDevicePage.vue";
 import OptimizeSignalAndImpedancePage from "@/pages/optimizeSignalAndImpedancePage/OptimizeSignalAndImpedancePage.vue";
 import RecordingPage from "@/pages/recordingPage/RecordingPage.vue";
+import FinishPage from "@/pages/FinishPage.vue";
 
 const routes = [
   {
@@ -66,6 +67,10 @@ const routes = [
         next(false);
       }
     },
+  },
+  {
+    path: "/finish",
+    component: FinishPage,
   },
   {
     path: "/check",
