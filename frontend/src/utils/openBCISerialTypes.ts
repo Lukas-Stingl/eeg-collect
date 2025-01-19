@@ -142,6 +142,7 @@ export const DEFAULT_OPEN_BCI_SERIAL_DATA_RMS: SerialDataRMS = {
 export enum RecordingMode {
   RECORDING = "recording",
   IMPEDANCE = "impedance",
+  SESSION_RECORDING = "session_recording",
 }
 
 export enum ConnectedDeviceStatus {

@@ -298,6 +298,11 @@ export const useOpenBCIUtils = () => {
     }
   };
 
+  const startRecording = async () => {
+    startSignalQualityCheck();
+    await commandBoardStartStreamingData(RecordingMode.SESSION_RECORDING);
+  };
+
   // Wie readData() in cyton.js
   const startSignalQualityCheck = async () => {
     isRecording.value = true;
@@ -316,11 +321,15 @@ export const useOpenBCIUtils = () => {
     const resetTimeout = () => {
       if (timeoutId) clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        if (Date.now() - lastDataTimestamp >= 10000 && isRecording.value) {
+        if (
+          isRecording.value &&
+          Date.now() - lastDataTimestamp >= 10000 &&
+          isRecording.value
+        ) {
           console.log(
             "no new data received since 10 seconds, restarting stream",
           );
-          commandBoardStartStreamingData(RecordingMode.RECORDING);
+          commandBoardStartStreamingData(RecordingMode.SESSION_RECORDING);
         }
       }, 10000);
     };
@@ -412,12 +421,35 @@ export const useOpenBCIUtils = () => {
                 // decodeDaisy(buffer);
                 break;
             }
-          } else {
+          } else if (recordingMode.value === RecordingMode.IMPEDANCE) {
             // ---- IMPEDANCE MODE ----
 
             switch (mode.value) {
               case ConnectionMode.CYTON: {
                 decodeChunkImpedance(chunkBuffer);
+                break;
+              }
+              case ConnectionMode.DAISY:
+                // decodeDaisy(buffer);
+                break;
+            }
+          } else if (recordingMode.value === RecordingMode.SESSION_RECORDING) {
+            // ---- SESSION RECORDING MODE ----
+
+            switch (mode.value) {
+              case ConnectionMode.CYTON: {
+                if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
+                  console.error("WebSocket not open, chunk not sent.");
+                  break;
+                }
+
+                try {
+                  //@ts-ignore-next-line
+                  ws.value.send(chunkBuffer);
+                } catch (err) {
+                  console.error("Error sending chunk to WebSocket:", err);
+                }
+
                 break;
               }
               case ConnectionMode.DAISY:
@@ -978,6 +1010,7 @@ export const useOpenBCIUtils = () => {
   return {
     setupSerialConnection,
     startSignalQualityCheck,
+    startRecording,
     stopRecording,
     signalRMS,
     throttledBuffer,
