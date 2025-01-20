@@ -1,5 +1,16 @@
 <script setup lang="ts">
 import BasePage from "@/components/BasePage.vue";
+import { PhArrowSquareOut } from "@phosphor-icons/vue";
+
+const handleOpenProjectWebsite = () => {
+  window.open("https://github.com/Lukas-Stingl/eeg-collect", "_blank");
+};
+const handleOpenKITWebsite = () => {
+  window.open("https://im.iism.kit.edu", "_blank");
+};
+const handleOpenContactForm = () => {
+  window.open("https://im.iism.kit.edu/team_1261.php", "_blank");
+};
 </script>
 
 <template>
@@ -25,6 +36,7 @@ import BasePage from "@/components/BasePage.vue";
       <VRow class="ga-4" style="flex-wrap: nowrap">
         <VCard
           class="pa-5 rounded-xl justify-lg-space-between"
+          @click="handleOpenProjectWebsite"
           style="
             width: 250px;
             height: 150px;
@@ -33,6 +45,11 @@ import BasePage from "@/components/BasePage.vue";
             justify-content: space-between;
           "
         >
+          <PhArrowSquareOut
+            size="18px"
+            style="position: absolute; top: 20px; right: 20px"
+          />
+
           <VCardTitle>The Project</VCardTitle>
 
           <p
@@ -50,6 +67,7 @@ import BasePage from "@/components/BasePage.vue";
 
         <VCard
           class="pa-5 rounded-xl justify-lg-space-between"
+          @click="handleOpenKITWebsite"
           style="
             width: 250px;
             height: 150px;
@@ -58,6 +76,11 @@ import BasePage from "@/components/BasePage.vue";
             justify-content: space-between;
           "
         >
+          <PhArrowSquareOut
+            size="18px"
+            style="position: absolute; top: 20px; right: 20px"
+          />
+
           <VCardTitle>KIT IISM</VCardTitle>
 
           <VRow class="w-100 d-block">
@@ -79,6 +102,7 @@ import BasePage from "@/components/BasePage.vue";
 
         <VCard
           class="pa-5 rounded-xl justify-lg-space-between"
+          @click="handleOpenContactForm"
           style="
             width: 250px;
             height: 150px;
@@ -87,6 +111,11 @@ import BasePage from "@/components/BasePage.vue";
             justify-content: space-between;
           "
         >
+          <PhArrowSquareOut
+            size="18px"
+            style="position: absolute; top: 20px; right: 20px"
+          />
+
           <VCardTitle>Contact</VCardTitle>
 
           <VRow class="w-100 d-block">
@@ -100,7 +129,7 @@ import BasePage from "@/components/BasePage.vue";
                     font-size: 14px;
                   "
                 >
-                  Michael Knierim
+                  Dr. Michael Knierim
                 </p></VCol
               >
             </VRow>
