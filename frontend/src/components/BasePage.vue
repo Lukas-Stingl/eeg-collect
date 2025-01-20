@@ -38,8 +38,8 @@ onMounted(() => {
 
 <template>
   <VCol
-    class="w-100 justify-center align-center pa-8 overflow-hidden"
-    style="background: #fafafc; overflow: auto; flex-grow: 10"
+    class="w-100 h-100 justify-center align-center pa-8 overflow-hidden"
+    style="background: #fafafc; overflow: auto"
   >
     <VCol class="w-50 justify-center align-center pa-0">
       <div

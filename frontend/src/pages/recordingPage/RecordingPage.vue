@@ -69,7 +69,7 @@ const startBuffer = () => {
 // ---- LIFECYCLE HOOKS ----
 
 onMounted(() => {
-  //startRecording();
+  startRecording();
 });
 
 watch(

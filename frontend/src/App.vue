@@ -25,7 +25,11 @@ onMounted(async () => {
     </header>
 
     <!-- Content Area with left margin -->
-    <div v-if="isPassphraseValid" class="content" style="display: flex">
+    <div
+      v-if="isPassphraseValid"
+      class="content"
+      style="display: block; width: 100vw; height: calc(100vh - 70px)"
+    >
       <router-view></router-view>
     </div>
     <div v-else class="forbidden">403 Forbidden</div>
@@ -43,6 +47,7 @@ onMounted(async () => {
 }
 
 body {
+  box-sizing: border-box !important;
   height: 100vh;
   width: 100vw;
   max-width: 100vw;

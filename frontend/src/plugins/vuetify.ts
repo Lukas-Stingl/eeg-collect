@@ -41,10 +41,13 @@ export default createVuetify({
       variant: "plain",
       style: [{ textTransform: "none" }],
     },
-    VRow: { style: [{ display: "flex" }] },
+    VRow: {
+      class: "flex-grow-0 ma-0 pa-0",
+      style: [{ display: "flex", flexDirection: "row" }],
+    },
     VCol: {
       style: [{ display: "flex", flexDirection: "column" }],
-      class: "pa-0",
+      class: "pa-0 flex-grow-0",
     },
     VCheckbox: {
       class: "shrink mr-0 mt-0",
@@ -59,7 +62,8 @@ export default createVuetify({
       elevation: 0,
     },
     VCardTitle: {
-      style: [{ fontSize: "1.3rem", fontWeight: "600", textAlign: "start" }],
+      class: "px-0 pt-0",
+      style: [{ fontSize: "1.2rem", fontWeight: "600", textAlign: "start" }],
     },
     VCardText: {
       style: [{ textAlign: "start" }],
