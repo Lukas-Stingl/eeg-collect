@@ -299,6 +299,12 @@ export const useOpenBCIUtils = () => {
   };
 
   const startRecording = async () => {
+    if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
+      console.error("WebSocket not open, chunk not sent.");
+      return;
+    }
+
+    ws.value.send("Setup Finished");
     startSignalQualityCheck();
     await commandBoardStartStreamingData(RecordingMode.SESSION_RECORDING);
   };
@@ -420,6 +426,18 @@ export const useOpenBCIUtils = () => {
               case ConnectionMode.DAISY:
                 // decodeDaisy(buffer);
                 break;
+            }
+
+            if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
+              console.error("WebSocket not open, chunk not sent.");
+              break;
+            }
+
+            try {
+              //@ts-ignore-next-line
+              ws.value.send(chunkBuffer);
+            } catch (err) {
+              console.error("Error sending chunk to WebSocket:", err);
             }
           } else if (recordingMode.value === RecordingMode.IMPEDANCE) {
             // ---- IMPEDANCE MODE ----
