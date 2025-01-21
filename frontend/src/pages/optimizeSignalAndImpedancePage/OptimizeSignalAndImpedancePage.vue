@@ -18,6 +18,7 @@ import {
 import { getSignalState } from "@/pages/optimizeSignalAndImpedancePage/utils/helpers";
 import { useRoute, useRouter } from "vue-router";
 import { SerialDataRMS } from "@/utils/openBCISerialTypes";
+import { PhArrowRight } from "@phosphor-icons/vue";
 
 // ---- STATE ----
 
@@ -26,7 +27,6 @@ useWebsocketConnection();
 
 const {
   startSignalQualityCheck,
-  stopRecording,
   signalRMS,
   runImpedanceCheck,
   isImpedanceCheckRunning,
@@ -151,14 +151,6 @@ onMounted(() => {
 
   // Start the signal quality check in the background
   startSignalQualityCheck();
-
-  // ---- DEBUG ----
-
-  // console.log("Continue Mounted");
-  // setTimeout(() => {
-  //   console.log("JNON");
-  //   stopRecording();
-  // }, 15000);
 });
 
 // ---- METHODS ----
@@ -354,15 +346,10 @@ const startBuffer = () => {
       <div class="tooltip"></div>
     </div>
 
-    <VRow style="gap: 16px; max-height: 60px">
-      <v-btn @click="stopRecording">Stop recording</v-btn>
-      <v-btn v-on:click="handleRedirectToRecording">Start Recording</v-btn>
-    </VRow>
-
-    <VRow v-if="false">
-      <div v-for="(rms, index) in signalRMS" :key="index">
-        <p>{{ index }}: {{ rms }}</p>
-      </div>
+    <VRow class="mb-2" style="gap: 16px; max-height: 60px">
+      <v-btn v-on:click="handleRedirectToRecording" :append-icon="PhArrowRight">
+        Start Recording
+      </v-btn>
     </VRow>
 
     <p

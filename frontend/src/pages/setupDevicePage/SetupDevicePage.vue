@@ -9,7 +9,7 @@ import {
   useWebsocketConnection,
 } from "@/utils/hooks";
 import { ConnectedDeviceStatus } from "@/utils/openBCISerialTypes";
-import { PhWarningCircle } from "@phosphor-icons/vue";
+import { PhArrowRight, PhWarningCircle } from "@phosphor-icons/vue";
 import { useRoute, useRouter } from "vue-router";
 
 // ---- STATE ----
@@ -137,6 +137,7 @@ const isChecklistCompleted = computed(
       :disabled="!isChecklistCompleted"
       class="mb-3"
       @click="handleConnectSerialPort"
+      :append-icon="PhArrowRight"
     >
       Connect Headphones
     </VBtn>

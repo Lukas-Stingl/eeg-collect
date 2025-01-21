@@ -14,7 +14,7 @@ const handleOpenContactForm = () => {
 </script>
 
 <template>
-  <BasePage heading="Recording Saved">
+  <BasePage heading="Recording Saved to KIT Server">
     <VCol class="mb-14">
       <p
         style="
@@ -81,7 +81,7 @@ const handleOpenContactForm = () => {
             style="position: absolute; top: 20px; right: 20px"
           />
 
-          <VCardTitle>KIT IISM</VCardTitle>
+          <VCardTitle>KIT WIN</VCardTitle>
 
           <VRow class="w-100 d-block">
             <VRow>

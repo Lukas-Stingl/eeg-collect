@@ -8,6 +8,7 @@ import {
   useOpenBCIUtils,
   useWebsocketConnection,
 } from "@/utils/hooks";
+import { PhArrowRight } from "@phosphor-icons/vue";
 
 // ---- STATE ----
 useConfigureParticipantId();
@@ -122,7 +123,7 @@ watch(
             animation: 5000ms linear 0s infinite normal none running spin;
             animation-duration: 9000ms;
             top: -100px;
-            filter: blur(100px);
+            filter: blur(90px);
           "
         />
 
@@ -140,7 +141,7 @@ watch(
             animation-direction: reverse;
             right: 20px;
             top: 0px;
-            filter: blur(100px);
+            filter: blur(90px);
           "
         />
 
@@ -156,7 +157,7 @@ watch(
             animation: 5000ms linear 0s infinite normal none running spin;
             animation-duration: 6000ms;
             right: -80px;
-            filter: blur(100px);
+            filter: blur(90px);
           "
         />
       </div>
@@ -174,9 +175,13 @@ watch(
           Recording in progress. You can now return to the experiment Tab.<br />
         </p>
 
-        <v-btn @click="handleStopRecording" class="mx-auto"
-          >Stop Recording</v-btn
+        <v-btn
+          @click="handleStopRecording"
+          class="mx-auto"
+          :append-icon="PhArrowRight"
         >
+          Stop Recording
+        </v-btn>
       </VCol>
     </VCol>
 
