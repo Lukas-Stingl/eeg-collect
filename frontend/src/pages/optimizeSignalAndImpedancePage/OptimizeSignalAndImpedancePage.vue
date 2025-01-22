@@ -18,7 +18,14 @@ import {
 import { getSignalState } from "@/pages/optimizeSignalAndImpedancePage/utils/helpers";
 import { useRoute, useRouter } from "vue-router";
 import { SerialDataRMS } from "@/utils/openBCISerialTypes";
-import { PhArrowRight } from "@phosphor-icons/vue";
+import {
+  PhArrowRight,
+  PhArrowsOutSimple,
+  PhInfo,
+  PhWarning,
+  PhWarningCircle,
+} from "@phosphor-icons/vue";
+import OptimizeSignalAside from "@/pages/optimizeSignalAndImpedancePage/components/OptimizeSignalAside.vue";
 
 // ---- STATE ----
 
@@ -150,7 +157,7 @@ onMounted(() => {
   initializeD3();
 
   // Start the signal quality check in the background
-  startSignalQualityCheck();
+  // startSignalQualityCheck();
 });
 
 // ---- METHODS ----
@@ -322,6 +329,10 @@ const startBuffer = () => {
 
 <template>
   <BasePage heading="Adjust Position">
+    <OptimizeSignalAside
+      style="position: absolute; top: 150px; left: 80px; z-index: 100"
+    />
+
     <p
       style="
         color: #737373;
@@ -334,17 +345,50 @@ const startBuffer = () => {
       connection, as indicated by the color in the picture.
     </p>
 
-    <div class="headphones" style="max-height: 430px; align-items: center">
+    <div
+      class="headphones"
+      style="
+        max-height: 320px;
+        align-items: center;
+        display: flex;
+        justify-content: center;
+      "
+    >
       <!-- Device Check Content -->
 
       <svg
         ref="baseModel"
         width="1000"
         height="500"
-        style="position: relative; right: -11px"
+        style="
+          position: relative;
+          right: -11px;
+          scale: 0.79;
+          top: 15px;
+          z-index: 1000;
+        "
       ></svg>
       <div class="tooltip"></div>
     </div>
+
+    <VCard
+      class="rounded-pill d-flex justify-start align-center pl-3 pr-4 mb-8"
+      style="height: 40px"
+      color="#ffe7ea"
+    >
+      <PhWarningCircle size="24" class="mr-2" color="#E72321" />
+
+      <p
+        style="
+          color: #737373;
+          text-align: center;
+          font-weight: 500;
+          font-size: 15px;
+        "
+      >
+        Overall signal quality insufficient
+      </p>
+    </VCard>
 
     <VRow class="mb-2" style="gap: 16px; max-height: 60px">
       <v-btn v-on:click="handleRedirectToRecording" :append-icon="PhArrowRight">

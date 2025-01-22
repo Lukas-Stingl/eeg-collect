@@ -25,7 +25,7 @@ export default createVuetify({
           textTransform: "none",
           minWidth: "100px",
           backgroundColor: "rgba(255,255,255,0.3)",
-          borderColor: "rgba(124,127,122,0.4) !important",
+          borderColor: "rgba(124,127,122,0.3) !important",
         },
       ],
       class: "flex-grow-0 border-sm",
@@ -66,7 +66,15 @@ export default createVuetify({
       style: [{ fontSize: "1.2rem", fontWeight: "600", textAlign: "start" }],
     },
     VCardText: {
-      style: [{ textAlign: "start" }],
+      class: "px-0",
+      style: [
+        {
+          textAlign: "start",
+          color: "#737373",
+          fontWeight: "500",
+          fontSize: "14px",
+        },
+      ],
     },
   },
 });
