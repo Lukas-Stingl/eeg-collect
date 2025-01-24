@@ -1,5 +1,31 @@
 <script setup lang="ts">
+import { onMounted, ref } from "vue";
+
 import OptimizeSignalAudioAndImpedancePanelAudioPanel from "@/pages/optimizeSignalAndImpedancePage/components/audioAndImpedancePanel/components/OptimizeSignalAudioAndImpedancePanelAudioPanel.vue";
+import OptimizeSignalAudioAndImpedancePanelImpedancePanel from "@/pages/optimizeSignalAndImpedancePage/components/audioAndImpedancePanel/components/OptimizeSignalAudioAndImpedancePanelImpedancePanel.vue";
+import { useOpenBCIUtils } from "@/utils/hooks";
+
+// ---- STATE ----
+
+const carouselModel = ref(0);
+
+const {
+  startSignalQualityCheck,
+  runImpedanceCheck,
+  isImpedanceCheckRunning,
+  impedanceCheckChannel,
+} = useOpenBCIUtils();
+
+// ---- CALLBACKS ----
+
+const handleNextStep = () => {
+  console.log("Next step");
+  carouselModel.value += 1;
+};
+
+onMounted(() => {
+  startSignalQualityCheck(); // TODO Flag in Websocket for Audio Check
+});
 </script>
 
 <template>
@@ -21,9 +47,19 @@ import OptimizeSignalAudioAndImpedancePanelAudioPanel from "@/pages/optimizeSign
     "
   >
     <VCard width="85vh" style="top: 50px">
-      <VCarousel hide-delimiters :show-arrows="false">
-        <VCarouselItem class="h-100" style="height: 100%">
-          <OptimizeSignalAudioAndImpedancePanelAudioPanel />
+      <VCarousel hide-delimiters :show-arrows="false" v-model="carouselModel">
+        <VCarouselItem class="h-100" style="height: 100%" value="0">
+          <OptimizeSignalAudioAndImpedancePanelAudioPanel
+            @close="handleNextStep"
+          />
+        </VCarouselItem>
+
+        <VCarouselItem class="h-100" style="height: 100%" value="1">
+          <OptimizeSignalAudioAndImpedancePanelImpedancePanel
+            :isImpedanceCheckRunning="isImpedanceCheckRunning"
+            :impedanceCheckChannel="impedanceCheckChannel"
+            :runImpedanceCheck="runImpedanceCheck"
+          />
         </VCarouselItem>
       </VCarousel>
     </VCard>

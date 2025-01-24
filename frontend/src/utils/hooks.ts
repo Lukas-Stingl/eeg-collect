@@ -729,6 +729,7 @@ export const useOpenBCIUtils = () => {
   const resetImpedance = (config: string) => {
     const impedanceArray = [];
     impedanceDataRaw.value = [];
+    impedanceCheckChannel.value = 1;
     const assignment = channelAssignment[config];
 
     for (const channel in assignment) {

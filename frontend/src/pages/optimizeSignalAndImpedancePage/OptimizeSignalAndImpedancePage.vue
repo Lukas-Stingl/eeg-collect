@@ -16,7 +16,6 @@ import {
   NODES_DEFAULT_VALUES,
 } from "@/pages/optimizeSignalAndImpedancePage/utils/optimizeSignalAndImpedanceTypes";
 import { getSignalState } from "@/pages/optimizeSignalAndImpedancePage/utils/helpers";
-import { useRoute, useRouter } from "vue-router";
 import { SerialDataRMS } from "@/utils/openBCISerialTypes";
 import { PhArrowRight, PhWarningCircle } from "@phosphor-icons/vue";
 import OptimizeSignalAside from "@/pages/optimizeSignalAndImpedancePage/components/OptimizeSignalAside.vue";
@@ -30,13 +29,13 @@ useWebsocketConnection();
 const {
   startSignalQualityCheck,
   signalRMS,
-  runImpedanceCheck,
   isImpedanceCheckRunning,
   impedanceCheckChannel,
+  stopRecording,
 } = useOpenBCIUtils();
-const router = useRouter();
-const route = useRoute();
 const preventUnloadWarningDialog = ref(false);
+
+const isAudioAndImpedancePanelOpen = ref(false);
 
 const reactiveSignalRMS = ref<SerialDataRMS>(signalRMS.value);
 
@@ -152,7 +151,7 @@ onMounted(() => {
   initializeD3();
 
   // Start the signal quality check in the background
-  // startSignalQualityCheck();
+  startSignalQualityCheck();
 });
 
 // ---- METHODS ----
@@ -278,15 +277,20 @@ const handleBeforeUnload = (event: BeforeUnloadEvent) => {
   return confirmationMessage; // For some browsers
 };
 const handleRedirectToRecording = async () => {
-  await runImpedanceCheck().then(() =>
-    router.push({ path: "/recording", query: route.query }),
-  );
+  stopRecording();
+  isAudioAndImpedancePanelOpen.value = true;
+
+  // await runImpedanceCheck().then(() =>
+  //   router.push({ path: "/recording", query: route.query }),
+  // );
 };
 
 watch(
   () => isImpedanceCheckRunning.value,
   (newValue) => {
     if (newValue) {
+      progressValue.value = 0;
+      bufferValue.value = 0;
       startBuffer();
     }
   },
@@ -433,5 +437,5 @@ const startBuffer = () => {
     </div>
   </v-overlay>
 
-  <OptimizeSignalAudioAndImpedancePanel />
+  <OptimizeSignalAudioAndImpedancePanel v-if="isAudioAndImpedancePanelOpen" />
 </template>

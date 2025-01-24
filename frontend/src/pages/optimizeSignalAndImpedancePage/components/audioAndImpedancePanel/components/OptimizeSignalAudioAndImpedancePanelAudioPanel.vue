@@ -221,6 +221,7 @@ onUnmounted(() => {
             :disabled="!isTimerFinished"
             class="flex-grow-0 flex-shrink-1 d-flex"
             :append-icon="PhArrowRight"
+            @click="handleContinue"
             >Continue</VBtn
           >
         </VRow>
