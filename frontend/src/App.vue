@@ -18,7 +18,7 @@ onMounted(async () => {
 <template>
   <div id="app">
     <!-- Application Header with Menu Button -->
-    <header>
+    <header style="z-index: 5000">
       <LogoIcon style="width: 60px" />
       <!-- <h1 class="app-title">EEG Aufnahme</h1> -->
       <h1 class="app-title">EEG Recording</h1>

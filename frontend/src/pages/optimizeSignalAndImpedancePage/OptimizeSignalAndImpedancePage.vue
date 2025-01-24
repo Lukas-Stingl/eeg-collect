@@ -18,14 +18,9 @@ import {
 import { getSignalState } from "@/pages/optimizeSignalAndImpedancePage/utils/helpers";
 import { useRoute, useRouter } from "vue-router";
 import { SerialDataRMS } from "@/utils/openBCISerialTypes";
-import {
-  PhArrowRight,
-  PhArrowsOutSimple,
-  PhInfo,
-  PhWarning,
-  PhWarningCircle,
-} from "@phosphor-icons/vue";
+import { PhArrowRight, PhWarningCircle } from "@phosphor-icons/vue";
 import OptimizeSignalAside from "@/pages/optimizeSignalAndImpedancePage/components/OptimizeSignalAside.vue";
+import OptimizeSignalAudioAndImpedancePanel from "@/pages/optimizeSignalAndImpedancePage/components/audioAndImpedancePanel/OptimizeSignalAudioAndImpedancePanel.vue";
 
 // ---- STATE ----
 
@@ -365,7 +360,7 @@ const startBuffer = () => {
           right: -11px;
           scale: 0.79;
           top: 15px;
-          z-index: 1000;
+          z-index: 900;
         "
       ></svg>
       <div class="tooltip"></div>
@@ -437,4 +432,6 @@ const startBuffer = () => {
       ></v-progress-circular>
     </div>
   </v-overlay>
+
+  <OptimizeSignalAudioAndImpedancePanel />
 </template>
