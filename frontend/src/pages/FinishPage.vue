@@ -14,7 +14,7 @@ const handleOpenContactForm = () => {
 </script>
 
 <template>
-  <BasePage heading="Recording Saved to KIT Server">
+  <BasePage heading="Saved to KIT Server">
     <VCol class="mb-14">
       <p
         style="
