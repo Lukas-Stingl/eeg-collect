@@ -52,9 +52,12 @@ export default createVuetify({
     VCheckbox: {
       class: "shrink mr-0 mt-0",
       density: "comfortable",
-      style: [{ fontWeight: "500" }],
+      style: [{ fontWeight: "500", fontSize: "13px !important" }],
       falseIcon: CheckboxUncheckedIcon,
       trueIcon: CheckboxCheckedIcon,
+    },
+    VLabel: {
+      style: [{ fontWeight: "500", fontSize: "14px !important" }],
     },
     VCard: {
       rounded: "lg",

@@ -30,18 +30,11 @@ const props = defineProps({
 </script>
 
 <template>
-  <VCol
-    style="
-      width: 350px;
-      flex-grow: 0;
-      background: white;
-      border-radius: 8px;
-      border: 1px solid #d2dbe4;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    "
-    class="px-6 py-6 mb-10"
+  <v-card
+    style="width: 350px; flex-grow: 0; background: white; border-radius: 8px"
+    class="w-60 px-4 py-4 mb-10 rounded-xl border-sm text-start"
   >
-    <h2 class="mb-1" style="font-size: 18px; font-weight: bolder">Checklist</h2>
+    <v-card-title style="text-align: center">Checklist</v-card-title>
     <VCheckbox
       :model-value="props.isTurnOnHeadphonesChecked"
       @update:model-value="props.setIsTurnOnHeadphonesChecked"
@@ -51,6 +44,7 @@ const props = defineProps({
         color: props.isTurnOnHeadphonesChecked ? '#939393' : 'inherit',
       }"
     ></VCheckbox>
+    <v-divider />
     <VCheckbox
       :model-value="props.isDonglePluggedInChecked"
       @update:model-value="props.setIsDonglePluggedInChecked"
@@ -60,6 +54,7 @@ const props = defineProps({
         color: props.isDonglePluggedInChecked ? '#939393' : 'inherit',
       }"
     ></VCheckbox>
+    <v-divider />
     <VCheckbox
       :model-value="props.isConnectHeadphonesViaBluetoothChecked"
       @update:model-value="props.setIsConnectHeadphonesViaBluetoothChecked"
@@ -71,7 +66,7 @@ const props = defineProps({
           : 'inherit',
       }"
     ></VCheckbox>
-  </VCol>
+  </v-card>
 </template>
 
 <style scoped></style>
