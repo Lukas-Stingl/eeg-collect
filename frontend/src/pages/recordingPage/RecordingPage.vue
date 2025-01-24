@@ -31,11 +31,11 @@ const interval = ref(0);
 // ---- CALLBACKS ----
 
 const handleStopRecording = async () => {
-  stopRecording();
-
-  await runImpedanceCheck().then(() =>
-    router.push({ path: "/finish", query: route.query }),
-  );
+  await stopRecording().then(async () => {
+    await runImpedanceCheck().then(() =>
+      router.push({ path: "/finish", query: route.query }),
+    );
+  });
 };
 
 const startBuffer = () => {

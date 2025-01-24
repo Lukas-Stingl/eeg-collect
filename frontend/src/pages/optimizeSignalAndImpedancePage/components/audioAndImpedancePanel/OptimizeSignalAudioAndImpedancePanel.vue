@@ -37,7 +37,7 @@ onMounted(() => {
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(21, 56, 66, 0.73);
+      background: rgba(32, 32, 32, 0.73);
       box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
       backdrop-filter: blur(3.5px);
       -webkit-backdrop-filter: blur(3.5px);

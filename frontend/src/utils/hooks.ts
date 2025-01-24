@@ -565,6 +565,8 @@ export const useOpenBCIUtils = () => {
     resetImpedance("H");
 
     for (let i = 1; i <= 8; i++) {
+      console.log("IIIIIIIIIIIIII");
+      console.log(i);
       isImpedanceCheckRunning.value = true;
       impedanceCheckChannel.value = i;
       await runImpedanceCheckForChannel(i).then(() => {
