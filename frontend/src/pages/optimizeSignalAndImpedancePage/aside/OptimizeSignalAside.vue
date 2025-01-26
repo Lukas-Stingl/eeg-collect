@@ -1,6 +1,10 @@
 <script setup lang="ts">
+import { ref } from "vue";
+
 import { PhArrowsOutSimple, PhInfo } from "@phosphor-icons/vue";
 import OptimizeSignalAsideTipsModal from "@/pages/optimizeSignalAndImpedancePage/aside/components/OptimizeSignalAsideTipsModal.vue";
+
+const isAsideTipsModalOpen = ref(false);
 </script>
 
 <template>
@@ -96,6 +100,7 @@ import OptimizeSignalAsideTipsModal from "@/pages/optimizeSignalAndImpedancePage
     <VCard
       class="tip-button rounded-pill d-flex justify-start align-center px-5 py-2 mb-2"
       style="width: 250px; cursor: pointer"
+      @click="isAsideTipsModalOpen = true"
     >
       <PhArrowsOutSimple size="30" class="mr-3" weight="bold" />
 
@@ -110,9 +115,12 @@ import OptimizeSignalAsideTipsModal from "@/pages/optimizeSignalAndImpedancePage
         Tips to improve signal quality and contact
       </p>
     </VCard>
-  </VCol>
 
-  <OptimizeSignalAsideTipsModal />
+    <OptimizeSignalAsideTipsModal
+      :modal-model="isAsideTipsModalOpen"
+      @close="isAsideTipsModalOpen = false"
+    />
+  </VCol>
 </template>
 
 <style scoped>

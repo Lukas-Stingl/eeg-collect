@@ -1,9 +1,16 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { defineEmits, defineProps, ref } from "vue";
 
-import OptimizeSignalAudioAndImpedancePanelAudioPanel from "@/pages/optimizeSignalAndImpedancePage/components/audioAndImpedancePanel/components/OptimizeSignalAudioAndImpedancePanelAudioPanel.vue";
-import OptimizeSignalAudioAndImpedancePanelImpedancePanel from "@/pages/optimizeSignalAndImpedancePage/components/audioAndImpedancePanel/components/OptimizeSignalAudioAndImpedancePanelImpedancePanel.vue";
-import { PhArrowRight } from "@phosphor-icons/vue";
+import { PhArrowRight, PhX } from "@phosphor-icons/vue";
+
+const emit = defineEmits(["close"]);
+
+defineProps({
+  modalModel: {
+    type: Boolean,
+    required: true,
+  },
+});
 
 // ---- STATE ----
 
@@ -19,9 +26,10 @@ const handleNextStep = () => {
 
 <template>
   <VCol
+    v-if="modalModel"
     style="
       display: flex;
-      position: absolute;
+      position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
@@ -37,6 +45,20 @@ const handleNextStep = () => {
   >
     <VCard width="85vh" style="top: 50px">
       <VCarousel hide-delimiters :show-arrows="false" v-model="carouselModel">
+        <VBtn
+          class="rounded-circle position-absolute d-flex justify-center align-center"
+          style="
+            top: 15px;
+            right: 15px;
+            min-width: 0 !important;
+            width: 32px;
+            height: 32px;
+            z-index: 10000000;
+          "
+        >
+          <PhX size="20" @click="emit('close')" />
+        </VBtn>
+
         <VCarouselItem
           class="h-100 d-flex justify-space-between"
           style="height: 100%"
@@ -75,7 +97,7 @@ const handleNextStep = () => {
             </VCol>
 
             <VRow
-              class="ga-5 align-center justify-end position-relative w-100 px-8"
+              class="ga-5 align-center justify-space-between position-relative w-100 px-8"
               style="
                 min-height: 60px;
                 background: rgba(255, 255, 255, 0.45);
@@ -84,12 +106,16 @@ const handleNextStep = () => {
                 -webkit-backdrop-filter: blur(10px);
               "
             >
+              <p style="color: #737373; font-weight: 500; font-size: 13px">
+                {{ carouselModel + 1 }}/2
+              </p>
+
               <VRow class="align-start justify-center">
                 <VBtn
                   class="flex-grow-0 flex-shrink-1 d-flex"
                   :append-icon="PhArrowRight"
                   @click="handleNextStep"
-                  >Continue</VBtn
+                  >Next Tip</VBtn
                 >
               </VRow>
             </VRow>
