@@ -7,6 +7,7 @@ import CheckboxCheckedIcon from "@/assets/CheckboxCheckedIcon.vue";
 // Vuetify
 import { createVuetify } from "vuetify";
 import { VBtn } from "vuetify/components";
+import { PhCheckSquare, PhSquare } from "@phosphor-icons/vue";
 
 export default createVuetify({
   aliases: {
@@ -53,8 +54,8 @@ export default createVuetify({
       class: "shrink mr-0 mt-0",
       density: "comfortable",
       style: [{ fontWeight: "500", fontSize: "13px !important" }],
-      falseIcon: CheckboxUncheckedIcon,
-      trueIcon: CheckboxCheckedIcon,
+      falseIcon: PhSquare,
+      trueIcon: PhCheckSquare,
     },
     VLabel: {
       style: [{ fontWeight: "500", fontSize: "14px !important" }],

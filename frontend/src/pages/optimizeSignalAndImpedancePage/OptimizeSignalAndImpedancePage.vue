@@ -17,7 +17,11 @@ import {
 } from "@/pages/optimizeSignalAndImpedancePage/utils/optimizeSignalAndImpedanceTypes";
 import { getSignalState } from "@/pages/optimizeSignalAndImpedancePage/utils/helpers";
 import { SerialDataRMS } from "@/utils/openBCISerialTypes";
-import { PhArrowRight, PhWarningCircle } from "@phosphor-icons/vue";
+import {
+  PhArrowRight,
+  PhCheckCircle,
+  PhWarningCircle,
+} from "@phosphor-icons/vue";
 import OptimizeSignalAside from "@/pages/optimizeSignalAndImpedancePage/components/OptimizeSignalAside.vue";
 import OptimizeSignalAudioAndImpedancePanel from "@/pages/optimizeSignalAndImpedancePage/components/audioAndImpedancePanel/OptimizeSignalAudioAndImpedancePanel.vue";
 
@@ -54,6 +58,10 @@ const circles: Ref<d3.Selection<
   SVGImageElement,
   unknown
 > | null> = ref(null);
+
+const isOverAllSignalQualitySufficient = computed(
+  () => !nodeData.value.some((node) => [0, 1, 2].includes(node.state)),
+);
 
 const nodeData: ComputedRef<Node[]> = computed(() => {
   //const a = reactiveSignalRMS.value;
@@ -151,7 +159,7 @@ onMounted(() => {
   initializeD3();
 
   // Start the signal quality check in the background
-  startSignalQualityCheck();
+  // startSignalQualityCheck();
 });
 
 // ---- METHODS ----
@@ -375,7 +383,13 @@ const startBuffer = () => {
       style="height: 40px"
       color="#ffe7ea"
     >
-      <PhWarningCircle size="24" class="mr-2" color="#E72321" />
+      <PhWarningCircle
+        v-if="!isOverAllSignalQualitySufficient"
+        size="24"
+        class="mr-2"
+        color="#E72321"
+      />
+      <PhCheckCircle v-else size="24" class="mr-2" color="#03876c" />
 
       <p
         style="
@@ -385,7 +399,11 @@ const startBuffer = () => {
           font-size: 15px;
         "
       >
-        Overall signal quality insufficient
+        {{
+          !isOverAllSignalQualitySufficient
+            ? "Overall signal quality insufficient"
+            : "You are good to go"
+        }}
       </p>
     </VCard>
 
