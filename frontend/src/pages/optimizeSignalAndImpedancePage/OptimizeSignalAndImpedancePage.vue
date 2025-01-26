@@ -22,7 +22,7 @@ import {
   PhCheckCircle,
   PhWarningCircle,
 } from "@phosphor-icons/vue";
-import OptimizeSignalAside from "@/pages/optimizeSignalAndImpedancePage/components/OptimizeSignalAside.vue";
+import OptimizeSignalAside from "@/pages/optimizeSignalAndImpedancePage/aside/OptimizeSignalAside.vue";
 import OptimizeSignalAudioAndImpedancePanel from "@/pages/optimizeSignalAndImpedancePage/components/audioAndImpedancePanel/OptimizeSignalAudioAndImpedancePanel.vue";
 
 // ---- STATE ----
@@ -336,9 +336,7 @@ const startBuffer = () => {
 
 <template>
   <BasePage heading="Adjust Position">
-    <OptimizeSignalAside
-      style="position: absolute; top: 150px; left: 80px; z-index: 100"
-    />
+    <OptimizeSignalAside style="position: absolute; top: 150px; left: 80px" />
 
     <p
       style="

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { PhArrowsOutSimple, PhInfo } from "@phosphor-icons/vue";
+import OptimizeSignalAsideTipsModal from "@/pages/optimizeSignalAndImpedancePage/aside/components/OptimizeSignalAsideTipsModal.vue";
 </script>
 
 <template>
@@ -110,6 +111,8 @@ import { PhArrowsOutSimple, PhInfo } from "@phosphor-icons/vue";
       </p>
     </VCard>
   </VCol>
+
+  <OptimizeSignalAsideTipsModal />
 </template>
 
 <style scoped>
