@@ -6,10 +6,14 @@ import { LottieAnimation } from "lottie-web-vue";
 import Breathing from "@/assets/Breathing.json";
 import DynamicGradient from "@/assets/DynamicGradient.json";
 import audioFile from "@/assets/40HzAudio.mp3";
+import { useOpenBCIUtils } from "@/utils/hooks";
 
 const emit = defineEmits(["close"]);
 
 // ---- STATE ----
+
+const { sendAudioSignalStartMessage, sendAudioSignalEndMessage } =
+  useOpenBCIUtils();
 
 let anim = ref();
 let animBackground = ref();
@@ -37,8 +41,10 @@ watch(
   () => isAudioPlaying.value,
   () => {
     if (isAudioPlaying.value) {
+      sendAudioSignalStartMessage();
       audio.play();
     } else {
+      sendAudioSignalEndMessage();
       audio.pause();
     }
   },

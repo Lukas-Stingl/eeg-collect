@@ -50,10 +50,10 @@ server.on("connection", (ws, req) => {
   } else if (mode === "cyton") {
     // Write the CSV header
     writeStream.write(
-      "Index;Datetime;sampleNumber;timestamp;A1;A2;A3;A4;A5;A6;A7;A8;Accel0;Accel1;Accel2\n",
+      "Index;Datetime;sampleNumber;timestamp;A1;A2;A3;A4;A5;A6;A7;A8;Accel0;Accel1;Accel2;Note\n",
     );
     setupWriteStream.write(
-      "Index;Datetime;sampleNumber;timestamp;A1;A2;A3;A4;A5;A6;A7;A8;Accel0;Accel1;Accel2\n",
+      "Index;Datetime;sampleNumber;timestamp;A1;A2;A3;A4;A5;A6;A7;A8;Accel0;Accel1;Accel2;Note\n",
     );
   }
   let index = 0;
@@ -61,6 +61,28 @@ server.on("connection", (ws, req) => {
 
   ws.on("message", (message) => {
     if (message.toString() === "heartbeat") {
+      return;
+    }
+
+    if (message.toString() === "Audio File Started") {
+      index += 1;
+      const datetime = new Date().toLocaleString();
+      const csvRow = `${index};${datetime};;;;;;;;;;;;;;Audio Recording Started\n`;
+
+      setupWriteStream.write(csvRow);
+
+      console.log("Audio File Started");
+      return;
+    }
+
+    if (message.toString() === "Audio File Ended") {
+      index += 1;
+      const datetime = new Date().toLocaleString();
+      const csvRow = `${index};${datetime};;;;;;;;;;;;;;Audio Recording Ended\n`;
+
+      setupWriteStream.write(csvRow);
+
+      console.log("Audio File Ended");
       return;
     }
 

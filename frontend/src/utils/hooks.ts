@@ -577,6 +577,24 @@ export const useOpenBCIUtils = () => {
     exportImpedanceCSV();
   };
 
+  const sendAudioSignalStartMessage = async () => {
+    if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
+      console.error("WebSocket not open, chunk not sent.");
+      return;
+    }
+
+    ws.value.send("Audio File Started");
+  };
+
+  const sendAudioSignalEndMessage = async () => {
+    if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
+      console.error("WebSocket not open, chunk not sent.");
+      return;
+    }
+
+    ws.value.send("Audio File Ended");
+  };
+
   // ---- METHODS: Internal ----
 
   const decodeChunkImpedance = (message: any[]) => {
@@ -1038,5 +1056,7 @@ export const useOpenBCIUtils = () => {
     runImpedanceCheck,
     isImpedanceCheckRunning,
     impedanceCheckChannel,
+    sendAudioSignalStartMessage,
+    sendAudioSignalEndMessage,
   };
 };

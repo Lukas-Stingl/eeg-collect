@@ -24,7 +24,7 @@ const handleNextStep = () => {
 };
 
 onMounted(() => {
-  startSignalQualityCheck(); // TODO Flag in Websocket for Audio Check
+  startSignalQualityCheck();
 });
 </script>
 
