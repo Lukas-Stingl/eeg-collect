@@ -71,10 +71,10 @@ onUnmounted(() => {
 <template>
   <!-- Background Animation -->
 
-  <VCol style="overflow: hidden; z-index: 900">
+  <VCol style="overflow: hidden; z-index: 2000">
     <LottieAnimation
       class="flex-grow-1"
-      style="justify-content: center; align-items: center; z-index: 900"
+      style="justify-content: center; align-items: center; z-index: 2100"
       ref="animBackground"
       :animation-data="DynamicGradient"
       :loop="true"
@@ -95,12 +95,12 @@ onUnmounted(() => {
       width: 100%;
       height: 100%;
       overflow: hidden;
-      z-index: 1000;
+      z-index: 2100;
     "
   >
     <VCol
       class="position-absolute justify-center align-center"
-      style="top: 25px; left: 25px; width: 40px; height: 40px; z-index: 1000"
+      style="top: 25px; left: 25px; width: 40px; height: 40px; z-index: 2100"
     >
       <VCol
         class="position-absolute justify-center align-center rounded-circle border-sm"
@@ -109,13 +109,13 @@ onUnmounted(() => {
           left: 0px;
           width: 40px;
           height: 40px;
-          z-index: 999;
+          z-index: 2010;
           background: rgba(255, 255, 255, 0.3);
           border-color: rgba(124, 127, 122, 0.3) !important;
         "
       />
 
-      <PhSpeakerHigh size="24" style="z-index: 1000" color="#1a2b5a" />
+      <PhSpeakerHigh size="24" style="z-index: 2100" color="#1a2b5a" />
     </VCol>
     <VCol class="flex-grow-1 justify-space-between align-center">
       <h1 class="mb-3" style="font-size: 38px; color: #1a2b5a">Please Rest</h1>

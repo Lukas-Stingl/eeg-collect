@@ -169,7 +169,7 @@ onMounted(() => {
   initializeD3();
 
   // Start the signal quality check in the background
-  // startSignalQualityCheck();
+  startSignalQualityCheck();
 });
 
 // ---- METHODS ----
@@ -391,7 +391,7 @@ const startBuffer = () => {
     <VCard
       class="rounded-pill d-flex justify-start align-center pl-3 pr-4 mb-8"
       style="height: 40px"
-      color="#ffe7ea"
+      :color="isOverAllSignalQualitySufficient ? '#dff5e0' : '#ffe7ea'"
     >
       <PhWarningCircle
         v-if="!isOverAllSignalQualitySufficient"
@@ -399,7 +399,7 @@ const startBuffer = () => {
         class="mr-2"
         color="#E72321"
       />
-      <PhCheckCircle v-else size="24" class="mr-2" color="#03876c" />
+      <PhCheckCircle v-else size="24" class="mr-2" color="#68a772" />
 
       <p
         style="
