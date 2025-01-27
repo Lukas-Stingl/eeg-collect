@@ -4,7 +4,6 @@ import {
   LocationQuery,
   NavigationGuardNext,
   RouteLocationNormalized,
-  useRoute,
 } from "vue-router";
 
 import SetupDevicePage from "@/pages/setupDevicePage/SetupDevicePage.vue";
@@ -33,21 +32,6 @@ const routes = [
     path: "/recording",
     component: RecordingPage,
     meta: { requiresRef: true },
-    beforeRouteLeave(
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext,
-    ) {
-      const confirmLeave = window.confirm(
-        "Are you sure you want to leave the recording page?",
-      );
-      if (confirmLeave) {
-        next();
-      } else {
-        // If the user cancels, stay on the current route
-        next(false);
-      }
-    },
   },
   {
     path: "/finish",

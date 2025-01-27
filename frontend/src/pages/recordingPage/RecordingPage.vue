@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 
 import BasePage from "@/components/BasePage.vue";
 import {
@@ -9,6 +9,8 @@ import {
   useWebsocketConnection,
 } from "@/utils/hooks";
 import { PhArrowRight } from "@phosphor-icons/vue";
+import { navigateToRestricted } from "@/router";
+import { ROUTES } from "@/utils/routes";
 
 // ---- STATE ----
 useConfigureParticipantId();
@@ -21,7 +23,6 @@ const {
   impedanceCheckChannel,
 } = useOpenBCIUtils();
 
-const router = useRouter();
 const route = useRoute();
 
 const progressValue = ref(0);
@@ -33,7 +34,7 @@ const interval = ref(0);
 const handleStopRecording = async () => {
   await stopRecording().then(async () => {
     await runImpedanceCheck().then(() =>
-      router.push({ path: "/finish", query: route.query }),
+      navigateToRestricted(ROUTES.FINISH, route.query),
     );
   });
 };

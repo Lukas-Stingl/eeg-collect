@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import { navigateToRestricted } from "@/router";
+import { ROUTES } from "@/utils/routes";
 
 // ---- STATE ----
 
@@ -20,7 +22,7 @@ const message = ref(
 const showSecondTextBox = () => (showSecondBox.value = true);
 
 const redirectToRecording = () =>
-  router.push({ path: "/recording", query: route.query });
+  navigateToRestricted(ROUTES.RECORDING, route.query);
 </script>
 
 <template>

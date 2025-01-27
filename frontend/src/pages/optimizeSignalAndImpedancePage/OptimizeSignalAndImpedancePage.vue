@@ -297,10 +297,6 @@ const handleBeforeUnload = (event: BeforeUnloadEvent) => {
 const handleRedirectToRecording = async () => {
   stopRecording();
   isAudioAndImpedancePanelOpen.value = true;
-
-  // await runImpedanceCheck().then(() =>
-  //   router.push({ path: "/recording", query: route.query }),
-  // );
 };
 
 watch(

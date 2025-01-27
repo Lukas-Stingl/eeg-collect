@@ -2,10 +2,12 @@
 import { ref, watch, defineEmits, onMounted, defineProps } from "vue";
 import { PhArrowRight } from "@phosphor-icons/vue";
 import { LottieAnimation } from "lottie-web-vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 
 import CircularDots from "@/assets/CircularDots.json";
 import DynamicGradient from "@/assets/DynamicGradient.json";
+import { navigateToRestricted } from "@/router";
+import { ROUTES } from "@/utils/routes";
 
 const emit = defineEmits(["close"]);
 
@@ -20,7 +22,6 @@ const props = defineProps<{
 let anim = ref();
 let animBackground = ref();
 
-const router = useRouter();
 const route = useRoute();
 
 const isImpedanceCheckFinished = ref(false);
@@ -34,7 +35,7 @@ const interval = ref(0);
 const handleContinue = () => {
   emit("close");
 
-  router.push({ path: "/recording", query: route.query });
+  navigateToRestricted(ROUTES.RECORDING, route.query);
 };
 
 const startBuffer = () => {
