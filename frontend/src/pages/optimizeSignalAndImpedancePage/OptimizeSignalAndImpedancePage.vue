@@ -336,7 +336,9 @@ const startBuffer = () => {
 
 <template>
   <BasePage heading="Adjust Position">
-    <OptimizeSignalAside style="position: absolute; top: 150px; left: 80px" />
+    <OptimizeSignalAside
+      style="position: absolute; top: 150px; left: 70px; width: fit-content"
+    />
 
     <p
       style="

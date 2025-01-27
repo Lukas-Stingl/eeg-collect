@@ -8,11 +8,8 @@ const isAsideTipsModalOpen = ref(false);
 </script>
 
 <template>
-  <VCol>
-    <VCard
-      class="pa-5 rounded-xl mb-3"
-      style="position: z-index: 100; width: 250px"
-    >
+  <VCol style="z-index: 1200">
+    <VCard class="pa-5 rounded-xl mb-3" style="width: 250px">
       <VRow
         class="d-flex align-center ga-2 mb-5"
         style="margin-left: -3px !important"
@@ -99,7 +96,7 @@ const isAsideTipsModalOpen = ref(false);
 
     <VCard
       class="tip-button rounded-pill d-flex justify-start align-center px-5 py-2 mb-2"
-      style="width: 250px; cursor: pointer"
+      style="width: 250px; cursor: pointer; z-index: 1200"
       @click="isAsideTipsModalOpen = true"
     >
       <PhArrowsOutSimple size="30" class="mr-3" weight="bold" />
