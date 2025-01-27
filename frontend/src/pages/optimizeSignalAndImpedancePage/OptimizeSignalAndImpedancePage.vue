@@ -264,8 +264,8 @@ const handleMouseOver = (event: MouseEvent, d: Node) => {
         d.state,
       )}<br/>Rail: ${d.impedance}`,
     )
-    .style("left", `${event.offsetX + 5}px`)
-    .style("top", `${event.offsetY + 10}px`);
+    .style("left", `${event.offsetX + 200}px`)
+    .style("top", `${event.offsetY + 300}px`);
 
   // Select the current circle element using D3's event handling
   d3.select(event.target as SVGCircleElement).attr("r", 14); // Enlarge on hover
@@ -467,3 +467,47 @@ const startBuffer = () => {
 
   <OptimizeSignalAudioAndImpedancePanel v-if="isAudioAndImpedancePanelOpen" />
 </template>
+<style>
+.node {
+  fill-opacity: 0.8;
+  stroke: white;
+  stroke-width: 2;
+}
+.off {
+  fill: gray;
+}
+.bad {
+  fill: red;
+}
+.moderate {
+  fill: #f09837;
+}
+.better {
+  fill: #a1c720;
+}
+.good {
+  fill: #008f00;
+}
+
+.tooltip {
+  position: absolute;
+  text-align: left;
+  width: auto;
+  padding: 8px 20px;
+  font-size: 12px;
+  color: #000000;
+  font-weight: 500;
+  border-radius: 12px;
+  pointer-events: none; /* Don't block mouse events */
+  opacity: 0; /* Hidden by default */
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 32px 0 rgba(106, 107, 131, 0.37);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  z-index: 5000;
+}
+
+.desaturated {
+  opacity: 0.5;
+}
+</style>

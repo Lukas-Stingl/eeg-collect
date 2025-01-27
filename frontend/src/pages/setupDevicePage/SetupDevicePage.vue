@@ -10,14 +10,15 @@ import {
 } from "@/utils/hooks";
 import { ConnectedDeviceStatus } from "@/utils/openBCISerialTypes";
 import { PhArrowRight, PhWarningCircle } from "@phosphor-icons/vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
+import { navigateToRestricted } from "@/router";
+import { ROUTES } from "@/utils/routes";
 
 // ---- STATE ----
 
 useConfigureParticipantId();
 useWebsocketConnection();
 const { setupSerialConnection } = useOpenBCIUtils();
-const router = useRouter();
 const route = useRoute();
 
 const isChecklistTurnOnHeadphonesChecked = ref(false);
@@ -93,7 +94,7 @@ const setIsChecklistDonglePluggedInChecked = (value: boolean) => {
 };
 
 const handleRedirectToSignalCheck = () =>
-  router.push({ path: "/optimize-signal", query: route.query });
+  navigateToRestricted(ROUTES.OPTIMIZE_SIGNAL, route.query);
 
 // ---- COMPUTED ----
 
