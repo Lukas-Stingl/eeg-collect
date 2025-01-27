@@ -1,9 +1,24 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, defineProps } from "vue";
 
-import OptimizeSignalAudioAndImpedancePanelAudioPanel from "@/pages/optimizeSignalAndImpedancePage/components/audioAndImpedancePanel/components/OptimizeSignalAudioAndImpedancePanelAudioPanel.vue";
-import OptimizeSignalAudioAndImpedancePanelImpedancePanel from "@/pages/optimizeSignalAndImpedancePage/components/audioAndImpedancePanel/components/OptimizeSignalAudioAndImpedancePanelImpedancePanel.vue";
+import OptimizeSignalAudioAndImpedancePanelAudioPanel from "@/components/audioAndImpedancePanel/components/OptimizeSignalAudioAndImpedancePanelAudioPanel.vue";
+import OptimizeSignalAudioAndImpedancePanelImpedancePanel from "@/components/audioAndImpedancePanel/components/OptimizeSignalAudioAndImpedancePanelImpedancePanel.vue";
 import { useOpenBCIUtils } from "@/utils/hooks";
+
+const props = defineProps({
+  isSetup: {
+    type: Boolean,
+    required: false,
+  },
+  nextRoute: {
+    type: String,
+    required: true,
+  },
+  impedancePanelDescription: {
+    type: String,
+    required: false,
+  },
+});
 
 // ---- STATE ----
 
@@ -24,7 +39,9 @@ const handleNextStep = () => {
 };
 
 onMounted(() => {
-  startSignalQualityCheck();
+  if (props.isSetup) {
+    startSignalQualityCheck();
+  }
 });
 </script>
 
@@ -59,6 +76,8 @@ onMounted(() => {
             :isImpedanceCheckRunning="isImpedanceCheckRunning"
             :impedanceCheckChannel="impedanceCheckChannel"
             :runImpedanceCheck="runImpedanceCheck"
+            :nextRoute="nextRoute"
+            :description="impedancePanelDescription"
           />
         </VCarouselItem>
       </VCarousel>

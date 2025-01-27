@@ -7,7 +7,6 @@ import { useRoute } from "vue-router";
 import CircularDots from "@/assets/CircularDots.json";
 import DynamicGradient from "@/assets/DynamicGradient.json";
 import { navigateToRestricted } from "@/router";
-import { ROUTES } from "@/utils/routes";
 
 const emit = defineEmits(["close"]);
 
@@ -15,6 +14,8 @@ const props = defineProps<{
   isImpedanceCheckRunning: boolean;
   impedanceCheckChannel: number;
   runImpedanceCheck: () => Promise<void>;
+  nextRoute: string;
+  description: string | undefined;
 }>();
 
 // ---- STATE ----
@@ -35,7 +36,7 @@ const interval = ref(0);
 const handleContinue = () => {
   emit("close");
 
-  navigateToRestricted(ROUTES.RECORDING, route.query);
+  navigateToRestricted(props.nextRoute, route.query);
 };
 
 const startBuffer = () => {
@@ -128,10 +129,11 @@ onMounted(async () => {
           transition: margin-bottom 0.5s ease-in-out;
           width: 500px;
         "
-      >
-        Resistance measurements for each electrode. <br />
-        You will be able to start your session after this step.
-      </p>
+        v-html="
+          props.description ??
+          'S Resistance measurements for each electrode.<br />You will be able to start your session after this step.'
+        "
+      />
 
       <VCol
         style="width: 210px; min-height: 210px"

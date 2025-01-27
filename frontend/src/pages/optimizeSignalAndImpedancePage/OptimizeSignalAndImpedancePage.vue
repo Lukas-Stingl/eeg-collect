@@ -23,8 +23,9 @@ import {
   PhWarningCircle,
 } from "@phosphor-icons/vue";
 import OptimizeSignalAside from "@/pages/optimizeSignalAndImpedancePage/aside/OptimizeSignalAside.vue";
-import OptimizeSignalAudioAndImpedancePanel from "@/pages/optimizeSignalAndImpedancePage/components/audioAndImpedancePanel/OptimizeSignalAudioAndImpedancePanel.vue";
+import OptimizeSignalAudioAndImpedancePanel from "@/components/audioAndImpedancePanel/OptimizeSignalAudioAndImpedancePanel.vue";
 import CHANNEL_ASSIGNMENT from "../../config/channelAssignment.json";
+import { ROUTES } from "@/utils/routes";
 
 // ---- STATE ----
 
@@ -461,7 +462,12 @@ const startBuffer = () => {
     </div>
   </v-overlay>
 
-  <OptimizeSignalAudioAndImpedancePanel v-if="isAudioAndImpedancePanelOpen" />
+  <OptimizeSignalAudioAndImpedancePanel
+    v-if="isAudioAndImpedancePanelOpen"
+    :is-setup="true"
+    :next-route="ROUTES.RECORDING"
+    :impedance-panel-description="`Resistance measurements for each electrode.<br />You will be able to start your session after this step.`"
+  />
 </template>
 <style>
 .node {

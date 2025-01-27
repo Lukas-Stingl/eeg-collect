@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import { useRoute } from "vue-router";
 
 import BasePage from "@/components/BasePage.vue";
 import {
@@ -9,34 +8,31 @@ import {
   useWebsocketConnection,
 } from "@/utils/hooks";
 import { PhArrowRight } from "@phosphor-icons/vue";
-import { navigateToRestricted } from "@/router";
 import { ROUTES } from "@/utils/routes";
+import OptimizeSignalAudioAndImpedancePanel from "@/components/audioAndImpedancePanel/OptimizeSignalAudioAndImpedancePanel.vue";
 
 // ---- STATE ----
 useConfigureParticipantId();
 useWebsocketConnection();
-const {
-  startRecording,
-  stopRecording,
-  runImpedanceCheck,
-  isImpedanceCheckRunning,
-  impedanceCheckChannel,
-} = useOpenBCIUtils();
-
-const route = useRoute();
+const { startRecording, isImpedanceCheckRunning, impedanceCheckChannel } =
+  useOpenBCIUtils();
 
 const progressValue = ref(0);
 const bufferValue = ref(20);
 const interval = ref(0);
 
+const isAudioAndImpedancePanelOpen = ref(false);
+
 // ---- CALLBACKS ----
 
 const handleStopRecording = async () => {
-  await stopRecording().then(async () => {
-    await runImpedanceCheck().then(() =>
-      navigateToRestricted(ROUTES.FINISH, route.query),
-    );
-  });
+  isAudioAndImpedancePanelOpen.value = true;
+
+  // await stopRecording().then(async () => {
+  //   await runImpedanceCheck().then(() =>
+  //     navigateToRestricted(ROUTES.FINISH, route.query),
+  //   );
+  // });
 };
 
 const startBuffer = () => {
@@ -213,6 +209,12 @@ watch(
         ></v-progress-circular>
       </div>
     </v-overlay>
+
+    <OptimizeSignalAudioAndImpedancePanel
+      v-if="isAudioAndImpedancePanelOpen"
+      :next-route="ROUTES.FINISH"
+      :impedance-panel-description="`Resistance measurements for each electrode.<br />The recording will stop after this step.`"
+    />
   </BasePage>
 </template>
 

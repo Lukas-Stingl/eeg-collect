@@ -69,7 +69,9 @@ server.on("connection", (ws, req) => {
       const datetime = new Date().toLocaleString();
       const csvRow = `${index};${datetime};;;;;;;;;;;;;;Audio Recording Started\n`;
 
-      setupWriteStream.write(csvRow);
+      !hasMainRecordingStarted
+        ? setupWriteStream.write(csvRow)
+        : writeStream.write(csvRow);
 
       console.log("Audio File Started");
       return;
@@ -80,7 +82,9 @@ server.on("connection", (ws, req) => {
       const datetime = new Date().toLocaleString();
       const csvRow = `${index};${datetime};;;;;;;;;;;;;;Audio Recording Ended\n`;
 
-      setupWriteStream.write(csvRow);
+      !hasMainRecordingStarted
+        ? setupWriteStream.write(csvRow)
+        : writeStream.write(csvRow);
 
       console.log("Audio File Ended");
       return;
