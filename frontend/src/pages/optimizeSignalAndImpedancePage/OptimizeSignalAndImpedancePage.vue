@@ -24,11 +24,18 @@ import {
 } from "@phosphor-icons/vue";
 import OptimizeSignalAside from "@/pages/optimizeSignalAndImpedancePage/aside/OptimizeSignalAside.vue";
 import OptimizeSignalAudioAndImpedancePanel from "@/pages/optimizeSignalAndImpedancePage/components/audioAndImpedancePanel/OptimizeSignalAudioAndImpedancePanel.vue";
+import CHANNEL_ASSIGNMENT from "../../config/channelAssignment.json";
 
 // ---- STATE ----
 
 useConfigureParticipantId();
 useWebsocketConnection();
+
+const channelAssignment = computed(
+  () => CHANNEL_ASSIGNMENT[channelConfig.value!],
+);
+
+const channelConfig = ref<string | null>("H");
 
 const {
   startSignalQualityCheck,
@@ -82,56 +89,56 @@ const nodeData: ComputedRef<Node[]> = computed(() => {
     switch (key) {
       case "A1":
         nodes.push({
-          node_id: "L5",
+          node_id: channelAssignment.value.A1,
           state: getSignalState({ signal: reactiveSignalRMS.value.A1 ?? 0 }),
           impedance: reactiveSignalRMS.value.A1 ?? 0,
         });
         break;
       case "A2":
         nodes.push({
-          node_id: "L3",
+          node_id: channelAssignment.value.A2,
           state: getSignalState({ signal: reactiveSignalRMS.value.A2 ?? 0 }),
           impedance: reactiveSignalRMS.value.A2 ?? 0,
         });
         break;
       case "A3":
         nodes.push({
-          node_id: "C3",
+          node_id: channelAssignment.value.A3,
           state: getSignalState({ signal: reactiveSignalRMS.value.A3 ?? 0 }),
           impedance: reactiveSignalRMS.value.A3 ?? 0,
         });
         break;
       case "A4":
         nodes.push({
-          node_id: "Cz",
+          node_id: channelAssignment.value.A4,
           state: getSignalState({ signal: reactiveSignalRMS.value.A4 ?? 0 }),
           impedance: signalRMS.value.A4 ?? 0,
         });
         break;
       case "A5":
         nodes.push({
-          node_id: "C4",
+          node_id: channelAssignment.value.A5,
           state: getSignalState({ signal: reactiveSignalRMS.value.A5 ?? 0 }),
           impedance: reactiveSignalRMS.value.A5 ?? 0,
         });
         break;
       case "A6":
         nodes.push({
-          node_id: "R3",
+          node_id: channelAssignment.value.A6,
           state: getSignalState({ signal: reactiveSignalRMS.value.A6 ?? 0 }),
           impedance: reactiveSignalRMS.value.A6 ?? 0,
         });
         break;
       case "A7":
         nodes.push({
-          node_id: "R4",
+          node_id: channelAssignment.value.A7,
           state: getSignalState({ signal: reactiveSignalRMS.value.A7 ?? 0 }),
           impedance: reactiveSignalRMS.value.A7 ?? 0,
         });
         break;
       case "A8":
         nodes.push({
-          node_id: "R5",
+          node_id: channelAssignment.value.A8,
           state: getSignalState({ signal: reactiveSignalRMS.value.A8 ?? 0 }),
           impedance: reactiveSignalRMS.value.A8 ?? 0,
         });
@@ -155,6 +162,9 @@ watch(
 
 onMounted(() => {
   window.addEventListener("beforeunload", handleBeforeUnload);
+
+  const urlParams = new URLSearchParams(window.location.search);
+  channelConfig.value = urlParams.get("wlmtdoqtqe");
 
   initializeD3();
 
