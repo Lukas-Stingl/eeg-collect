@@ -39,9 +39,11 @@ const handleNextStep = () => (carouselModel.value += 1);
 
 // ---- LIFECYCLE HOOKS ----
 
-onMounted(async () =>
-  props.isSetup ? await startSignalQualityCheck() : await startRecording(),
-);
+onMounted(async () => {
+  console.log("ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ");
+  console.log(props.isSetup);
+  props.isSetup ? await startSignalQualityCheck() : await startRecording();
+});
 </script>
 
 <template>
