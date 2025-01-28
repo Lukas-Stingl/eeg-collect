@@ -83,13 +83,19 @@ export const useWebsocketConnection = (): WebSocket | null => {
     return null;
   }
 
-  const ws = new WebSocket(
-    `${URLs.WEB_SOCKET_URL}${mode}/${participantId.value}/`,
-  );
+  try {
+    const ws = new WebSocket(
+      `${URLs.WEB_SOCKET_URL}${mode}/${participantId.value}/`,
+    );
 
-  store.commit("setConnectionMode", { connectionMode: mode });
-  store.commit("setWebSocket", { websocket: ws });
-  return ws;
+    store.commit("setConnectionMode", { connectionMode: mode });
+    store.commit("setWebSocket", { websocket: ws });
+
+    return ws;
+  } catch (error) {
+    console.error("Error creating WebSocket connection:", error);
+    return null;
+  }
 };
 
 export const useDataVisualization = ({
