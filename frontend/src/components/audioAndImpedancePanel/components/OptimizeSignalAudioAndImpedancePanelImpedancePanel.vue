@@ -168,7 +168,7 @@ onMounted(async () => {
       >
         <v-progress-linear
           class="mr-auto position-absolute"
-          style="width: 150px; height: 5px; left: 100px; top: 50%"
+          style="width: 150px; height: 5px; left: 25px; top: 50%"
           v-model="progressValue"
           :buffer-value="bufferValue"
           rounded
