@@ -42,7 +42,6 @@ const {
   startSignalQualityCheck,
   signalRMS,
   isImpedanceCheckRunning,
-  impedanceCheckChannel,
   stopRecording,
 } = useOpenBCIUtils();
 const preventUnloadWarningDialog = ref(false);
@@ -296,7 +295,7 @@ const handleBeforeUnload = (event: BeforeUnloadEvent) => {
   return confirmationMessage; // For some browsers
 };
 const handleRedirectToRecording = async () => {
-  stopRecording();
+  await stopRecording();
   isAudioAndImpedancePanelOpen.value = true;
 };
 
@@ -433,34 +432,6 @@ const startBuffer = () => {
       your task.
     </p>
   </BasePage>
-
-  <!-- Circular progress component -->
-  <v-overlay v-model="isImpedanceCheckRunning">
-    <div class="overlay_content">
-      <v-card id="card_connect">
-        <!-- <v-card-title>Hinweis</v-card-title> -->
-        <v-card-title>Note</v-card-title>
-        <v-card-text>
-          {{
-            `Channel ${impedanceCheckChannel} is being checked. This may take a few seconds. Please wait and do not move your head.`
-          }}
-        </v-card-text>
-        <div style="margin: 10px">
-          <v-progress-linear
-            v-model="progressValue"
-            :buffer-value="bufferValue"
-          ></v-progress-linear>
-        </div>
-      </v-card>
-
-      <v-progress-circular
-        v-if="isImpedanceCheckRunning"
-        color="#00876C"
-        indeterminate
-        size="64"
-      ></v-progress-circular>
-    </div>
-  </v-overlay>
 
   <OptimizeSignalAudioAndImpedancePanel
     v-if="isAudioAndImpedancePanelOpen"
