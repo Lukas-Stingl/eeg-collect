@@ -14,12 +14,12 @@ export class cyton {
     this.participantNumber = participantNumber;
     this.mode = mode;
     // Initialize WebSocket connection
-    this.ws = new WebSocket(
-      "wss://exg.iism.kit.edu/websocket/" +
-        this.mode +
-        "/" +
-        this.participantNumber,
-    );
+    // this.ws = new WebSocket(
+    //   "wss://exg.iism.kit.edu/websocket/" +
+    //     this.mode +
+    //     "/" +
+    //     this.participantNumber,
+    // );
 
     // Handle WebSocket events
     this.ws.onopen = () => {
