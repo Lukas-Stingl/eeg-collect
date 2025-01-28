@@ -954,13 +954,6 @@ export const useOpenBCIUtils = () => {
       return { value: null, done: false }; // Return done as true to stop the loop if there's an error
     }
   };
-  const logReaderStatus = () => {
-    if (reader.value && reader.value.closed) {
-      //console.log("Reader is closed.");
-    } else {
-      //console.log("Reader is in an unknown state.");
-    }
-  };
 
   const exportImpedanceCSV = () => {
     const objectKeys = Object.keys(impedanceDataRaw.value);
