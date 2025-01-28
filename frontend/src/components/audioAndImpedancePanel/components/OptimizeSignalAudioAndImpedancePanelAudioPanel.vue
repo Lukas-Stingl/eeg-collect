@@ -66,11 +66,8 @@ watch(
 watch(
   () => hasUserReadInstructions.value,
   () => {
-    console.log("A");
     timer = setInterval(() => {
-      console.log("B");
       if (progress.value < 100) {
-        console.log("C");
         progress.value += 1.67; // 100 / 60 = 1.67 (approximately)
       } else {
         isTimerFinished.value = true;
@@ -79,8 +76,6 @@ watch(
     }, 1000);
   },
 );
-
-watch(progress, () => console.log(progress));
 
 onUnmounted(() => {
   clearInterval(timer);
