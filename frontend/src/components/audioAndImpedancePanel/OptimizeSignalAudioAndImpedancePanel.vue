@@ -26,6 +26,8 @@ const carouselModel = ref(0);
 
 const {
   startSignalQualityCheck,
+  startRecording,
+  stopRecording,
   runImpedanceCheck,
   isImpedanceCheckRunning,
   impedanceCheckChannel,
@@ -38,9 +40,13 @@ const handleNextStep = () => {
   carouselModel.value += 1;
 };
 
-onMounted(() => {
+onMounted(async () => {
   if (props.isSetup) {
-    startSignalQualityCheck();
+    console.log("AAAAABABABABABABAB");
+    await startSignalQualityCheck();
+  } else {
+    console.log("BBBBBBBBBBBBBBBBBBBBB");
+    await startRecording();
   }
 });
 </script>
@@ -68,6 +74,7 @@ onMounted(() => {
         <VCarouselItem class="h-100" style="height: 100%" value="0">
           <OptimizeSignalAudioAndImpedancePanelAudioPanel
             @close="handleNextStep"
+            :stop-recording="stopRecording"
           />
         </VCarouselItem>
 

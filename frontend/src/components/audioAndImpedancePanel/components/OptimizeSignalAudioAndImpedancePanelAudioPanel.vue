@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch, defineEmits } from "vue";
+import {
+  computed,
+  onUnmounted,
+  ref,
+  watch,
+  defineEmits,
+  defineProps,
+} from "vue";
 import { PhArrowRight, PhSpeakerHigh } from "@phosphor-icons/vue";
 import { LottieAnimation } from "lottie-web-vue";
 
@@ -11,6 +18,10 @@ import { useOpenBCIUtils } from "@/utils/hooks";
 const emit = defineEmits(["close"]);
 
 // ---- STATE ----
+
+const props = defineProps<{
+  stopRecording: () => Promise<void>;
+}>();
 
 const { sendAudioSignalStartMessage, sendAudioSignalEndMessage } =
   useOpenBCIUtils();
@@ -31,8 +42,10 @@ const isTimerFinished = ref(false);
 
 // ---- CALLBACKS ----
 
-const handleContinue = () => {
-  emit("close");
+const handleContinue = async () => {
+  await props.stopRecording().then(async () => {
+    emit("close");
+  });
 };
 
 // ---- LIFECYCLE HOOKS ----

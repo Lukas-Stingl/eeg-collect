@@ -14,8 +14,12 @@ import OptimizeSignalAudioAndImpedancePanel from "@/components/audioAndImpedance
 // ---- STATE ----
 useConfigureParticipantId();
 useWebsocketConnection();
-const { startRecording, isImpedanceCheckRunning, impedanceCheckChannel } =
-  useOpenBCIUtils();
+const {
+  startRecording,
+  stopRecording,
+  isImpedanceCheckRunning,
+  impedanceCheckChannel,
+} = useOpenBCIUtils();
 
 const progressValue = ref(0);
 const bufferValue = ref(20);
@@ -26,7 +30,9 @@ const isAudioAndImpedancePanelOpen = ref(false);
 // ---- CALLBACKS ----
 
 const handleStopRecording = async () => {
-  isAudioAndImpedancePanelOpen.value = true;
+  await stopRecording().then(() => {
+    isAudioAndImpedancePanelOpen.value = true;
+  });
 
   // await stopRecording().then(async () => {
   //   await runImpedanceCheck().then(() =>
