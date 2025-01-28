@@ -61,6 +61,7 @@ export const useWebsocketConnection = (): WebSocket | null => {
   const participantId = computed(() => store.state.participantId);
 
   if (webSocket.value) {
+    console.log("WebSocket already exists");
     return webSocket.value;
   }
 
@@ -90,6 +91,14 @@ export const useWebsocketConnection = (): WebSocket | null => {
     );
 
     console.log("B");
+
+    ws.onopen = () => {
+      console.log("Connected to WebSocket");
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
 
     store.commit("setConnectionMode", { connectionMode: mode });
     store.commit("setWebSocket", { websocket: ws });
