@@ -19,12 +19,11 @@ const carouselModel = ref(0);
 // ---- CALLBACKS ----
 
 const handleNextStep = () => {
-  console.log("Next step");
-  carouselModel.value += 1;
-
-  if (carouselModel.value === 2) {
+  if (carouselModel.value === 1) {
     carouselModel.value = 0;
   }
+
+  carouselModel.value += 1;
 };
 
 const handleClose = () => {
