@@ -180,25 +180,23 @@ const isChecklistCompleted = computed(
   <v-dialog v-model="connectionErrorModal.isModalOpen" max-width="500px">
     <v-card style="padding: 16px; border-radius: 12px">
       <div style="display: flex; flex-direction: row; align-items: center">
-        <PhWarningCircle :size="28" color="red" />
+        <PhWarningCircle :size="24" color="red" />
 
-        <v-card-title style="text-align: left">
+        <v-card-title class="pb-0 pl-2" style="text-align: left">
           {{ connectionErrorModal.title }}
         </v-card-title>
       </div>
 
-      <v-card-text style="text-align: left">
+      <v-card-text class="px-8 mb-1" style="text-align: left">
         {{ connectionErrorModal.message }}
       </v-card-text>
-      <v-card-actions style="justify-content: end">
+      <v-card-actions class="pb-0" style="justify-content: end">
         <v-btn
           @click="() => (connectionErrorModal.isModalOpen = false)"
           rounded="lg"
           >Close</v-btn
         >
-        <VBtn @click="handleRetryHeadsetConnection" rounded="lg" variant="tonal"
-          >Retry</VBtn
-        >
+        <VBtn @click="handleRetryHeadsetConnection" rounded="lg">Retry</VBtn>
       </v-card-actions>
     </v-card>
   </v-dialog>

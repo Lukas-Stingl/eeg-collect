@@ -16,6 +16,7 @@ const props = defineProps<{
   runImpedanceCheck: () => Promise<void>;
   nextRoute: string;
   description: string | undefined;
+  stopRecording: () => Promise<void>;
 }>();
 
 // ---- STATE ----
@@ -33,11 +34,12 @@ const interval = ref(0);
 
 // ---- CALLBACKS ----
 
-const handleContinue = () => {
-  emit("close");
+const handleContinue = async () =>
+  await props.stopRecording().then(async () => {
+    emit("close");
 
-  navigateToRestricted(props.nextRoute, route.query);
-};
+    navigateToRestricted(props.nextRoute, route.query);
+  });
 
 const startBuffer = () => {
   clearInterval(interval.value);

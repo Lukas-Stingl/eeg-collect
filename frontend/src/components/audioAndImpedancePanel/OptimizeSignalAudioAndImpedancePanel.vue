@@ -67,7 +67,6 @@ onMounted(async () =>
         <VCarouselItem class="h-100" style="height: 100%" value="0">
           <OptimizeSignalAudioAndImpedancePanelAudioPanel
             @close="handleNextStep"
-            :stop-recording="stopRecording"
           />
         </VCarouselItem>
 
@@ -78,6 +77,7 @@ onMounted(async () =>
             :runImpedanceCheck="runImpedanceCheck"
             :nextRoute="nextRoute"
             :description="impedancePanelDescription"
+            :stop-recording="stopRecording"
           />
         </VCarouselItem>
       </VCarousel>
