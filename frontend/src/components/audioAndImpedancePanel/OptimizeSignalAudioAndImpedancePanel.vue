@@ -5,6 +5,8 @@ import OptimizeSignalAudioAndImpedancePanelAudioPanel from "@/components/audioAn
 import OptimizeSignalAudioAndImpedancePanelImpedancePanel from "@/components/audioAndImpedancePanel/components/OptimizeSignalAudioAndImpedancePanelImpedancePanel.vue";
 import { useOpenBCIUtils } from "@/utils/hooks";
 
+// ---- STATE ----
+
 const props = defineProps({
   isSetup: {
     type: Boolean,
@@ -20,8 +22,6 @@ const props = defineProps({
   },
 });
 
-// ---- STATE ----
-
 const carouselModel = ref(0);
 
 const {
@@ -35,20 +35,13 @@ const {
 
 // ---- CALLBACKS ----
 
-const handleNextStep = () => {
-  console.log("Next step");
-  carouselModel.value += 1;
-};
+const handleNextStep = () => (carouselModel.value += 1);
 
-onMounted(async () => {
-  if (props.isSetup) {
-    console.log("AAAAABABABABABABAB");
-    await startSignalQualityCheck();
-  } else {
-    console.log("BBBBBBBBBBBBBBBBBBBBB");
-    await startRecording();
-  }
-});
+// ---- LIFECYCLE HOOKS ----
+
+onMounted(async () =>
+  props.isSetup ? await startSignalQualityCheck() : await startRecording(),
+);
 </script>
 
 <template>
