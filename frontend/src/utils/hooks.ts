@@ -55,7 +55,7 @@ export const useConfigureParticipantId = () => {
   );
 };
 
-export const useWebsocketConnection = (): WebSocket | null => {
+export const useWebsocketConnection = async (): Promise<WebSocket | null> => {
   const store = useStore();
   const webSocket = computed(() => store.state.webSocket);
   const participantId = computed(() => store.state.participantId);
@@ -84,31 +84,32 @@ export const useWebsocketConnection = (): WebSocket | null => {
     return null;
   }
 
-  try {
-    console.log("A");
-    const ws = new WebSocket(
-      `${URLs.WEB_SOCKET_URL}${mode}/${participantId.value}/`,
-    );
+  const createWebSocket = (url: string): Promise<WebSocket> =>
+    new Promise((resolve, reject) => {
+      const socket = new WebSocket(url);
 
-    console.log("B");
+      socket.onopen = () => {
+        console.log("WebSocket connection opened!");
+        resolve(socket);
+      };
 
-    ws.onopen = () => {
-      console.log("Connected to WebSocket");
-    };
+      socket.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        reject(error);
+      };
+    });
 
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
+  console.log("A");
+  const ws = await createWebSocket(
+    `${URLs.WEB_SOCKET_URL}${mode}/${participantId.value}/`,
+  );
 
-    store.commit("setConnectionMode", { connectionMode: mode });
-    store.commit("setWebSocket", { websocket: ws });
+  console.log("B");
 
-    return ws;
-  } catch (error) {
-    console.log("C");
-    console.error("Error creating WebSocket connection:", error);
-    return null;
-  }
+  store.commit("setConnectionMode", { connectionMode: mode });
+  store.commit("setWebSocket", { websocket: ws });
+
+  return ws;
 };
 
 export const useDataVisualization = ({
