@@ -42,7 +42,7 @@ const handleNextStep = () => (carouselModel.value += 1);
 onMounted(async () => {
   console.log("ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ");
   console.log(props.isSetup);
-  props.isSetup ? await startSignalQualityCheck() : await startRecording();
+  props.isSetup ? startSignalQualityCheck() : await startRecording();
 });
 </script>
 
