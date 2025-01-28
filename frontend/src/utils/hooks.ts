@@ -84,15 +84,19 @@ export const useWebsocketConnection = (): WebSocket | null => {
   }
 
   try {
+    console.log("A");
     const ws = new WebSocket(
       `${URLs.WEB_SOCKET_URL}${mode}/${participantId.value}/`,
     );
+
+    console.log("B");
 
     store.commit("setConnectionMode", { connectionMode: mode });
     store.commit("setWebSocket", { websocket: ws });
 
     return ws;
   } catch (error) {
+    console.log("C");
     console.error("Error creating WebSocket connection:", error);
     return null;
   }
