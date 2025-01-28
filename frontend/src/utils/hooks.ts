@@ -950,7 +950,6 @@ export const useOpenBCIUtils = () => {
     } catch (err) {
       console.error("Error while reading from stream:", err);
       // console.log(reader.value);
-      logReaderStatus();
       return { value: null, done: false }; // Return done as true to stop the loop if there's an error
     }
   };
