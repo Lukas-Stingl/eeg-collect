@@ -42,8 +42,11 @@ const {
   startSignalQualityCheck,
   signalRMS,
   isImpedanceCheckRunning,
+  impedanceCheckChannel,
+  runImpedanceCheck,
   stopRecording,
 } = useOpenBCIUtils();
+
 const preventUnloadWarningDialog = ref(false);
 
 const isAudioAndImpedancePanelOpen = ref(false);
@@ -295,7 +298,6 @@ const handleBeforeUnload = (event: BeforeUnloadEvent) => {
   return confirmationMessage; // For some browsers
 };
 const handleRedirectToRecording = async () => {
-  await stopRecording();
   isAudioAndImpedancePanelOpen.value = true;
 };
 
@@ -436,6 +438,10 @@ const startBuffer = () => {
   <OptimizeSignalAudioAndImpedancePanel
     v-if="isAudioAndImpedancePanelOpen"
     :is-setup="true"
+    :impedance-check-channel="impedanceCheckChannel"
+    :is-impedance-check-running="isImpedanceCheckRunning"
+    :run-impedance-check="runImpedanceCheck"
+    :stop-recording="stopRecording"
     :next-route="ROUTES.RECORDING"
     :impedance-panel-description="`Resistance measurements for each electrode.<br />You will be able to start your session after this step.`"
   />

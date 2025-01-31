@@ -18,6 +18,7 @@ const {
   startRecording,
   stopRecording,
   isImpedanceCheckRunning,
+  runImpedanceCheck,
   impedanceCheckChannel,
 } = useOpenBCIUtils();
 
@@ -29,16 +30,8 @@ const isAudioAndImpedancePanelOpen = ref(false);
 
 // ---- CALLBACKS ----
 
-const handleStopRecording = async () => {
-  await stopRecording().then(() => {
-    isAudioAndImpedancePanelOpen.value = true;
-  });
-
-  // await stopRecording().then(async () => {
-  //   await runImpedanceCheck().then(() =>
-  //     navigateToRestricted(ROUTES.FINISH, route.query),
-  //   );
-  // });
+const handleStopRecording = () => {
+  isAudioAndImpedancePanelOpen.value = true;
 };
 
 const startBuffer = () => {
@@ -188,37 +181,13 @@ watch(
       </VCol>
     </VCol>
 
-    <!-- Circular progress component -->
-    <v-overlay v-model="isImpedanceCheckRunning">
-      <div class="overlay_content" style="height: 100vh !important">
-        <v-card id="card_connect" class="w-75 px-4 py-2">
-          <!-- <v-card-title>Hinweis</v-card-title> -->
-          <v-card-title>Impedance Measurement Ongoing</v-card-title>
-          <v-card-text>
-            {{
-              `Channel ${impedanceCheckChannel} is being checked. This may take a few seconds. Please wait and do not move your head.`
-            }}
-          </v-card-text>
-          <div style="margin: 10px">
-            <v-progress-linear
-              v-model="progressValue"
-              :buffer-value="bufferValue"
-            ></v-progress-linear>
-          </div>
-        </v-card>
-
-        <v-progress-circular
-          v-if="isImpedanceCheckRunning"
-          color="#00876C"
-          indeterminate
-          size="64"
-        ></v-progress-circular>
-      </div>
-    </v-overlay>
-
     <OptimizeSignalAudioAndImpedancePanel
       v-if="isAudioAndImpedancePanelOpen"
       :next-route="ROUTES.FINISH"
+      :impedance-check-channel="impedanceCheckChannel"
+      :is-impedance-check-running="isImpedanceCheckRunning"
+      :run-impedance-check="runImpedanceCheck"
+      :stop-recording="stopRecording"
       :impedance-panel-description="`Resistance measurements for each electrode.<br />The recording will stop after this step.`"
     />
   </BasePage>

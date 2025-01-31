@@ -1,49 +1,26 @@
 <script setup lang="ts">
-import { onMounted, ref, defineProps } from "vue";
+import { ref, defineProps } from "vue";
 
 import OptimizeSignalAudioAndImpedancePanelAudioPanel from "@/components/audioAndImpedancePanel/components/OptimizeSignalAudioAndImpedancePanelAudioPanel.vue";
 import OptimizeSignalAudioAndImpedancePanelImpedancePanel from "@/components/audioAndImpedancePanel/components/OptimizeSignalAudioAndImpedancePanelImpedancePanel.vue";
-import { useOpenBCIUtils } from "@/utils/hooks";
+
+defineProps<{
+  isSetup?: boolean;
+  nextRoute: string;
+  impedancePanelDescription?: string;
+  stopRecording: () => Promise<void>;
+  runImpedanceCheck: () => Promise<void>;
+  isImpedanceCheckRunning: boolean;
+  impedanceCheckChannel: number;
+}>();
 
 // ---- STATE ----
 
-const props = defineProps({
-  isSetup: {
-    type: Boolean,
-    required: false,
-  },
-  nextRoute: {
-    type: String,
-    required: true,
-  },
-  impedancePanelDescription: {
-    type: String,
-    required: false,
-  },
-});
-
 const carouselModel = ref(0);
-
-const {
-  startSignalQualityCheck,
-  startRecording,
-  stopRecording,
-  runImpedanceCheck,
-  isImpedanceCheckRunning,
-  impedanceCheckChannel,
-} = useOpenBCIUtils();
 
 // ---- CALLBACKS ----
 
 const handleNextStep = () => (carouselModel.value += 1);
-
-// ---- LIFECYCLE HOOKS ----
-
-onMounted(async () => {
-  console.log("ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ");
-  console.log(props.isSetup);
-  props.isSetup ? startSignalQualityCheck() : await startRecording();
-});
 </script>
 
 <template>
