@@ -53,22 +53,22 @@ const handleClose = () => {
     "
   >
     <VCard width="85vh" style="top: 50px">
-      <VCarousel hide-delimiters :show-arrows="false" v-model="carouselModel">
-        <VBtn
-          class="rounded-circle position-absolute d-flex justify-center align-center"
-          @click="handleClose"
-          style="
-            top: 15px;
-            right: 15px;
-            min-width: 0 !important;
-            width: 32px;
-            height: 32px;
-            z-index: 10000000;
-          "
-        >
-          <PhX size="20" />
-        </VBtn>
+      <VBtn
+        class="rounded-circle position-absolute d-flex justify-center align-center"
+        @click="handleClose"
+        style="
+          top: 15px;
+          right: 15px;
+          min-width: 0 !important;
+          width: 32px;
+          height: 32px;
+          z-index: 10000000;
+        "
+      >
+        <PhX size="20" />
+      </VBtn>
 
+      <VCarousel hide-delimiters :show-arrows="false" v-model="carouselModel">
         <VCarouselItem
           class="h-100 d-flex justify-space-between"
           style="height: 100%"
