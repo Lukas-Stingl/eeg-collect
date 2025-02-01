@@ -2,7 +2,7 @@
 import { ref } from "vue";
 
 import { PhArrowsOutSimple, PhInfo } from "@phosphor-icons/vue";
-import OptimizeSignalAsideTipsModal from "@/pages/optimizeSignalAndImpedancePage/aside/components/OptimizeSignalAsideTipsModal.vue";
+import OptimizeSignalAsideTipsModal from "@/pages/optimizeSignalAndImpedancePage/aside/components/optimizeSignalAsideTipsModal/OptimizeSignalAsideTipsModal.vue";
 
 const isAsideTipsModalOpen = ref(false);
 </script>
