@@ -12,7 +12,7 @@ const handleContinue = () => {
 </script>
 
 <template>
-  <VCol class="h-100 d-flex">
+  <VCol class="h-100">
     <VCol class="pa-6 flex-grow-1">
       <VCardTitle class="pa-0 mb-8">
         Tip 1: Unplug electronic devices in your environment
