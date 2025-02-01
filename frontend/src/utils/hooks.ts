@@ -220,8 +220,6 @@ export const useOpenBCIUtils = () => {
       filterObj.value,
     );
 
-    // console.log(filteredArray);
-
     return filteredArray;
   }
 
@@ -259,9 +257,6 @@ export const useOpenBCIUtils = () => {
     ...DEFAULT_OPEN_BCI_SERIAL_DATA_RMS,
   });
   const getThrottledRMS = throttle(() => {
-    //console.log("rollingBuffer.value XXXXXX");
-    //console.log(bandPassFilteredSignalsThrottled.value);
-
     Object.keys(nodeRMSsCached.value).map((AKey, nodeRMSCachedIndex) => {
       bandFilteredBufferCached.value.map((subArray, index) => {
         if (nodeRMSCachedIndex !== index) {
@@ -278,15 +273,10 @@ export const useOpenBCIUtils = () => {
           0,
         );
         const RMS = Math.sqrt(sumOfSquares / subArray.length);
-        console.log(AKey);
-        console.log(RMS);
 
         nodeRMSsCached.value[AKey as keyof SerialDataRMS] = RMS;
       });
     });
-
-    //console.log("nodeRMSs");
-    //console.log(nodeRMSsCached.value);
 
     return nodeRMSsCached.value;
   }, 500);
@@ -308,8 +298,6 @@ export const useOpenBCIUtils = () => {
         );
         console.log("Cyton Streaming stopped");
         writer.releaseLock();
-        // console.log(this.data);
-        // this.data.count = this.data.A1.length;
       } else {
         console.error("Serial port is not writable");
       }
@@ -434,8 +422,6 @@ export const useOpenBCIUtils = () => {
                 const data = decodeCytonData(chunkBuffer);
 
                 if (data) {
-                  // console.log("DATATATATA CHUNK COMPLETE");
-                  // console.log(data);
                   if (rollingBuffer.value.length > 1250) {
                     rollingBuffer.value.shift();
                   }
@@ -500,7 +486,6 @@ export const useOpenBCIUtils = () => {
           chunkBuffer = []; // Reset buffer for the next chunk
         } catch (error) {
           console.error("Error in second part of for loop:", error);
-          // logErrorDetails(error, buffer, isRecording.value);
         }
       }
     }
@@ -514,9 +499,6 @@ export const useOpenBCIUtils = () => {
     let returnStatus: ConnectedDeviceStatus | boolean = false;
     try {
       const port: SerialPort = await navigator.serial.requestPort();
-
-      console.log("port:::");
-      console.log(port);
 
       store.commit("setWebSerialPort", { port: port });
 
