@@ -21,6 +21,7 @@ const carouselModel = ref(0);
 const handleNextStep = () => {
   if (carouselModel.value === 1) {
     carouselModel.value = 0;
+    return;
   }
 
   carouselModel.value = 1;
