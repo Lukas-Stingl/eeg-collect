@@ -71,19 +71,11 @@ const handleClose = () => {
       </VBtn>
 
       <VCarousel hide-delimiters :show-arrows="false" v-model="carouselModel">
-        <VCarouselItem
-          class="h-100 d-flex justify-space-between"
-          style="height: 100%"
-          value="0"
-        >
+        <VCarouselItem class="h-100" style="height: 100%" value="0">
           <OptimizeSignalAsideTipsModalElectronicTip @close="handleNextStep" />
         </VCarouselItem>
 
-        <VCarouselItem
-          class="h-100 d-flex justify-space-between"
-          style="height: 100%"
-          value="1"
-        >
+        <VCarouselItem class="h-100" style="height: 100%" value="1">
           <OptimizeSignalAsideTipsModalCleanTip @close="handleNextStep" />
         </VCarouselItem>
       </VCarousel>

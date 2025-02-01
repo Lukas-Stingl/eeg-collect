@@ -12,7 +12,19 @@ const handleContinue = () => {
 </script>
 
 <template>
-  <VCol class="h-100">
+  <VCol
+    class="flex-grow-1 d-flex h-100"
+    style="
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 2100;
+    "
+  >
     <VCol class="pa-6 flex-grow-1">
       <VCardTitle class="pa-0 mb-8">
         Tip 2: Wipe your ears and skin
