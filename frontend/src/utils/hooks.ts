@@ -325,8 +325,9 @@ export const useOpenBCIUtils = () => {
     }
 
     ws.value.send("Setup Finished");
-    startSignalQualityCheck();
     await commandBoardStartStreamingData(RecordingMode.SESSION_RECORDING);
+
+    await startSignalQualityCheck();
   };
 
   // Wie readData() in cyton.js
@@ -340,7 +341,7 @@ export const useOpenBCIUtils = () => {
 
     watch(isRecording, (newValue) => {
       console.log(
-        "isRecording changed to false, stopping the loop: " + newValue,
+        "isRecording changed to " + newValue + ". Loop running: " + newValue,
       );
     });
 
@@ -584,6 +585,10 @@ export const useOpenBCIUtils = () => {
   const runImpedanceCheck = async () => {
     resetImpedance("H");
 
+    await defaultChannelSettings();
+
+    recordingMode.value = RecordingMode.IMPEDANCE;
+
     for (let i = 1; i <= 8; i++) {
       console.log("IIIIIIIIIIIIII");
       console.log(i);
@@ -652,6 +657,24 @@ export const useOpenBCIUtils = () => {
     }
   };
 
+  const defaultChannelSettings = async () => {
+    try {
+      if (port.value && port.value.writable) {
+        const writer = port.value.writable.getWriter();
+        const command = "C~~"; // Command to start recording
+        const commandBytes = new TextEncoder().encode(command);
+        await writer.write(commandBytes);
+        console.log("Default channel settings applied");
+
+        writer.releaseLock();
+      } else {
+        console.error("Serial port is not writable");
+      }
+    } catch (error) {
+      console.error("Error starting recording:", error);
+    }
+  };
+
   // Wie configureBoard in cyton.js
   const runImpedanceCheckForChannel = async (channel: number) => {
     const startCommands = [
@@ -716,7 +739,6 @@ export const useOpenBCIUtils = () => {
 
   const stopImpedanceRecordingForChannel = async (channel: string) => {
     try {
-      isRecording.value = false;
       // Check if the port is writable before writing data
       if (!port.value || !port.value.writable) {
         console.error("Serial port is not writable");
@@ -725,17 +747,17 @@ export const useOpenBCIUtils = () => {
       }
 
       const writer = port.value.writable.getWriter();
-      await writer.write(
-        new TextEncoder().encode(CytonBoardCommands.STOP_STREAMING),
-      );
+      await writer
+        .write(new TextEncoder().encode(CytonBoardCommands.STOP_STREAMING))
+        .then(() => {
+          isRecording.value = false;
+          console.log("O");
+        });
       console.log("Recording stopped");
       writer.releaseLock();
-      console.log(
-        "finished rec: " + data.value[channel as keyof OpenBCICytonData],
-      );
+
       data.value.count = `${data.value[channel as keyof OpenBCICytonData].length}`;
       console.log("Channel: " + channel);
-      console.log("Data: " + data.value[channel as keyof OpenBCICytonData]);
       // Prepare data to send
       // @ts-ignore-next-line
       const raw_data = data.value[channel as keyof OpenBCICytonData].map(
@@ -852,6 +874,8 @@ export const useOpenBCIUtils = () => {
     startRecordingTime.value = getReadableTimestamp();
     try {
       const writer = port.value.writable.getWriter();
+
+      console.log(writer);
 
       await writer.write(
         getEncodedCytonCommand(CytonBoardCommands.START_STREAMING),

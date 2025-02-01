@@ -12,17 +12,6 @@ module.exports = defineConfig({
         chunks: "all",
       },
     },
-    resolve: {
-      alias: {
-        process: "process/browser",
-      },
-      fallback: {
-        os: require.resolve("os-browserify/browser"),
-        fs: require.resolve("browserify-fs"),
-        child_process: false,
-        process: require.resolve("process/browser"),
-      },
-    },
   },
   transpileDependencies: true,
   outputDir: path.resolve(__dirname, "../../../var/www/html"),
