@@ -23,7 +23,7 @@ const handleNextStep = () => {
     carouselModel.value = 0;
   }
 
-  carouselModel.value += 1;
+  carouselModel.value = 1;
 };
 
 const handleClose = () => {
