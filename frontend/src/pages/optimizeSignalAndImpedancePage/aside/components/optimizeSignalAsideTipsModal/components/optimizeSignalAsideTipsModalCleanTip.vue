@@ -32,7 +32,7 @@ const handleContinue = () => {
 
       <VCol class="px-2">
         <VCol class="ga-10">
-          <v-img src="@/assets/WipeEars.png" style="height: 230px"></v-img>
+          <v-img src="@/assets/EarWipes.png" style="height: 230px"></v-img>
           <p
             style="
               color: #737373;
