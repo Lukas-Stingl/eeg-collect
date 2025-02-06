@@ -265,7 +265,7 @@ const handleMouseOver = (event: MouseEvent, d: Node) => {
     .html(
       `Node ID: ${d.node_id}<br/>State: ${stateToClass(
         d.state,
-      )}<br/>Rail: ${d.impedance}`,
+      )}<br/>µRMS: ${d.impedance}`,
     )
     .style("left", `${event.offsetX + 200}px`)
     .style("top", `${event.offsetY + 300}px`);
