@@ -1,3 +1,30 @@
+<script setup>
+import { ref } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { navigateToRestricted } from "@/router";
+import { ROUTES } from "@/utils/routes";
+
+// ---- STATE ----
+
+const router = useRouter();
+const route = useRoute();
+
+const buttonText = ref("Weiter");
+const showSecondBox = ref(false);
+
+const message = ref(
+  "Bitte ziehen Sie die Kopfhörer auf und achten Sie darauf, dass die Kopfhörer möglichst gut auf der Haut liegen. " +
+    "Schauen Sie bitte, dass sich nach Möglichkeit keine Haare zwischen den Kopfhörern und der Haut befinden. Achten Sie bitte auch darauf, dass die Ausrichtung der Kopfhörer stimmt. Der linke Kopfhörer ist mit einem L, der rechte mit einem R gekennzeichnet. Klicken Sie bitte anschließend auf Weiter.",
+);
+
+// ---- CALLBACKS ----
+
+const showSecondTextBox = () => (showSecondBox.value = true);
+
+const redirectToRecording = () =>
+  navigateToRestricted(ROUTES.RECORDING, route.query);
+</script>
+
 <template>
   <div>
     <div class="header">
@@ -24,33 +51,6 @@
     </v-dialog>
   </div>
 </template>
-
-<script>
-export default {
-  name: "StartScreen",
-  data() {
-    return {
-      message:
-        "Bitte ziehen Sie die Kopfhörer auf und achten Sie darauf, dass die Kopfhörer möglichst gut auf der Haut liegen. " +
-        "Schauen Sie bitte, dass sich nach Möglichkeit keine Haare zwischen den Kopfhörern und der Haut befinden. Achten Sie bitte auch darauf, dass die Ausrichtung der Kopfhörer stimmt. Der linke Kopfhörer ist mit einem L, der rechte mit einem R gekennzeichnet. Klicken Sie bitte anschließend auf Weiter.",
-      buttonText: "Weiter",
-      showSecondBox: false,
-    };
-  },
-  methods: {
-    showSecondTextBox() {
-      this.showSecondBox = true;
-    },
-    redirectToRecording() {
-      const queryParams = this.$route.query;
-      this.$router.push({ path: "/recording", query: queryParams });
-    },
-  },
-  mounted() {
-    // Any mounted logic you might need
-  },
-};
-</script>
 
 <style scoped>
 .container {

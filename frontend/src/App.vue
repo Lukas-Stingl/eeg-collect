@@ -1,7 +1,25 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+
+import LogoIcon from "@/assets/LogoIcon.vue";
+import { getIsPassphraseValid } from "@/utils/helpers";
+import ParticipantIdModal from "@/components/ParticipantIdModal.vue";
+
+// ---- STATE ----
+const isPassphraseValid = ref(false);
+
+// ---- LIFECYCLE HOOKS ----
+
+onMounted(async () => {
+  isPassphraseValid.value = await getIsPassphraseValid();
+});
+</script>
+
 <template>
   <div id="app">
     <!-- Application Header with Menu Button -->
-    <header>
+    <header style="z-index: 5000">
+      <LogoIcon style="width: 60px" />
       <!-- <h1 class="app-title">EEG Aufnahme</h1> -->
       <h1 class="app-title">EEG Recording</h1>
     </header>
@@ -10,42 +28,32 @@
     <div
       v-if="isPassphraseValid"
       class="content"
-      :style="{ marginLeft: isMenuOpen ? '200px' : '0' }"
+      style="display: block; width: 100vw; height: calc(100vh - 70px)"
     >
       <router-view></router-view>
     </div>
     <div v-else class="forbidden">403 Forbidden</div>
+
+    <!-- ---- Global Modals ---- -->
+    <ParticipantIdModal />
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      isMenuOpen: false,
-      isPassphraseValid: false,
-    };
-  },
-  methods: {
-    toggleMenu() {
-      this.isMenuOpen = !this.isMenuOpen;
-    },
-    checkPassphrase() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const passphraseParam = urlParams.get("aHCWFRZvlU");
-      if (passphraseParam) {
-        const decodedPassphrase = atob(passphraseParam);
-        this.isPassphraseValid = decodedPassphrase === "iism4ever";
-      }
-    },
-  },
-  mounted() {
-    this.checkPassphrase();
-  },
-};
-</script>
-
 <style>
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  box-sizing: border-box !important;
+  height: 100vh;
+  width: 100vw;
+  max-width: 100vw;
+  display: flex;
+}
+
 /* Add this style for the forbidden message */
 .forbidden {
   margin-top: 57px; /* Same as the top value of the menu */
@@ -55,8 +63,11 @@ export default {
   color: red;
 }
 #app {
-  font-family: "Open Sans", "Arial", sans-serif;
+  font-family: "ui-sans-serif", "system-ui", "Open Sans", "Arial", sans-serif;
   overflow-x: hidden; /* Hide horizontal scrollbar when content overflows */
+  width: 100vw;
+  height: 100vh;
+  display: flex;
 }
 
 /* Application Header Styles */
@@ -75,55 +86,14 @@ header {
 }
 
 .app-title {
-  flex-grow: 1;
-  margin: 0;
   font-size: 24px;
   font-weight: 600;
 }
 
-.menu-button {
-  cursor: pointer;
-  font-size: 20px;
-  margin-right: 10px;
-}
-
-/* Menu Styles */
-.menu {
-  background-color: rgba(0, 135, 108, 0.7); /* Opacity set to 70% */
-  color: #fff;
-  position: fixed;
-  top: 57px; /* Adjusted top value */
-  left: 0;
-  bottom: 0;
-  width: 200px;
-  padding: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  z-index: 0; /* Ensure the menu is behind the header */
-}
-
-.menu-item {
-  color: #fff;
-  text-decoration: none;
-  padding: 8px;
-  transition: background-color 0.3s ease;
-}
-
-.menu-item:hover {
-  background-color: #404040;
-}
-
-.menu-separator {
-  margin-top: auto; /* Adjusted to set margin-top to auto */
-  margin-bottom: 5px;
-  border-top: 1px solid #fff;
-}
-
 /* Content Area Styles */
 .content {
-  margin-top: 57px; /* Same as the top value of the menu */
-  padding: 20px; /* Add some padding for better readability */
-  transition: margin-left 0.3s ease; /* Smooth transition for the margin change */
+  margin-top: 70px;
+  width: 100%;
+  height: calc(100% - 70px);
 }
 </style>

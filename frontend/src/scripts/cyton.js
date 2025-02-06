@@ -14,12 +14,12 @@ export class cyton {
     this.participantNumber = participantNumber;
     this.mode = mode;
     // Initialize WebSocket connection
-    this.ws = new WebSocket(
-      "wss://exg.iism.kit.edu/websocket/" +
-        this.mode +
-        "/" +
-        this.participantNumber,
-    );
+    // this.ws = new WebSocket(
+    //   "wss://exg.iism.kit.edu/websocket/" +
+    //     this.mode +
+    //     "/" +
+    //     this.participantNumber,
+    // );
 
     // Handle WebSocket events
     this.ws.onopen = () => {
@@ -46,28 +46,17 @@ export class cyton {
     this.encoder = new TextEncoder("ascii");
     this.reader = "";
     this.startRecording = "";
-    this.endRecording = "";
     this.streaming = false;
     this.connected = false;
-    this.subscribed = false;
     this.buffer = [];
     this.startByte = 160; //0xA0; // Start byte value
     this.stopByte = 192; //0xC0; // Stop byte value  //0xC0,0xC1,0xC2,0xC3,0xC4,0xC5,0xC6
     this.searchString = new Uint8Array([this.stopByte, this.startByte]); //Byte search string
-    this.readRate = 16.66667; //Throttle EEG read speed. (1.953ms/sample min @103 bytes/line)
-    this.readBufferSize = 2000000; //Serial read buffer size, increase for slower read speeds (~1030bytes every 20ms) to keep up with the stream (or it will crash)
 
     this.sps = 250; // Sample rate
-    this.nChannels = 21;
-    this.nPeripheralChannels = 6; // accelerometer and gyroscope (2 bytes * 3 coordinates each)
-    this.updateMs = 1000 / this.sps; //even spacing
     this.stepSize = 1 / (Math.pow(2, 23) - 1);
     this.vref = 4.5; //2.5V voltage ref +/- 250nV
     this.gain = 24;
-
-    this.vscale = (this.vref / this.gain) * this.stepSize; //volts per step.
-    this.uVperStep = 100000 * ((this.vref / this.gain) * this.stepSize); //uV per step.
-    this.scalar = 1 / (100000 / ((this.vref / this.gain) * this.stepSize)); //steps per uV.
 
     this.maxBufferedSamples = this.sps * 60 * 1; //max samples in buffer this.sps*60*nMinutes = max minutes of data
     this.startingMode = "default";
@@ -123,7 +112,7 @@ export class cyton {
   }
   getImpedance(config) {
     const impedanceArray = [];
-    let assignment = channelAssignment[config];
+    const assignment = channelAssignment[config];
     console.log(assignment.length);
     if (Object.keys(assignment).length > 8) {
       this.mode = "daisy";
@@ -186,12 +175,12 @@ export class cyton {
   resetImpedance(config) {
     const impedanceArray = [];
     this.impedance = [];
-    let assignment = channelAssignment[config];
+    const assignment = channelAssignment[config];
 
     for (const channel in assignment) {
       const node_id = assignment[channel];
-      let impedanceValue = 0;
-      let state = 0;
+      const impedanceValue = 0;
+      const state = 0;
 
       impedanceArray.push({
         node_id: node_id,
@@ -201,56 +190,6 @@ export class cyton {
     }
 
     return impedanceArray;
-  }
-  setScalar(gain = 24, stepSize = 1 / (Math.pow(2, 23) - 1), vref = 4.5) {
-    this.stepSize = stepSize;
-    this.vref = vref; //2.5V voltage ref +/- 250nV
-    this.gain = gain;
-
-    this.vscale = (this.vref / this.gain) * this.stepSize; //volts per step.
-    this.uVperStep = 100000 * ((this.vref / this.gain) * this.stepSize); //uV per step.
-    this.scalar = 1 / (100000 / ((this.vref / this.gain) * this.stepSize)); //steps per uV.
-  }
-
-  getLatestData(channel, count = 1) {
-    //Return slice of specified size of the latest data from the specified channel
-    let ct = count;
-    if (ct <= 1) {
-      return [this.data[channel][this.data.count - 1]];
-    } else {
-      if (ct > this.data.count) {
-        ct = this.data.count;
-      }
-      return this.data[channel].slice(this.data.count - ct, this.data.count);
-    }
-  }
-
-  //cyton uses signed ints
-  bytesToInt16(x0, x1) {
-    let int16 = ((0xff & x0) << 8) | (0xff & x1);
-    if ((int16 & 0x00800000) > 0) {
-      int16 |= 0xffff0000;
-    } else {
-      int16 &= 0x0000ffff;
-    }
-    return int16;
-  }
-
-  int16ToBytes(y) {
-    //Turns a 24 bit int into a 3 byte sequence
-    return [y & 0xff, (y >> 8) & 0xff];
-  }
-
-  //cyton uses signed ints
-  bytesToInt24(x0, x1, x2) {
-    //Turns a 3 byte sequence into a 24 bit int
-    let int24 = ((0xff & x0) << 16) | ((0xff & x1) << 8) | (0xff & x2);
-    if ((int24 & 0x00800000) > 0) {
-      int24 |= 0xff000000;
-    } else {
-      int24 &= 0x00ffffff;
-    }
-    return int24;
   }
 
   interpret24bitAsInt32(byteArray) {
@@ -289,7 +228,9 @@ export class cyton {
   exportImpedanceCSV(participantNumber) {
     const objectKeys = Object.keys(this.impedance);
     const csvContent = this.parseAndExportImpedance(this.impedance, objectKeys);
-    let startTime = Math.floor(new Date(this.startRecording).getTime() / 1000);
+    const startTime = Math.floor(
+      new Date(this.startRecording).getTime() / 1000,
+    );
     const fileName = `${participantNumber}-${startTime}-Impedance.csv`;
 
     const formData = new FormData();
@@ -314,6 +255,7 @@ export class cyton {
       });
   }
 
+  // Starts the Impedance check and writes the Impedance Data
   async configureBoard(command) {
     let startCommands;
     let resetCommands;
@@ -385,7 +327,7 @@ export class cyton {
       try {
         // Check if the port is writable before writing data
         if (this.port && this.port.writable) {
-          var writer = this.port.writable.getWriter();
+          let writer = this.port.writable.getWriter();
           const impedanceCommandBytes = new TextEncoder().encode(
             impedanceCommand,
           );
@@ -420,8 +362,8 @@ export class cyton {
     try {
       if (this.port && this.port.writable) {
         const writer = this.port.writable.getWriter();
-        var command = "C~~"; // Command to start recording
-        var commandBytes = new TextEncoder().encode(command);
+        const command = "C~~"; // Command to start recording
+        const commandBytes = new TextEncoder().encode(command);
         await writer.write(commandBytes);
         console.log("Default channel settings applied");
 
@@ -600,9 +542,9 @@ export class cyton {
       this.data[channelName].push(channelData);
       eegData.push(channelData);
     }
-    let Acc0 = this.interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
-    let Acc1 = this.interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
-    let Acc2 = this.interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
+    const Acc0 = this.interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
+    const Acc1 = this.interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
+    const Acc2 = this.interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
     try {
       this.data["Accel0"].push(Acc0);
       this.data["Accel1"].push(Acc1);
@@ -636,7 +578,7 @@ export class cyton {
   }
   async decodeDaisyImpedance(chunk) {
     //calculate impedance for daisy in browser for latency reasons
-    let odd = chunk[1] % 2 !== 0;
+    const odd = chunk[1] % 2 !== 0;
     let channelName;
     // Skip first byte (header) and last byte (stop byte)
     const byteArray = chunk.slice(1, -1);
@@ -648,9 +590,9 @@ export class cyton {
       this.data["sampleNumber"].push(sampleNumber);
       this.data["timestamp"].push(new Date().getTime());
     }
-    let Acc0 = this.interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
-    let Acc1 = this.interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
-    let Acc2 = this.interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
+    const Acc0 = this.interpret16bitAsInt32(chunk.slice(26, 28)) * 0.000125;
+    const Acc1 = this.interpret16bitAsInt32(chunk.slice(28, 30)) * 0.000125;
+    const Acc2 = this.interpret16bitAsInt32(chunk.slice(30, 32)) * 0.000125;
 
     try {
       this.data["Accel0"].push(Acc0);
@@ -676,12 +618,7 @@ export class cyton {
       this.data[channelName].push(channelData);
     }
   }
-  sendBatchToWebSocket(batch, callback) {
-    // Send the batch data to the WebSocket server
-    const message = JSON.stringify(batch);
-    // Assuming `ws` is your WebSocket instance
-    this.ws.send(message, callback);
-  }
+
   getData() {
     return this.data;
   }
@@ -735,33 +672,6 @@ export class cyton {
     };
   }
 
-  // exportCSV(content, objectKeys, participantNumber) {
-  //   const csvContent = this.parseAndExportData(content, objectKeys);
-  //   let startTime = Math.floor(new Date(this.startRecording).getTime() / 1000);
-  //   const fileName = `${participantNumber}-${startTime}-Recording.csv`;
-
-  //   const formData = new FormData();
-  //   formData.append("fileName", fileName);
-  //   formData.append("csvContent", csvContent);
-
-  //   fetch("/api/save-csv", {
-  //     method: "POST",
-  //     body: formData,
-  //   })
-  //     .then((response) => {
-  //       if (!response.ok) {
-  //         throw new Error("Network response was not ok");
-  //       }
-  //       return response.json();
-  //     })
-  //     .then((data) => {
-  //       console.log("CSV file saved successfully:", data.filePath);
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error saving CSV file:", error);
-  //     });
-  // }
-
   async stopImpedance(channel) {
     try {
       this.reading = false;
@@ -778,7 +688,7 @@ export class cyton {
         console.log("Channel: " + channel);
         console.log("Data: " + this.data[channel]);
         // Prepare data to send
-        let raw_data = this.data[channel].map((value) => parseFloat(value)); // Convert values to floats if necessary
+        const raw_data = this.data[channel].map((value) => parseFloat(value)); // Convert values to floats if necessary
         if (this.mode === "daisy") {
           this.sps = 125;
         } else {
@@ -848,50 +758,6 @@ export class cyton {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   }
 
-  // parseAndExportData(data, objectKeys) {
-  //   // Add headers using objectKeys
-  //   const headers = objectKeys.join(";");
-
-  //   // Transpose data
-  //   const transposedData = objectKeys.map((key) => {
-  //     if (Array.isArray(data[key])) {
-  //       return data[key];
-  //     } else {
-  //       // If it's a string, create an array with a single element
-  //       return [data[key]];
-  //     }
-  //   });
-
-  //   // Find the maximum length among the arrays
-  //   const maxLength = Math.max(...transposedData.map((arr) => arr.length));
-
-  //   // Fill shorter arrays with empty strings to match the maximum length
-  //   const filledData = transposedData.map((arr) => {
-  //     const diff = maxLength - arr.length;
-  //     return arr.concat(Array(diff).fill(""));
-  //   });
-
-  //   // Create rows by taking values at the same index from each array
-  //   const rows = [];
-  //   for (let i = 0; i < parseInt(filledData[0][0]); i++) {
-  //     const index = i + 1;
-  //     let datetime = "";
-  //     // Calculate datetime based on startms and previous datetime
-  //     datetime = new Date(filledData[2][i]).toLocaleString();
-
-  //     // Format datetime manually to avoid locale issues
-
-  //     const rowValues = [index, datetime].concat(
-  //       filledData.map((arr) => arr[i])
-  //     );
-  //     rows.push(rowValues.join(";"));
-  //   }
-
-  //   // Combine rows with newline characters
-  //   const csvContent = "Index;Datetime;" + headers + "\n" + rows.join("\n");
-
-  //   return csvContent;
-  // }
   parseAndExportImpedance(data, objectKeys) {
     const headers = `Index;Datetime;${objectKeys.join(";")}`;
 
@@ -980,7 +846,7 @@ export class cyton {
     console.log("in checkConnectedDevice");
     this.startReading("record");
     let buffer = ""; // stores decoded text messages.
-    let checkChunkBuffer = []; // Buffer to accumulate bytes until a complete chunk is formed
+    const checkChunkBuffer = []; // Buffer to accumulate bytes until a complete chunk is formed
     let isCheckChunkChecked = false;
 
     // Start the initial timeout check

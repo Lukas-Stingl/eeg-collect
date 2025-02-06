@@ -1,6 +1,18 @@
 const path = require("path");
 const { defineConfig } = require("@vue/cli-service");
+const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
+
 module.exports = defineConfig({
+  configureWebpack: {
+    plugins: [
+      new NodePolyfillPlugin({ additionalAliases: ["process", "punycode"] }),
+    ],
+    optimization: {
+      splitChunks: {
+        chunks: "all",
+      },
+    },
+  },
   transpileDependencies: true,
   outputDir: path.resolve(__dirname, "../../../var/www/html"),
   pluginOptions: {
