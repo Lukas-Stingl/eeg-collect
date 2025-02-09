@@ -353,6 +353,8 @@ export const useOpenBCIUtils = () => {
     resetTimeout();
     // let stop = false;
 
+    const unthrottledBuffer: OpenBCISerialData[] = [];
+
     // TODO Hier noch checken ob der reader nicht closed ist. Wenn ja, return, sonst gibts eine endlosschleife
     while (isRecording.value) {
       const { value, done } = await readFromStream();
@@ -422,11 +424,14 @@ export const useOpenBCIUtils = () => {
                 const data = decodeCytonData(chunkBuffer);
 
                 if (data) {
-                  if (rollingBuffer.value.length > 1250) {
-                    rollingBuffer.value.shift();
+                  if (unthrottledBuffer.length > 1250) {
+                    unthrottledBuffer.shift();
                   }
 
-                  rollingBuffer.value = [...rollingBuffer.value, data];
+                  unthrottledBuffer.push(data);
+
+                  // Use the throttled function to update rollingBuffer
+                  throttledUpdateRollingBuffer(unthrottledBuffer);
                 }
                 break;
               }
@@ -490,6 +495,10 @@ export const useOpenBCIUtils = () => {
       }
     }
   };
+
+  const throttledUpdateRollingBuffer = throttle((data: any) => {
+    rollingBuffer.value = [...data];
+  }, 1000); // Adjust the delay (1000ms) as needed
 
   const setupSerialConnection = async ({
     setIsLoadingModalShown,

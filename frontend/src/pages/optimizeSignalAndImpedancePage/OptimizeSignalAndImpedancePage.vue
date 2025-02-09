@@ -152,10 +152,6 @@ const nodeData: ComputedRef<Node[]> = computed(() => {
   return nodes;
 });
 
-const progressValue = ref(0);
-const bufferValue = ref(20);
-const interval = ref(0);
-
 watch(
   () => nodeData.value,
   () => updateCircles(),
@@ -299,46 +295,6 @@ const handleBeforeUnload = (event: BeforeUnloadEvent) => {
 };
 const handleRedirectToRecording = async () => {
   isAudioAndImpedancePanelOpen.value = true;
-};
-
-watch(
-  () => isImpedanceCheckRunning.value,
-  (newValue) => {
-    if (newValue) {
-      progressValue.value = 0;
-      bufferValue.value = 0;
-      startBuffer();
-    }
-  },
-);
-
-const startBuffer = () => {
-  clearInterval(interval.value);
-
-  // Reset progress values
-  progressValue.value = 0;
-  bufferValue.value = 0;
-
-  // Calculate the total time and interval duration
-  const totalTime = 6000; // 5 seconds in milliseconds
-  const steps = 100; // Number of steps to complete progress
-  const intervalDuration = totalTime / steps;
-
-  // Start the interval to update progress
-  interval.value = setInterval(() => {
-    // Increment progress values
-    progressValue.value += 100 / steps;
-    bufferValue.value += 100 / steps;
-
-    // Check if progress has reached 100%
-    if (progressValue.value >= 100) {
-      // Ensure the progress bar is exactly at 100%
-      progressValue.value = 100;
-      bufferValue.value = 100;
-      // Stop the interval after the delay
-      clearInterval(interval.value);
-    }
-  }, intervalDuration);
 };
 </script>
 
