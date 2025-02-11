@@ -112,56 +112,6 @@ export const useWebsocketConnection = async (): Promise<WebSocket | null> => {
   return ws;
 };
 
-export const useDataVisualization = ({
-  rollingBuffer,
-}: {
-  rollingBuffer: Ref<OpenBCISerialData[]>;
-}) => {
-  const bandFilteredBuffer = ref<number[][]>([[], [], [], [], [], [], [], []]); //ref<OpenBCISerialData[]>([]);
-
-  watch(
-    () => rollingBuffer.value,
-    async (newValue) => {
-      bandFilteredBuffer.value = (await getBandFilteredData()) ?? [
-        [],
-        [],
-        [],
-        [],
-        [],
-        [],
-        [],
-        [],
-      ];
-    },
-  );
-
-  const getBandFilteredData = async () => {
-    const array: number[][] = [];
-
-    rollingBuffer.value.map((serialData, index) => {
-      for (let i = 0; i < 8; i++) {
-        if (!array[i]) {
-          array[i] = [];
-        }
-        array[i].push(serialData[`A${i + 1}` as keyof OpenBCISerialData]);
-      }
-    });
-    return await axios
-      .post("/api/raw-eeg-data", { data: array })
-      .then((response) => {
-        // console.log(response);
-
-        const responseData: { filteredData: number[][] } = response.data;
-        return responseData.filteredData;
-      })
-      .catch(function (error: any) {
-        console.error(error);
-      });
-  };
-
-  return bandFilteredBuffer;
-};
-
 export const useOpenBCIUtils = () => {
   // ---- STATE ----
 
@@ -223,26 +173,26 @@ export const useOpenBCIUtils = () => {
     return filteredArray;
   }
 
-  const bandPassFilteredSignalsThrottled = computed<number[][]>(() => {
-    const getBandFilteredData = () => {
-      const array: number[][] = [];
+  const getBandFilteredData = () => {
+    const array: number[][] = [];
 
-      throttledBuffer.value.map((serialData, index) => {
-        for (let i = 0; i < 8; i++) {
-          if (!array[i]) {
-            array[i] = [];
-          }
-          array[i].push(serialData[`A${i + 1}` as keyof OpenBCISerialData]);
+    throttledBuffer.value.map((serialData, index) => {
+      for (let i = 0; i < 8; i++) {
+        if (!array[i]) {
+          array[i] = [];
         }
-      });
+        array[i].push(serialData[`A${i + 1}` as keyof OpenBCISerialData]);
+      }
+    });
 
-      const filteredData: number[][] = [];
+    const filteredData: number[][] = [];
 
-      array.map((subArray) => filteredData.push(applyHighpassFilter(subArray)));
+    array.map((subArray) => filteredData.push(applyHighpassFilter(subArray)));
 
-      return filteredData;
-    };
+    return filteredData;
+  };
 
+  const bandPassFilteredSignalsThrottled = computed<number[][]>(() => {
     bandFilteredBufferCached.value =
       getBandFilteredData() ?? bandFilteredBufferCached.value;
 
@@ -309,6 +259,7 @@ export const useOpenBCIUtils = () => {
   const startRecording = async () => {
     if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
       console.error("WebSocket not open, chunk not sent.");
+
       return;
     }
 
