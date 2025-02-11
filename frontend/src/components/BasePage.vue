@@ -30,7 +30,7 @@ let anim = ref();
 // eslint-disable-next-line no-undef
 onMounted(() => {
   setTimeout(() => {
-    if (path.value !== "/optimize-signal") {
+    if (path.value !== "/optimize-signal" && path.value !== "/recording") {
       console.log(anim.value.goToAndPlay(150, true));
       anim.value;
     }
@@ -51,7 +51,7 @@ onMounted(() => {
         style="z-index: 10"
       >
         <LottieAnimation
-          v-if="path !== '/optimize-signal'"
+          v-if="path !== '/optimize-signal' && path !== '/recording'"
           style="
             width: 150px;
             justify-content: center;
