@@ -5,7 +5,7 @@ import { LottieAnimation } from "lottie-web-vue";
 import { useRoute } from "vue-router";
 
 import CircularDots from "@/assets/CircularDots.json";
-import DynamicGradient from "@/assets/DynamicGradient.json";
+// import DynamicGradient from "@/assets/DynamicGradient.json";
 import { navigateToRestricted } from "@/router";
 
 const emit = defineEmits(["close"]);
