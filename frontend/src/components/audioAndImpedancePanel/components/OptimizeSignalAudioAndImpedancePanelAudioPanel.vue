@@ -72,17 +72,17 @@ onUnmounted(() => {
 <template>
   <!-- Background Animation -->
 
-  <VCol style="overflow: hidden; z-index: 2000">
-    <LottieAnimation
-      class="flex-grow-1"
-      style="justify-content: center; align-items: center; z-index: 2100"
-      ref="animBackground"
-      :animation-data="DynamicGradient"
-      :loop="true"
-      :auto-play="true"
-      :speed="1"
-    />
-  </VCol>
+  <!--  <VCol style="overflow: hidden; z-index: 2000">-->
+  <!--    <LottieAnimation-->
+  <!--      class="flex-grow-1"-->
+  <!--      style="justify-content: center; align-items: center; z-index: 2100"-->
+  <!--      ref="animBackground"-->
+  <!--      :animation-data="DynamicGradient"-->
+  <!--      :loop="true"-->
+  <!--      :auto-play="true"-->
+  <!--      :speed="1"-->
+  <!--    />-->
+  <!--  </VCol>-->
 
   <!-- Content -->
 

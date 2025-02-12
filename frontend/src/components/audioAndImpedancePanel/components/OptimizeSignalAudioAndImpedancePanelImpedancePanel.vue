@@ -22,7 +22,7 @@ const props = defineProps<{
 // ---- STATE ----
 
 let anim = ref();
-let animBackground = ref();
+// let animBackground = ref();
 
 const route = useRoute();
 
@@ -89,17 +89,17 @@ onMounted(async () => {
 <template>
   <!-- Background Animation -->
 
-  <VCol style="overflow: hidden; z-index: 900">
-    <LottieAnimation
-      class="flex-grow-1"
-      style="justify-content: center; align-items: center; z-index: 900"
-      ref="animBackground"
-      :animation-data="DynamicGradient"
-      :loop="true"
-      :auto-play="true"
-      :speed="1"
-    />
-  </VCol>
+  <!--  <VCol style="overflow: hidden; z-index: 900">-->
+  <!--    <LottieAnimation-->
+  <!--      class="flex-grow-1"-->
+  <!--      style="justify-content: center; align-items: center; z-index: 900"-->
+  <!--      ref="animBackground"-->
+  <!--      :animation-data="DynamicGradient"-->
+  <!--      :loop="true"-->
+  <!--      :auto-play="true"-->
+  <!--      :speed="1"-->
+  <!--    />-->
+  <!--  </VCol>-->
 
   <!-- Content -->
 
