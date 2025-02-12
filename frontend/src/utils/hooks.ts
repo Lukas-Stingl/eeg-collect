@@ -935,6 +935,15 @@ export const useOpenBCIUtils = () => {
       return { value, done };
     } catch (err) {
       console.error("Error while reading from stream:", err);
+
+      // DEBUG ATTEMPT: Try to restart the stream
+      if (port.value && port.value.writable) {
+        const writer = port.value.writable.getWriter();
+        await writer.write(
+          new TextEncoder().encode(CytonBoardCommands.START_STREAMING),
+        );
+      }
+
       // console.log(reader.value);
       return { value: null, done: false }; // Return done as true to stop the loop if there's an error
     }
