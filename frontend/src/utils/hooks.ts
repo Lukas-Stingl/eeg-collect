@@ -316,6 +316,11 @@ export const useOpenBCIUtils = () => {
         console.log("Stream disconnected, checking status");
         if (isRecording.value) {
           console.log("Stream disconnected, attempting to reconnect");
+          if (reader.value) {
+            console.log(reader.value)
+            reader.value.releaseLock();
+            break;
+          }
           continue;
         } else {
           console.log("Stream disconnected, stopping read");
@@ -467,7 +472,7 @@ export const useOpenBCIUtils = () => {
       }
 
       if (!port.readable || !port.writable) {
-        await port.open({ baudRate: 115200, bufferSize: 16000 });
+        await port.open({ baudRate: 115200, bufferSize: 1000000 });
       }
 
       const reader: ReadableStreamDefaultReader<Uint8Array> =
@@ -541,7 +546,7 @@ export const useOpenBCIUtils = () => {
       });
     }
 
-    exportImpedanceCSV();
+    await exportImpedanceCSV();
   };
 
   const sendAudioSignalStartMessage = async () => {
@@ -826,9 +831,8 @@ export const useOpenBCIUtils = () => {
         getEncodedCytonCommand(CytonBoardCommands.CONFIGURE_SAMPLING_RATE),
       );
       console.log("Recording started");
-      isRecording.value = true;
-
       writer.releaseLock();
+      isRecording.value = true;
     } catch (error) {
       console.error("Error starting recording:", error);
     }
@@ -942,14 +946,17 @@ export const useOpenBCIUtils = () => {
         await writer.write(
           new TextEncoder().encode(CytonBoardCommands.START_STREAMING),
         );
+        writer.releaseLock();
       }
 
       // console.log(reader.value);
       return { value: null, done: false }; // Return done as true to stop the loop if there's an error
+      console.log(reader.value);
+      return { value: null, done: true }; // Return done as true to stop the loop if there's an error
     }
   };
 
-  const exportImpedanceCSV = () => {
+  const exportImpedanceCSV = async () => {
     const objectKeys = Object.keys(impedanceDataRaw.value);
     const csvContent = parseAndExportImpedance(
       impedanceDataRaw.value,
@@ -964,7 +971,7 @@ export const useOpenBCIUtils = () => {
     formData.append("fileName", fileName);
     formData.append("csvContent", csvContent);
 
-    fetch("/api/save-csv", {
+    await fetch("/api/save-csv", {
       method: "POST",
       body: formData,
     })
