@@ -82,7 +82,9 @@ watch(
 );
 
 onMounted(async () => {
-  props.runImpedanceCheck().then(() => (isImpedanceCheckFinished.value = true));
+  await props
+    .runImpedanceCheck()
+    .then(() => (isImpedanceCheckFinished.value = true));
 });
 </script>
 

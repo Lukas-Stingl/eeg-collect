@@ -115,6 +115,8 @@ export const useWebsocketConnection = async (): Promise<WebSocket | null> => {
 export const useOpenBCIUtils = () => {
   // ---- STATE ----
 
+  const isRecordingPaused = ref<boolean>(false);
+
   // ---- STATE: APIs ----
 
   const signalRMS = computed(() => {
@@ -266,7 +268,7 @@ export const useOpenBCIUtils = () => {
     ws.value.send("Setup Finished");
     await commandBoardStartStreamingData(RecordingMode.SESSION_RECORDING);
 
-    await startSignalQualityCheck();
+    startSignalQualityCheck();
   };
 
   // Wie readData() in cyton.js
@@ -278,10 +280,177 @@ export const useOpenBCIUtils = () => {
     let lastDataTimestamp = Date.now();
     let timeoutId: number;
 
-    watch(isRecording, (newValue) => {
-      console.log(
-        "isRecording changed to " + newValue + ". Loop running: " + newValue,
-      );
+    const readAndDecodeDataFromStream = async () => {
+      // TODO Hier noch checken ob der reader nicht closed ist. Wenn ja, return, sonst gibts eine endlosschleife
+      while (isRecording.value) {
+        const { value, done } = await readFromStream();
+
+        // console.log("received from stream: ", value);
+
+        if (done) {
+          console.log("Stream disconnected, checking status");
+          if (isRecording.value) {
+            console.log("Stream disconnected, attempting to reconnect");
+            if (reader.value) {
+              console.log(reader.value);
+              reader.value.releaseLock();
+              break;
+            }
+            continue;
+          } else {
+            console.log("Stream disconnected, stopping read");
+            if (reader.value) {
+              reader.value.releaseLock();
+              break;
+            }
+          }
+        }
+
+        lastDataTimestamp = Date.now(); // Update timestamp on new data
+        resetTimeout();
+
+        if (!value) {
+          console.log("Warning: Received null or undefined value from reader.");
+
+          continue;
+        }
+
+        // Process received chunk
+        for (let i = 0; i < value.length; i++) {
+          try {
+            // Check if the header is found
+            if (!headerFound && value[i] === 160) {
+              headerFound = true;
+            } else if (!headerFound && !headerFound) {
+              const text = new TextDecoder().decode(value);
+              // console.log(text);
+            }
+
+            if (headerFound) {
+              chunkBuffer.push(value[i]);
+            }
+          } catch (error) {
+            // console.error("Error in first part of for loop:", error);
+            // logErrorDetails(error, buffer, isRecording.value);
+          }
+
+          try {
+            // Check if a complete chunk is formed
+            // Decode the chunk
+            // Stop receiving data if the stop byte is found
+            if (value[i] < 192 || value[i] > 198 || chunkBuffer.length <= 30) {
+              // TODO: I assume this case is not caught: What happens if the above is not executed and the buffer not reset?
+              // console.log("Unsure what to do with rest of chunk?");
+
+              continue;
+            }
+
+            headerFound = false;
+
+            if (recordingMode.value === RecordingMode.RECORDING) {
+              console.log("---- Recording Mode ----");
+              // ---- RECORDING MODE ----
+
+              switch (mode.value) {
+                case ConnectionMode.CYTON: {
+                  const data = decodeCytonData(chunkBuffer);
+
+                  if (data) {
+                    if (unthrottledBuffer.length > 1250) {
+                      unthrottledBuffer.shift();
+                    }
+
+                    unthrottledBuffer.push(data);
+
+                    // Use the throttled function to update rollingBuffer
+                    throttledUpdateRollingBuffer(unthrottledBuffer);
+                  }
+                  break;
+                }
+                case ConnectionMode.DAISY:
+                  // decodeDaisy(buffer);
+                  break;
+              }
+
+              if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
+                console.error("WebSocket not open, chunk not sent.");
+                break;
+              }
+
+              try {
+                //@ts-ignore-next-line
+                ws.value.send(chunkBuffer);
+              } catch (err) {
+                console.error("Error sending chunk to WebSocket:", err);
+              }
+            } else if (recordingMode.value === RecordingMode.IMPEDANCE) {
+              console.log("---- Impedance Mode ----");
+              // ---- IMPEDANCE MODE ----
+
+              switch (mode.value) {
+                case ConnectionMode.CYTON: {
+                  decodeChunkImpedance(chunkBuffer);
+                  break;
+                }
+                case ConnectionMode.DAISY:
+                  // decodeDaisy(buffer);
+                  break;
+              }
+            } else if (
+              recordingMode.value === RecordingMode.SESSION_RECORDING
+            ) {
+              console.log("---- Session Mode ----");
+              // ---- SESSION RECORDING MODE ----
+
+              switch (mode.value) {
+                case ConnectionMode.CYTON: {
+                  if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
+                    console.error("WebSocket not open, chunk not sent.");
+                    break;
+                  }
+
+                  try {
+                    //@ts-ignore-next-line
+                    ws.value.send(chunkBuffer);
+                  } catch (err) {
+                    console.error("Error sending chunk to WebSocket:", err);
+                  }
+
+                  break;
+                }
+                case ConnectionMode.DAISY:
+                  // decodeDaisy(buffer);
+                  break;
+              }
+            }
+
+            chunkBuffer = []; // Reset buffer for the next chunk
+          } catch (error) {
+            console.error("Error in second part of for loop:", error);
+          }
+        }
+      }
+    };
+
+    watch(
+      isRecording,
+      (newValue) => {
+        console.log(
+          "isRecording changed to " + newValue + ". Loop running: " + newValue,
+        );
+        if (newValue) {
+          readAndDecodeDataFromStream();
+        }
+      },
+      { immediate: true },
+    );
+
+    watch(isRecordingPaused, (newValue) => {
+      console.log("isRecordingPaused " + newValue);
+
+      if (!newValue) {
+        readAndDecodeDataFromStream();
+      }
     });
 
     const resetTimeout = () => {
@@ -305,155 +474,6 @@ export const useOpenBCIUtils = () => {
     // let stop = false;
 
     const unthrottledBuffer: OpenBCISerialData[] = [];
-
-    // TODO Hier noch checken ob der reader nicht closed ist. Wenn ja, return, sonst gibts eine endlosschleife
-    while (isRecording.value) {
-      const { value, done } = await readFromStream();
-
-      // console.log("received from stream: ", value);
-
-      if (done) {
-        console.log("Stream disconnected, checking status");
-        if (isRecording.value) {
-          console.log("Stream disconnected, attempting to reconnect");
-          if (reader.value) {
-            console.log(reader.value);
-            reader.value.releaseLock();
-            break;
-          }
-          continue;
-        } else {
-          console.log("Stream disconnected, stopping read");
-          if (reader.value) {
-            reader.value.releaseLock();
-            break;
-          }
-        }
-      }
-
-      lastDataTimestamp = Date.now(); // Update timestamp on new data
-      resetTimeout();
-
-      if (!value) {
-        console.log("Warning: Received null or undefined value from reader.");
-
-        continue;
-      }
-
-      // Process received chunk
-      for (let i = 0; i < value.length; i++) {
-        try {
-          // Check if the header is found
-          if (!headerFound && value[i] === 160) {
-            headerFound = true;
-          } else if (!headerFound && !headerFound) {
-            const text = new TextDecoder().decode(value);
-            // console.log(text);
-          }
-
-          if (headerFound) {
-            chunkBuffer.push(value[i]);
-          }
-        } catch (error) {
-          // console.error("Error in first part of for loop:", error);
-          // logErrorDetails(error, buffer, isRecording.value);
-        }
-
-        try {
-          // Check if a complete chunk is formed
-          // Decode the chunk
-          // Stop receiving data if the stop byte is found
-          if (value[i] < 192 || value[i] > 198 || chunkBuffer.length <= 30) {
-            // TODO: I assume this case is not caught: What happens if the above is not executed and the buffer not reset?
-            // console.log("Unsure what to do with rest of chunk?");
-
-            continue;
-          }
-
-          headerFound = false;
-
-          if (recordingMode.value === RecordingMode.RECORDING) {
-            console.log("---- Recording Mode ----");
-            // ---- RECORDING MODE ----
-
-            switch (mode.value) {
-              case ConnectionMode.CYTON: {
-                const data = decodeCytonData(chunkBuffer);
-
-                if (data) {
-                  if (unthrottledBuffer.length > 1250) {
-                    unthrottledBuffer.shift();
-                  }
-
-                  unthrottledBuffer.push(data);
-
-                  // Use the throttled function to update rollingBuffer
-                  throttledUpdateRollingBuffer(unthrottledBuffer);
-                }
-                break;
-              }
-              case ConnectionMode.DAISY:
-                // decodeDaisy(buffer);
-                break;
-            }
-
-            if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
-              console.error("WebSocket not open, chunk not sent.");
-              break;
-            }
-
-            try {
-              //@ts-ignore-next-line
-              ws.value.send(chunkBuffer);
-            } catch (err) {
-              console.error("Error sending chunk to WebSocket:", err);
-            }
-          } else if (recordingMode.value === RecordingMode.IMPEDANCE) {
-            console.log("---- Impedance Mode ----");
-            // ---- IMPEDANCE MODE ----
-
-            switch (mode.value) {
-              case ConnectionMode.CYTON: {
-                console.log("---- Cyton Mode ----");
-                decodeChunkImpedance(chunkBuffer);
-                break;
-              }
-              case ConnectionMode.DAISY:
-                // decodeDaisy(buffer);
-                break;
-            }
-          } else if (recordingMode.value === RecordingMode.SESSION_RECORDING) {
-            console.log("---- Session Mode ----");
-            // ---- SESSION RECORDING MODE ----
-
-            switch (mode.value) {
-              case ConnectionMode.CYTON: {
-                if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
-                  console.error("WebSocket not open, chunk not sent.");
-                  break;
-                }
-
-                try {
-                  //@ts-ignore-next-line
-                  ws.value.send(chunkBuffer);
-                } catch (err) {
-                  console.error("Error sending chunk to WebSocket:", err);
-                }
-
-                break;
-              }
-              case ConnectionMode.DAISY:
-                // decodeDaisy(buffer);
-                break;
-            }
-          }
-
-          chunkBuffer = []; // Reset buffer for the next chunk
-        } catch (error) {
-          console.error("Error in second part of for loop:", error);
-        }
-      }
-    }
   };
 
   const throttledUpdateRollingBuffer = throttle((data: any) => {
@@ -595,9 +615,6 @@ export const useOpenBCIUtils = () => {
         interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.5364418669;
       const channelName = `A${Math.ceil((i - 1) / 3)}`;
 
-      console.log("---- CHANNEL DATA ----");
-      console.log(channelData);
-
       // @ts-ignore-next-line: Der meckert, weil der key count vom Typ string ist.
       data.value[channelName as keyof OpenBCICytonData].push(channelData);
       eegData.push(channelData);
@@ -678,8 +695,9 @@ export const useOpenBCIUtils = () => {
       console.log("Impedance check command sent for channel " + channel);
       writer.releaseLock();
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 seconds
-      await commandBoardStartStreamingData(RecordingMode.IMPEDANCE); // Start recording for 5 seconds
-      console.log("Waiting for 5 sec"); // Deactivate impedance measurement after 5 seconds
+      await commandBoardStartStreamingData(RecordingMode.IMPEDANCE);
+      isRecordingPaused.value = false;
+      console.log("Waiting for 5 sec"); // Start recording for 5 seconds
       await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 seconds
       console.log("Impedance check completed for channel " + channel);
       await stopImpedanceRecordingForChannel("A" + channel);
@@ -707,8 +725,8 @@ export const useOpenBCIUtils = () => {
       await writer
         .write(new TextEncoder().encode(CytonBoardCommands.STOP_STREAMING))
         .then(() => {
-          isRecording.value = false;
-          console.log("Recording stopped");
+          isRecordingPaused.value = true;
+          console.log("Recording paused");
         })
         .finally(() => writer.releaseLock());
 
@@ -818,6 +836,7 @@ export const useOpenBCIUtils = () => {
   const commandBoardStartStreamingData = async (mode: RecordingMode) => {
     recordingMode.value = mode;
     isRecording.value = true;
+    isRecordingPaused.value = false;
     impedanceRecordingStartTime.value = getReadableTimestamp();
 
     // Check if the port is writable before writing data
