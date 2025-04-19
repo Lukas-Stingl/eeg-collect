@@ -317,7 +317,7 @@ export const useOpenBCIUtils = () => {
         if (isRecording.value) {
           console.log("Stream disconnected, attempting to reconnect");
           if (reader.value) {
-            console.log(reader.value)
+            console.log(reader.value);
             reader.value.releaseLock();
             break;
           }
@@ -373,6 +373,7 @@ export const useOpenBCIUtils = () => {
           headerFound = false;
 
           if (recordingMode.value === RecordingMode.RECORDING) {
+            console.log("---- Recording Mode ----");
             // ---- RECORDING MODE ----
 
             switch (mode.value) {
@@ -408,10 +409,12 @@ export const useOpenBCIUtils = () => {
               console.error("Error sending chunk to WebSocket:", err);
             }
           } else if (recordingMode.value === RecordingMode.IMPEDANCE) {
+            console.log("---- Impedance Mode ----");
             // ---- IMPEDANCE MODE ----
 
             switch (mode.value) {
               case ConnectionMode.CYTON: {
+                console.log("---- Cyton Mode ----");
                 decodeChunkImpedance(chunkBuffer);
                 break;
               }
@@ -420,6 +423,7 @@ export const useOpenBCIUtils = () => {
                 break;
             }
           } else if (recordingMode.value === RecordingMode.SESSION_RECORDING) {
+            console.log("---- Session Mode ----");
             // ---- SESSION RECORDING MODE ----
 
             switch (mode.value) {
@@ -530,15 +534,18 @@ export const useOpenBCIUtils = () => {
   };
 
   const runImpedanceCheck = async () => {
-    resetImpedance("H");
+    const urlParams = new URLSearchParams(window.location.search);
+    const channelConfig = urlParams.get("wlmtdoqtqe");
+
+    resetImpedance(channelConfig ?? "E");
 
     await defaultChannelSettings();
 
     recordingMode.value = RecordingMode.IMPEDANCE;
 
     for (let i = 1; i <= 8; i++) {
+      recordingMode.value = RecordingMode.IMPEDANCE;
       console.log("IIIIIIIIIIIIII");
-      console.log(i);
       isImpedanceCheckRunning.value = true;
       impedanceCheckChannel.value = i;
       await runImpedanceCheckForChannel(i).then(() => {
@@ -587,6 +594,9 @@ export const useOpenBCIUtils = () => {
       const channelData =
         interpret24bitAsInt32(byteArray.slice(i - 1, i + 2)) * 0.5364418669;
       const channelName = `A${Math.ceil((i - 1) / 3)}`;
+
+      console.log("---- CHANNEL DATA ----");
+      console.log(channelData);
 
       // @ts-ignore-next-line: Der meckert, weil der key count vom Typ string ist.
       data.value[channelName as keyof OpenBCICytonData].push(channelData);
@@ -667,16 +677,16 @@ export const useOpenBCIUtils = () => {
       await writer.write(new TextEncoder().encode(channelCheckStartCommand)); // Start Impedance Command
       console.log("Impedance check command sent for channel " + channel);
       writer.releaseLock();
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 seconds
       await commandBoardStartStreamingData(RecordingMode.IMPEDANCE); // Start recording for 5 seconds
-      await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 seconds
       console.log("Waiting for 5 sec"); // Deactivate impedance measurement after 5 seconds
+      await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 seconds
       console.log("Impedance check completed for channel " + channel);
       await stopImpedanceRecordingForChannel("A" + channel);
       writer = port.value.writable.getWriter();
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 seconds
       await writer.write(new TextEncoder().encode(channelCheckResetCommand)); // Reset Command
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 5 seconds
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 seconds
       console.log("Reset command sent for channel " + channel);
       writer.releaseLock();
     } catch (error) {
@@ -698,13 +708,11 @@ export const useOpenBCIUtils = () => {
         .write(new TextEncoder().encode(CytonBoardCommands.STOP_STREAMING))
         .then(() => {
           isRecording.value = false;
-          console.log("O");
-        });
-      console.log("Recording stopped");
-      writer.releaseLock();
+          console.log("Recording stopped");
+        })
+        .finally(() => writer.releaseLock());
 
       data.value.count = `${data.value[channel as keyof OpenBCICytonData].length}`;
-      console.log("Channel: " + channel);
       // Prepare data to send
       // @ts-ignore-next-line
       const raw_data = data.value[channel as keyof OpenBCICytonData].map(
