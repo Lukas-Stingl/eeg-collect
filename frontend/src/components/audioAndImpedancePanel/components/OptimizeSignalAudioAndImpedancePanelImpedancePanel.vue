@@ -38,6 +38,10 @@ const handleContinue = async () =>
   await props.stopRecording().then(async () => {
     emit("close");
 
+    console.log(
+      "stopped recording, navigating to next route " + props.nextRoute,
+    );
+
     navigateToRestricted(props.nextRoute, route.query);
   });
 

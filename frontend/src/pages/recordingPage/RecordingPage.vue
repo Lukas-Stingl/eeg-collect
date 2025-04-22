@@ -66,7 +66,10 @@ const startBuffer = () => {
 // ---- LIFECYCLE HOOKS ----
 
 onMounted(() => {
-  startRecording();
+  setTimeout(() => {
+    // Start the recording after a delay of 1 second
+    startRecording();
+  }, 1000);
 });
 
 watch(

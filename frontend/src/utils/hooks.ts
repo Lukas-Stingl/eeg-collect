@@ -116,6 +116,7 @@ export const useOpenBCIUtils = () => {
   // ---- STATE ----
 
   const isRecordingPaused = ref<boolean>(false);
+  const isReadingDataStopped = ref<boolean>(false);
 
   // ---- STATE: APIs ----
 
@@ -265,11 +266,14 @@ export const useOpenBCIUtils = () => {
       return;
     }
 
+    console.log("Setup Finished");
     ws.value.send("Setup Finished");
     await commandBoardStartStreamingData(RecordingMode.SESSION_RECORDING);
 
     startSignalQualityCheck();
   };
+
+  const isWhileRunning = ref<boolean>(false);
 
   // Wie readData() in cyton.js
   const startSignalQualityCheck = async () => {
@@ -280,7 +284,12 @@ export const useOpenBCIUtils = () => {
     let lastDataTimestamp = Date.now();
     let timeoutId: number;
 
-    const readAndDecodeDataFromStream = async () => {
+    const readAndDecodeDataFromStream = async (
+      specifiedRecordingMode?: RecordingMode,
+      caller?: string,
+    ) => {
+      if (caller) console.log(caller);
+
       // TODO Hier noch checken ob der reader nicht closed ist. Wenn ja, return, sonst gibts eine endlosschleife
       while (isRecording.value) {
         const { value, done } = await readFromStream();
@@ -347,7 +356,10 @@ export const useOpenBCIUtils = () => {
 
             headerFound = false;
 
-            if (recordingMode.value === RecordingMode.RECORDING) {
+            if (
+              specifiedRecordingMode === RecordingMode.RECORDING ||
+              recordingMode.value === RecordingMode.RECORDING
+            ) {
               console.log("---- Recording Mode ----");
               // ---- RECORDING MODE ----
 
@@ -383,7 +395,10 @@ export const useOpenBCIUtils = () => {
               } catch (err) {
                 console.error("Error sending chunk to WebSocket:", err);
               }
-            } else if (recordingMode.value === RecordingMode.IMPEDANCE) {
+            } else if (
+              specifiedRecordingMode === RecordingMode.IMPEDANCE ||
+              recordingMode.value === RecordingMode.IMPEDANCE
+            ) {
               console.log("---- Impedance Mode ----");
               // ---- IMPEDANCE MODE ----
 
@@ -397,6 +412,7 @@ export const useOpenBCIUtils = () => {
                   break;
               }
             } else if (
+              specifiedRecordingMode === RecordingMode.SESSION_RECORDING ||
               recordingMode.value === RecordingMode.SESSION_RECORDING
             ) {
               console.log("---- Session Mode ----");
@@ -430,7 +446,38 @@ export const useOpenBCIUtils = () => {
           }
         }
       }
+
+      isWhileRunning.value = false;
+      isReadingDataStopped.value = true;
+      console.log("While ended");
     };
+
+    watch(
+      isReadingDataStopped,
+      (newValue) => {
+        console.log("isReadingDataStopped changed to " + newValue);
+        if (newValue && isRecording.value && !isWhileRunning.value) {
+          console.log("Restarting Data Reading");
+          isReadingDataStopped.value = false;
+          isWhileRunning.value = true;
+          readAndDecodeDataFromStream(
+            recordingMode.value,
+            "watch IsReadingData",
+          );
+        }
+      },
+      { immediate: true },
+    );
+
+    watch(recordingMode, async (newValue) => {
+      console.log("recordingMode changed to " + recordingMode.value);
+      if (newValue) {
+        await stopRecording().then(() => {
+          isWhileRunning.value = true;
+          readAndDecodeDataFromStream(newValue, "watch recordingMode");
+        });
+      }
+    });
 
     watch(
       isRecording,
@@ -438,8 +485,10 @@ export const useOpenBCIUtils = () => {
         console.log(
           "isRecording changed to " + newValue + ". Loop running: " + newValue,
         );
-        if (newValue) {
-          readAndDecodeDataFromStream();
+        console.log(recordingMode.value);
+        if (newValue && !isWhileRunning.value) {
+          isWhileRunning.value = true;
+          readAndDecodeDataFromStream(recordingMode.value, "watch isRecording");
         }
       },
       { immediate: true },
@@ -448,23 +497,29 @@ export const useOpenBCIUtils = () => {
     watch(isRecordingPaused, (newValue) => {
       console.log("isRecordingPaused " + newValue);
 
-      if (!newValue) {
-        readAndDecodeDataFromStream();
+      if (!newValue && !isWhileRunning.value) {
+        isWhileRunning.value = true;
+        readAndDecodeDataFromStream(
+          recordingMode.value,
+          "watch isRecordingPaused",
+        );
       }
     });
 
     const resetTimeout = () => {
       if (timeoutId) clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        if (
-          isRecording.value &&
-          Date.now() - lastDataTimestamp >= 10000 &&
-          isRecording.value
-        ) {
+        if (isRecording.value && Date.now() - lastDataTimestamp >= 10000) {
           console.log(
             "no new data received since 10 seconds, restarting stream",
           );
           commandBoardStartStreamingData(RecordingMode.SESSION_RECORDING);
+          isReadingDataStopped.value = false;
+          isWhileRunning.value = true;
+          readAndDecodeDataFromStream(
+            RecordingMode.SESSION_RECORDING,
+            "caller resetTimeout",
+          );
         }
       }, 10000);
     };
@@ -690,6 +745,8 @@ export const useOpenBCIUtils = () => {
       }
 
       let writer = port.value.writable.getWriter();
+
+      recordingMode.value = RecordingMode.IMPEDANCE;
 
       await writer.write(new TextEncoder().encode(channelCheckStartCommand)); // Start Impedance Command
       console.log("Impedance check command sent for channel " + channel);
@@ -978,8 +1035,6 @@ export const useOpenBCIUtils = () => {
 
       // console.log(reader.value);
       return { value: null, done: false }; // Return done as true to stop the loop if there's an error
-      console.log(reader.value);
-      return { value: null, done: true }; // Return done as true to stop the loop if there's an error
     }
   };
 
@@ -1010,6 +1065,7 @@ export const useOpenBCIUtils = () => {
       })
       .then((data) => {
         console.log("CSV file saved successfully:", data.filePath);
+        isRecording.value = false;
       })
       .catch((error) => {
         console.error("Error saving CSV file:", error);
