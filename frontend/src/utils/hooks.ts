@@ -360,7 +360,7 @@ export const useOpenBCIUtils = () => {
               specifiedRecordingMode === RecordingMode.RECORDING ||
               recordingMode.value === RecordingMode.RECORDING
             ) {
-              console.log("---- Recording Mode ----");
+              // console.log("---- Recording Mode ----");
               // ---- RECORDING MODE ----
 
               switch (mode.value) {
@@ -399,7 +399,7 @@ export const useOpenBCIUtils = () => {
               specifiedRecordingMode === RecordingMode.IMPEDANCE ||
               recordingMode.value === RecordingMode.IMPEDANCE
             ) {
-              console.log("---- Impedance Mode ----");
+              // console.log("---- Impedance Mode ----");
               // ---- IMPEDANCE MODE ----
 
               switch (mode.value) {
@@ -415,7 +415,7 @@ export const useOpenBCIUtils = () => {
               specifiedRecordingMode === RecordingMode.SESSION_RECORDING ||
               recordingMode.value === RecordingMode.SESSION_RECORDING
             ) {
-              console.log("---- Session Mode ----");
+              // console.log("---- Session Mode ----");
               // ---- SESSION RECORDING MODE ----
 
               switch (mode.value) {
