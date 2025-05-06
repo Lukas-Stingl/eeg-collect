@@ -509,7 +509,7 @@ export const useOpenBCIUtils = () => {
     const resetTimeout = () => {
       if (timeoutId) clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        if (isRecording.value && Date.now() - lastDataTimestamp >= 10000) {
+        if (isRecording.value && Date.now() - lastDataTimestamp >= 3000) {
           console.log(
             "no new data received since 10 seconds, restarting stream",
           );
@@ -521,7 +521,7 @@ export const useOpenBCIUtils = () => {
             "caller resetTimeout",
           );
         }
-      }, 10000);
+      }, 3000);
     };
 
     // Start the initial timeout check
