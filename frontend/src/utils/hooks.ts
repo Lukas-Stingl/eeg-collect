@@ -11,7 +11,7 @@ import {
   URL_PARAMS,
   URLs,
 } from "@/utils/helpers";
-import { computed, Ref, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import CHANNEL_ASSIGNMENT from "@/config/channelAssignment.json";
 import channelAssignment from "@/config/channelAssignment.json";
 import { ConnectionMode, State } from "@/store/utils/storeTypes";
@@ -27,7 +27,6 @@ import {
   RecordingMode,
   SerialDataRMS,
 } from "@/utils/openBCISerialTypes";
-import axios from "axios";
 import { filter_setup, filter_signal } from "@/utils/fir-filter";
 
 export const useConfigureParticipantId = () => {
@@ -473,6 +472,7 @@ export const useOpenBCIUtils = () => {
       console.log("recordingMode changed to " + recordingMode.value);
       if (newValue) {
         await stopRecording().then(() => {
+          data.value = OPEN_BCI_CYTON_DATA_DEFAULT_VALUE;
           isWhileRunning.value = true;
           readAndDecodeDataFromStream(newValue, "watch recordingMode");
         });
@@ -487,6 +487,7 @@ export const useOpenBCIUtils = () => {
         );
         console.log(recordingMode.value);
         if (newValue && !isWhileRunning.value) {
+          chunkBuffer = [];
           isWhileRunning.value = true;
           readAndDecodeDataFromStream(recordingMode.value, "watch isRecording");
         }
@@ -617,6 +618,28 @@ export const useOpenBCIUtils = () => {
     await defaultChannelSettings();
 
     recordingMode.value = RecordingMode.IMPEDANCE;
+
+    if (!port.value || !port.value.writable) {
+      console.error("Serial port is not writable, Imdpedance check failed");
+
+      return;
+    }
+
+    const writer = port.value.writable.getWriter();
+    await writer
+      .write(new TextEncoder().encode(CytonBoardCommands.STOP_STREAMING))
+      .then(() => {
+        isRecordingPaused.value = true;
+        console.log("Recording paused");
+      })
+      .finally(() => writer.releaseLock());
+
+    data.value = OPEN_BCI_CYTON_DATA_DEFAULT_VALUE;
+
+    // Channel 1 has to be checked twice, due to a bug which calculates a wrong impedance value for the first check.
+    await runImpedanceCheckForChannel(1).then(() => {
+      isImpedanceCheckRunning.value = false;
+    });
 
     for (let i = 1; i <= 8; i++) {
       recordingMode.value = RecordingMode.IMPEDANCE;
