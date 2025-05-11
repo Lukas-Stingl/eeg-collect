@@ -289,7 +289,6 @@ export const useOpenBCIUtils = () => {
     ) => {
       if (caller) console.log(caller);
 
-      // TODO Hier noch checken ob der reader nicht closed ist. Wenn ja, return, sonst gibts eine endlosschleife
       while (isRecording.value) {
         const { value, done } = await readFromStream();
 
@@ -1033,19 +1032,38 @@ export const useOpenBCIUtils = () => {
     }
   };
 
+  const retrieveAndResetReader = () => {
+    if (!port.value) {
+      console.error("No port found");
+      return;
+    }
+
+    const retrievedReader: ReadableStreamDefaultReader<Uint8Array> =
+      port.value.readable.getReader();
+
+    store.commit("setWebSerialReader", { reader: retrievedReader });
+  };
+
   const readFromStream = async () => {
-    // console.log("readFromStream");
-    // console.log(reader.value);
+    if (!reader.value) {
+      console.error("No reader found");
+
+      retrieveAndResetReader();
+
+      return { value: null, done: false };
+    }
+
     try {
-      if (!reader.value) {
-        console.error("No reader found");
-        return { value: null, done: false };
-      }
       const { value, done } = await reader.value.read();
-      // console.log(value);
+
       return { value, done };
     } catch (err) {
-      console.error("Error while reading from stream:", err);
+      console.error("rFS: Error while reading from stream:", err);
+      console.log(reader.value);
+
+      console.log("rFS: re-setting reader");
+      console.log(reader);
+      retrieveAndResetReader();
 
       // DEBUG ATTEMPT: Try to restart the stream
       if (port.value && port.value.writable) {
