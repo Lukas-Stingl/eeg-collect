@@ -5,7 +5,7 @@ import { LottieAnimation } from "lottie-web-vue";
 
 import Breathing from "@/assets/Breathing.json";
 // import DynamicGradient from "@/assets/DynamicGradient.json";
-import audioFile from "@/assets/40HzAudio.mp3";
+import audioFile from "@/assets/boot_assr_60s.mp3";
 import { useOpenBCIUtils } from "@/utils/hooks";
 
 const emit = defineEmits(["close"]);
