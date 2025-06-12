@@ -1,5 +1,5 @@
 export const getSignalState = ({ signal }: { signal?: number }) => {
-  if (!signal || signal < 0.1) {
+  if (!signal || signal < 0.5) {
     return 1;
   } else if (signal > 300) {
     return 2;
